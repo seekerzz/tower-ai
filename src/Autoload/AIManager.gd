@@ -3,7 +3,7 @@ extends Node
 ## AI 管理器 - WebSocket 服务端
 ## 监听游戏事件，暂停游戏，下发状态给 AI 客户端
 
-const PORT: int = 9090
+const PORT: int = 45678
 
 # ===== 网络组件 =====
 var tcp_server: TCPServer = null
@@ -15,6 +15,18 @@ var is_waiting_for_action: bool = false
 var last_event_type: String = ""
 var last_event_data: Dictionary = {}
 
+## AI 暂停标志 - 用于非原生暂停（只停逻辑，UI继续）
+var ai_paused: bool = false:
+	get:
+		return ai_paused
+	set(value):
+		ai_paused = value
+		AILogger.event("AI暂停状态: " + str(value))
+
+## 检查游戏是否应该暂停（AI暂停或原生暂停）
+func is_game_effectively_paused() -> bool:
+	return ai_paused or get_tree().paused
+
 # ===== 信号 =====
 signal state_sent(event_type: String, state: Dictionary)
 signal action_received(actions: Array)
@@ -23,8 +35,13 @@ signal client_disconnected
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_start_server()
+	# 延迟启动服务器，确保网络子系统就绪
+	call_deferred("_delayed_start_server")
 	_connect_game_signals()
+
+func _delayed_start_server():
+	await get_tree().create_timer(0.5).timeout
+	_start_server()
 
 func _exit_tree():
 	_stop_server()
@@ -36,6 +53,7 @@ func _start_server():
 	var err = tcp_server.listen(PORT)
 	if err != OK:
 		AILogger.error("WebSocket 服务器启动失败，端口: %d，错误码: %d" % [PORT, err])
+		tcp_server = null
 		return
 	AILogger.net_connection("服务器已启动", "监听端口 %d" % PORT)
 
@@ -60,29 +78,35 @@ func _process(_delta):
 			else:
 				websocket_peer = WebSocketPeer.new()
 				websocket_peer.accept_stream(conn)
-				is_client_connected = true
-				AILogger.net_connection("客户端已连接")
-				client_connected.emit()
+				AILogger.net_connection("收到TCP连接", "等待WebSocket握手...")
 
-	# 处理 WebSocket 消息
+	# 处理 WebSocket
 	if websocket_peer:
 		websocket_peer.poll()
 		var state = websocket_peer.get_ready_state()
 
-		if state == WebSocketPeer.STATE_CLOSED:
-			AILogger.net_connection("客户端已断开")
-			websocket_peer = null
-			is_client_connected = false
-			is_waiting_for_action = false
-			client_disconnected.emit()
-			return
+		if state == WebSocketPeer.STATE_CONNECTING:
+			# 正在握手，等待完成
+			pass
 
-		if state == WebSocketPeer.STATE_OPEN:
+		elif state == WebSocketPeer.STATE_OPEN:
+			if not is_client_connected:
+				is_client_connected = true
+				AILogger.net_connection("客户端已连接", "WebSocket握手成功")
+				client_connected.emit()
+
 			while websocket_peer.get_available_packet_count() > 0:
 				var packet = websocket_peer.get_packet()
 				var text = packet.get_string_from_utf8()
 				AILogger.net_json("接收", text)
 				_handle_client_message(text)
+
+		elif state == WebSocketPeer.STATE_CLOSED:
+			AILogger.net_connection("客户端已断开")
+			websocket_peer = null
+			is_client_connected = false
+			is_waiting_for_action = false
+			client_disconnected.emit()
 
 # ===== 游戏信号连接 =====
 
@@ -152,8 +176,8 @@ func _pause_and_send(event_type: String, event_data: Dictionary = {}):
 	last_event_type = event_type
 	last_event_data = event_data
 
-	# 暂停游戏
-	get_tree().paused = true
+	# 使用AI暂停（非原生暂停，UI不灰屏）
+	ai_paused = true
 	AILogger.event("游戏已暂停 [%s]" % event_type)
 
 	# 构建并发送状态
@@ -350,10 +374,10 @@ func send_action_error(error_message: String, failed_action: Dictionary):
 
 func resume_game(wait_time: float = 0.0):
 	"""恢复游戏，可选延时后再次暂停"""
-	if not get_tree().paused:
+	if not ai_paused:
 		return
 
-	get_tree().paused = false
+	ai_paused = false
 	AILogger.event("游戏已恢复" + (" (%.1f秒后唤醒)" % wait_time if wait_time > 0 else ""))
 
 	if wait_time > 0:
