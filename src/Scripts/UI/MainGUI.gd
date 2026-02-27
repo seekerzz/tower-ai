@@ -45,7 +45,14 @@ func _ready():
 
 	# 1. 布局核心修复：强制重置侧边栏锚点为全高模式
 	_fix_sidebar_anchors()
-	
+
+	# 连接 SessionData 信号（替代 GameManager.resource_changed）
+	if GameManager.session_data:
+		GameManager.session_data.gold_changed.connect(_on_gold_changed)
+		GameManager.session_data.mana_changed.connect(_on_mana_changed)
+		GameManager.session_data.core_health_changed.connect(_on_core_health_changed)
+		GameManager.session_data.wave_changed.connect(_on_wave_changed)
+
 	GameManager.resource_changed.connect(update_ui)
 	GameManager.wave_started.connect(update_ui)
 	GameManager.wave_ended.connect(update_ui)
@@ -207,6 +214,31 @@ func _on_totem_resource_changed(totem_id: String, current: int, max_value: int):
 	# 只显示狼图腾的魂魄数量
 	if totem_id == "wolf" and soul_label:
 		soul_label.text = "🔮 %d/%d" % [current, max_value]
+
+# ===== SessionData 信号处理 =====
+
+func _on_gold_changed(new_amount: int):
+	if gold_label:
+		gold_label.text = "💰 %d" % new_amount
+	if combat_gold_label:
+		combat_gold_label.text = "💰 %d" % new_amount
+
+func _on_mana_changed(current: float, maximum: float):
+	if mana_bar:
+		mana_bar.value = (current / maximum) * 100
+	if mana_label:
+		mana_label.text = "💧 %d/%d" % [int(current), int(maximum)]
+
+func _on_core_health_changed(current: float, maximum: float):
+	if hp_bar:
+		var target_hp = (current / maximum) * 100
+		create_tween().tween_property(hp_bar, "value", target_hp, 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	if hp_label:
+		hp_label.text = "❤️ %d/%d" % [int(current), int(maximum)]
+
+func _on_wave_changed(new_wave: int):
+	if wave_label:
+		wave_label.text = "Wave %d" % new_wave
 
 func _setup_stats_panel():
 	damage_stats_panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)
