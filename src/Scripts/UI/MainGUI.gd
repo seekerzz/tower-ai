@@ -218,8 +218,6 @@ func _on_totem_resource_changed(totem_id: String, current: int, max_value: int):
 # ===== SessionData 信号处理 =====
 
 func _on_gold_changed(new_amount: int):
-	if gold_label:
-		gold_label.text = "💰 %d" % new_amount
 	if combat_gold_label:
 		combat_gold_label.text = "💰 %d" % new_amount
 
