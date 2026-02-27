@@ -179,17 +179,15 @@ func _setup_soul_catcher():
 func _on_enemy_died(enemy, killer_unit):
 	"""
 	敌人死亡时触发，处理灵魂捕手效果
+	泛化效果: 增加当前图腾的资源上限
 	"""
 	if reward_manager and "soul_catcher" in reward_manager.acquired_artifacts:
 		soul_catcher_kills += 1
 		soul_catcher_bonus += 1
-		# 增加SoulManager的魂魄上限
-		if has_node("/root/SoulManager"):
-			var sm = get_node("/root/SoulManager")
-			if sm.has_method("add_souls"):
-				# 添加1点魂魄作为上限加成
-				sm.add_souls(1, "soul_catcher")
-				print("[GameManager] 灵魂捕手触发: 击杀敌人，魂魄上限+1 (总计+%d)" % soul_catcher_bonus)
+		# 泛化遗物效果: 增加当前图腾的资源上限
+		if core_type:
+			TotemManager.modify_max_resource(core_type, 1)
+			print("[GameManager] 灵魂捕手触发: %s 图腾资源上限+1 (总计+%d)" % [core_type, soul_catcher_bonus])
 
 func _get_relic_stat_modifier(stat_type: String) -> float:
 	"""
