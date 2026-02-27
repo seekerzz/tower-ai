@@ -35,6 +35,10 @@ func _ready():
 	if GameManager.has_signal("wave_reset"):
 		GameManager.wave_reset.connect(on_wave_reset)
 
+	# 连接 BoardController 信号
+	BoardController.shop_refreshed.connect(_on_shop_refreshed)
+	BoardController.unit_purchased.connect(_on_unit_purchased)
+
 	# Wait for GameManager to be initialized
 	if GameManager.core_type == "":
 		await GameManager.core_type_changed
@@ -158,10 +162,14 @@ func update_ui():
 # Removed update_wave_info, get_wave_type, get_wave_icon as they were used for GlobalPreview/CurrentDetails
 
 func refresh_shop(force: bool = false):
-	if !force and GameManager.gold < 10: return
-	if !force:
-		GameManager.spend_gold(10)
+	if force:
+		# 强制刷新不走 BoardController（免费刷新）
+		_perform_refresh()
+	else:
+		# 调用 BoardController API
+		BoardController.refresh_shop()
 
+func _perform_refresh():
 	# Get player's current totem
 	var player_faction = GameManager.core_type
 
@@ -171,13 +179,15 @@ func refresh_shop(force: bool = false):
 	var new_items = []
 
 	for i in range(SHOP_SIZE):
-		if !force and shop_items.size() > i and shop_locked[i]:
+		if shop_items.size() > i and shop_locked[i]:
 			new_items.append(shop_items[i])
 		else:
 			new_items.append(available_units.pick_random())
 
 	shop_items = new_items
+	_update_shop_ui()
 
+func _update_shop_ui():
 	for child in shop_container.get_children():
 		child.queue_free()
 
@@ -225,41 +235,12 @@ func create_shop_card(index, unit_key):
 	shop_container.add_child(card)
 
 func buy_unit(index, unit_key, card_ref):
-	if GameManager.is_wave_active: return
-	var proto = Constants.UNIT_TYPES[unit_key]
-
-	if unit_key == "meat":
-		# Meat special logic: Add to Inventory instead of Bench
-		if GameManager.inventory_manager:
-			if GameManager.gold >= proto.cost:
-				if !GameManager.inventory_manager.is_full():
-					if GameManager.inventory_manager.add_item({ "item_id": "meat", "count": 1 }):
-						GameManager.spend_gold(proto.cost)
-						# Meat doesn't deplete shop stock usually? Or does it?
-						# Assuming shop items are one-time purchase per refresh as per card logic:
-						unit_bought.emit(unit_key)
-						card_ref.modulate = Color(0.5, 0.5, 0.5)
-						card_ref.mouse_filter = MOUSE_FILTER_IGNORE
-						print("Bought Meat")
-				else:
-					print("Inventory Full")
-			else:
-				print("Not enough gold")
-		else:
-			print("Inventory Manager missing")
-		return
-
-	# Standard Unit Logic
-	if GameManager.gold >= proto.cost:
-		if GameManager.main_game and GameManager.main_game.add_to_bench(unit_key):
-			GameManager.spend_gold(proto.cost)
-			unit_bought.emit(unit_key)
-			card_ref.modulate = Color(0.5, 0.5, 0.5)
-			card_ref.mouse_filter = MOUSE_FILTER_IGNORE
-		else:
-			print("Bench Full")
-	else:
-		print("Not enough gold")
+	# 调用 BoardController API
+	var success = BoardController.buy_unit(index)
+	if success:
+		card_ref.modulate = Color(0.5, 0.5, 0.5)
+		card_ref.mouse_filter = MOUSE_FILTER_IGNORE
+		unit_bought.emit(unit_key)
 
 func on_wave_started():
 	refresh_btn.disabled = true
@@ -289,3 +270,16 @@ func _on_refresh_button_pressed():
 func _on_expand_button_pressed():
 	if GameManager.grid_manager:
 		GameManager.grid_manager.toggle_expansion_mode()
+
+# ===== BoardController 信号处理 =====
+
+func _on_shop_refreshed(new_shop_units: Array):
+	shop_items = new_shop_units
+	_update_shop_ui()
+
+func _on_unit_purchased(unit_key: String, target_zone: String, target_pos: Variant):
+	# 找到对应的 card 并更新显示为已购买
+	for i in range(shop_items.size()):
+		if shop_items[i] == unit_key:
+			# 标记该槽位为已购买（会在下次刷新时更新）
+			pass
