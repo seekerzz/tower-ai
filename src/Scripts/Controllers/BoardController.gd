@@ -1,4 +1,3 @@
-class_name BoardController
 extends Node
 
 # ===== 信号 =====
@@ -15,7 +14,7 @@ const ZONE_GRID = "grid"
 const ZONE_SHOP = "shop"
 
 # ===== 依赖 =====
-var session_data: SessionData = null
+var session_data = null  # SessionData instance
 var grid_manager = null
 
 func _ready():
@@ -32,7 +31,7 @@ func _ready():
 		if GameManager.session_data:
 			initialize(GameManager.session_data)
 
-func initialize(p_session_data: SessionData):
+func initialize(p_session_data):
 	"""初始化 BoardController，传入 SessionData 实例"""
 	session_data = p_session_data
 
@@ -206,7 +205,8 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 		# 实际放置单位到网格
 		if grid_manager:
 			var grid_pos = to_pos as Vector2i
-			if grid_manager.place_unit(unit_data["key"], grid_pos.x, grid_pos.y):
+			var unit_key = unit_data.get("key", "")
+			if grid_manager.place_unit(unit_key, grid_pos.x, grid_pos.y):
 				_remove_unit_from_zone(from_zone, from_pos)
 				unit_data["grid_pos"] = grid_pos
 				session_data.set_grid_unit(grid_pos, unit_data)
@@ -235,7 +235,7 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 
 	return false
 
-func _get_unit_at(zone: String, pos: Variant) -> Dictionary:
+func _get_unit_at(zone: String, pos: Variant):
 	match zone:
 		ZONE_BENCH:
 			return session_data.get_bench_unit(pos as int)
@@ -329,11 +329,12 @@ func sell_unit(zone: String, pos: Variant) -> bool:
 		return false
 
 	var unit_data = _get_unit_at(zone, pos)
-	if unit_data == null:
+	if unit_data == null or not unit_data is Dictionary:
 		operation_failed.emit("sell_unit", "No unit at position")
 		return false
 
-	var proto = Constants.UNIT_TYPES.get(unit_data["key"])
+	var unit_key = unit_data.get("key", "")
+	var proto = Constants.UNIT_TYPES.get(unit_key)
 	if proto == null:
 		operation_failed.emit("sell_unit", "Invalid unit type")
 		return false

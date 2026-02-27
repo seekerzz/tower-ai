@@ -131,21 +131,21 @@ func damage_core(amount: float):
 func heal_core(amount: float):
 	core_health = min(max_core_health, core_health + amount)
 
-func get_bench_unit(index: int) -> Dictionary:
+func get_bench_unit(index: int):
 	return bench_units.get(index, null)
 
-func set_bench_unit(index: int, unit_data: Dictionary):
+func set_bench_unit(index: int, unit_data):
 	if unit_data == null:
 		bench_units.erase(index)
 	else:
 		bench_units[index] = unit_data
 	bench_updated.emit(bench_units)
 
-func get_grid_unit(grid_pos: Vector2i) -> Dictionary:
+func get_grid_unit(grid_pos: Vector2i):
 	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
 	return grid_units.get(key, null)
 
-func set_grid_unit(grid_pos: Vector2i, unit_data: Dictionary):
+func set_grid_unit(grid_pos: Vector2i, unit_data):
 	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
 	if unit_data == null:
 		grid_units.erase(key)
@@ -153,7 +153,7 @@ func set_grid_unit(grid_pos: Vector2i, unit_data: Dictionary):
 		grid_units[key] = unit_data
 	grid_updated.emit(grid_units)
 
-func get_shop_unit(index: int) -> String:
+func get_shop_unit(index: int):
 	if index >= 0 and index < shop_units.size():
 		return shop_units[index]
 	return null

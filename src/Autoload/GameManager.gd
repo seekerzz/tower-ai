@@ -45,7 +45,7 @@ var is_running_test: bool = false
 var current_test_scenario: Dictionary = {}
 
 # ===== Session Data =====
-var session_data: SessionData = null
+var session_data = null  # SessionData instance, initialized in _ready
 
 var core_type: String = "":
 	set(value):
