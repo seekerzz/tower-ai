@@ -63,12 +63,13 @@ func _ready():
 		call_deferred("_attach_test_runner")
 
 func _attach_test_runner():
-	var runner_script = load("res://src/Scripts/Tests/AutomatedTestRunner.gd")
-	if runner_script:
-		var runner = runner_script.new()
-		add_child(runner)
+	# 运行 BoardController 测试
+	var test_script = load("res://src/Scripts/Tests/BoardControllerTest.gd")
+	if test_script:
+		var test_runner = test_script.new()
+		add_child(test_runner)
 	else:
-		printerr("[MainGame] Failed to load AutomatedTestRunner.gd")
+		printerr("[MainGame] Failed to load BoardControllerTest.gd")
 
 func _on_viewport_size_changed():
 	calculate_min_allowed_zoom()
