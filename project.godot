@@ -23,7 +23,7 @@ config/icon="res://icon.svg"
 
 Constants="*res://src/Scripts/Constants.gd"
 GameManager="*res://src/Autoload/GameManager.gd"
-SoulManager="*res://src/Autoload/SoulManager.gd"
+TotemManager="*res://src/Autoload/TotemManager.gd"
 AggroManager="*res://src/Scripts/Managers/AggroManager.gd"
 AssetLoader="*res://src/Scripts/Utils/AssetLoader.gd"
 StyleMaker="*res://src/Scripts/Utils/StyleMaker.gd"
