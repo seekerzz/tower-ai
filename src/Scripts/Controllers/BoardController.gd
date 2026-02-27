@@ -2,7 +2,7 @@ extends Node
 
 # ===== 信号 =====
 signal unit_moved(from_zone: String, from_pos: Variant,
-                  to_zone: String, to_pos: Variant, unit_data: Dictionary)
+				  to_zone: String, to_pos: Variant, unit_data: Dictionary)
 signal unit_sold(zone: String, pos: Variant, gold_refund: int)
 signal unit_purchased(unit_key: String, target_zone: String, target_pos: Variant)
 signal shop_refreshed(shop_units: Array)
@@ -154,7 +154,7 @@ func _find_empty_bench_slot() -> int:
 # ===== 单位移动 =====
 
 func try_move_unit(from_zone: String, from_pos: Variant,
-                   to_zone: String, to_pos: Variant) -> bool:
+				   to_zone: String, to_pos: Variant) -> bool:
 	"""
 	尝试移动单位
 	@param from_zone: 来源区域 ("bench", "grid")
@@ -277,8 +277,8 @@ func _can_merge(unit_a: Dictionary, unit_b: Dictionary) -> bool:
 	return unit_a["key"] == unit_b["key"] and unit_a["level"] == unit_b["level"]
 
 func _perform_merge(from_zone: String, from_pos: Variant,
-                    to_zone: String, to_pos: Variant,
-                    source_unit: Dictionary, target_unit: Dictionary):
+					to_zone: String, to_pos: Variant,
+					source_unit: Dictionary, target_unit: Dictionary):
 	# 移除来源单位
 	_remove_unit_from_zone(from_zone, from_pos)
 	if from_zone == ZONE_GRID:
@@ -304,8 +304,8 @@ func _update_unit_level_on_grid(grid_pos: Vector2i, new_level: int):
 				tile.unit.set_level(new_level)
 
 func _perform_swap(zone_a: String, pos_a: Variant,
-                   zone_b: String, pos_b: Variant,
-                   unit_a: Dictionary, unit_b: Dictionary):
+				   zone_b: String, pos_b: Variant,
+				   unit_a: Dictionary, unit_b: Dictionary):
 	session_data.set_bench_unit(pos_a as int, unit_b)
 	session_data.set_bench_unit(pos_b as int, unit_a)
 	unit_moved.emit(zone_a, pos_a, zone_b, pos_b, unit_b)

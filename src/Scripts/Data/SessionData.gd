@@ -158,7 +158,7 @@ func get_shop_unit(index: int):
 		return shop_units[index]
 	return null
 
-func set_shop_unit(index: int, unit_key: String):
+func set_shop_unit(index: int, unit_key):
 	if index >= 0 and index < shop_units.size():
 		shop_units[index] = unit_key
 		shop_updated.emit(shop_units)

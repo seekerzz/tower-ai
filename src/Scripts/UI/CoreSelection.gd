@@ -4,9 +4,26 @@ const CoreCardScene = preload("res://src/Scenes/UI/CoreCard.tscn")
 
 @onready var container = $ScrollContainer/HBoxContainer
 
+# 可用图腾列表
+const AVAILABLE_TOTEMS = ["wolf_totem", "cow_totem", "bat_totem", "viper_totem", "butterfly_totem", "eagle_totem"]
+
 func _ready():
 	var args = OS.get_cmdline_args()
 	args.append_array(OS.get_cmdline_user_args())
+
+	# 检查是否是AI模式
+	var ai_mode = false
+	for arg in args:
+		if arg == "--ai-mode":
+			ai_mode = true
+			break
+
+	if ai_mode:
+		print("[CoreSelection] AI模式已启用，等待AI选择图腾...")
+		call_deferred("_start_ai_mode")
+		return
+
+	# 检查测试模式
 	for arg in args:
 		if arg.begins_with("--run-test="):
 			var case_id = arg.split("=")[1]
@@ -14,6 +31,82 @@ func _ready():
 			return
 
 	_create_cards()
+
+func _start_ai_mode():
+	"""启动AI模式：暂停游戏，等待AI连接并选择图腾"""
+	# 暂停游戏
+	get_tree().paused = true
+
+	# 等待AIManager就绪
+	while not AIManager:
+		await get_tree().create_timer(0.1).timeout
+
+	print("[CoreSelection] AIManager已就绪，等待AI客户端连接...")
+
+	# 等待AI客户端连接
+	var timeout = 60.0
+	var elapsed = 0.0
+	while elapsed < timeout:
+		if AIManager.is_ai_connected():
+			print("[CoreSelection] AI客户端已连接，发送图腾选项...")
+			_send_totem_selection_to_ai()
+			return
+		await get_tree().create_timer(0.5).timeout
+		elapsed += 0.5
+
+	print("[CoreSelection] 等待AI连接超时，切换到手动选择模式")
+	get_tree().paused = false
+	_create_cards()
+
+func _send_totem_selection_to_ai():
+	"""发送图腾选择状态给AI客户端"""
+	var totem_info = _get_totem_info()
+
+	var state = {
+		"event": "TotemSelection",
+		"event_data": {
+			"message": "请选择你的图腾",
+			"phase": "selection"
+		},
+		"timestamp": Time.get_unix_time_from_system(),
+		"available_totems": AVAILABLE_TOTEMS,
+		"totem_info": totem_info
+	}
+
+	AIManager._send_json(state)
+	print("[CoreSelection] 图腾选项已发送，等待AI选择...")
+
+func _get_totem_info() -> Dictionary:
+	"""获取图腾信息"""
+	var info = {}
+	if GameManager.data_manager and GameManager.data_manager.data.has("CORE_TYPES"):
+		var core_data = GameManager.data_manager.data["CORE_TYPES"]
+		for totem_id in AVAILABLE_TOTEMS:
+			if core_data.has(totem_id):
+				info[totem_id] = {
+					"name": core_data[totem_id].get("name", totem_id),
+					"description": core_data[totem_id].get("description", "")
+				}
+	return info
+
+# 公共API：供AIActionExecutor调用来选择图腾
+func select_totem_by_ai(totem_id: String) -> bool:
+	"""AI选择图腾的接口"""
+	print("[CoreSelection] AI选择图腾: " + totem_id)
+
+	# 验证图腾ID
+	var core_data = {}
+	if GameManager.data_manager and GameManager.data_manager.data.has("CORE_TYPES"):
+		core_data = GameManager.data_manager.data["CORE_TYPES"]
+
+	if not core_data.has(totem_id):
+		print("[CoreSelection] 错误: 无效的图腾类型 " + totem_id)
+		return false
+
+	# 恢复游戏并进入主游戏
+	get_tree().paused = false
+	_on_core_selected(totem_id)
+	return true
 
 func _launch_test_mode(case_id: String):
 	print("[Test] Launching: ", case_id)
@@ -52,10 +145,52 @@ func _create_cards():
 
 func _on_core_selected(core_key: String):
 	GameManager.core_type = core_key
+	print("[CoreSelection] 已选择图腾: " + core_key)
+
+	# 恢复游戏（如果处于暂停状态）
+	if get_tree().paused:
+		get_tree().paused = false
+		print("[CoreSelection] 游戏已恢复")
+
+	# 初始化游戏会话状态
+	_initialize_game_session()
 
 	# Load MainGame scene
 	var main_game_scene = load("res://src/Scenes/Game/MainGame.tscn")
 	if main_game_scene:
-		get_tree().change_scene_to_packed(main_game_scene)
+		print("[CoreSelection] 正在切换到MainGame场景...")
+		# 使用call_deferred确保在空闲帧切换场景
+		call_deferred("_change_to_main_game", main_game_scene)
 	else:
-		print("Error: MainGame scene not found!")
+		print("[CoreSelection] 错误: MainGame场景未找到!")
+
+func _initialize_game_session():
+	"""初始化游戏会话，确保商店和其他状态已准备好"""
+	print("[CoreSelection] 初始化游戏会话...")
+
+	# 确保SessionData已初始化
+	if not GameManager.session_data:
+		var SessionDataScript = load("res://src/Scripts/Data/SessionData.gd")
+		GameManager.session_data = SessionDataScript.new()
+		print("[CoreSelection] SessionData已创建")
+
+	# 重置波次状态
+	GameManager.session_data.wave = 1
+	GameManager.session_data.is_wave_active = false
+
+	# 初始化商店（如果为空）
+	var needs_shop_init = true
+	for i in range(4):
+		if GameManager.session_data.get_shop_unit(i) != null:
+			needs_shop_init = false
+			break
+
+	if needs_shop_init:
+		print("[CoreSelection] 初始化商店...")
+		# 刷新商店以获取初始单位
+		BoardController.refresh_shop()
+
+	print("[CoreSelection] 游戏会话初始化完成")
+
+func _change_to_main_game(scene: PackedScene):
+	get_tree().change_scene_to_packed(scene)

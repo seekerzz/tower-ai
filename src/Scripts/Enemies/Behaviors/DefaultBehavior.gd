@@ -52,6 +52,8 @@ func physics_process(delta: float) -> bool:
 	return true # We handled the movement logic
 
 func calculate_move_velocity() -> Vector2:
+	if not GameManager.grid_manager:
+		return Vector2.ZERO
 	var target_pos = GameManager.grid_manager.global_position
 
 	if enemy.get("faction") == "player":
@@ -110,6 +112,8 @@ func update_path():
 func _should_attack(target: Node2D) -> bool:
 	if enemy.get("faction") == "player" and (!target or !is_instance_valid(target)):
 		return false
+	if not GameManager.grid_manager:
+		return false
 
 	var target_pos = GameManager.grid_manager.global_position
 
@@ -133,6 +137,8 @@ func _should_attack(target: Node2D) -> bool:
 	return false
 
 func _should_stop_attacking(target: Node2D) -> bool:
+	if not GameManager.grid_manager:
+		return false
 	var target_pos = GameManager.grid_manager.global_position
 
 	if target and is_instance_valid(target):
@@ -151,6 +157,8 @@ func _should_stop_attacking(target: Node2D) -> bool:
 		return dist > attack_range * 1.5
 
 func attack_logic(delta, target: Node2D):
+	if not GameManager.grid_manager:
+		return
 	var target_pos = GameManager.grid_manager.global_position
 	var is_targeting_unit = (target != null)
 

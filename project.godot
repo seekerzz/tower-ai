@@ -29,6 +29,9 @@ AggroManager="*res://src/Scripts/Managers/AggroManager.gd"
 AssetLoader="*res://src/Scripts/Utils/AssetLoader.gd"
 StyleMaker="*res://src/Scripts/Utils/StyleMaker.gd"
 UIConstants="*res://src/Scripts/Constants/UIConstants.gd"
+AILogger="*res://src/Autoload/AILogger.gd"
+AIManager="*res://src/Autoload/AIManager.gd"
+AIActionExecutor="*res://src/Autoload/AIActionExecutor.gd"
 
 [display]
 
