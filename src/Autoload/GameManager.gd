@@ -44,30 +44,73 @@ signal totem_attacked(totem_type: String)
 var is_running_test: bool = false
 var current_test_scenario: Dictionary = {}
 
+# ===== Session Data =====
+var session_data: SessionData = null
+
 var core_type: String = "":
 	set(value):
 		core_type = value
 		_initialize_mechanic()
 		core_type_changed.emit()
 
-# ===== 资源系统 =====
-# 法力系统
-var mana: float = 500.0          # 当前法力
-var max_mana: float = 1000.0     # 最大法力
-var base_mana_rate: float = 10.0 # 每秒基础回蓝
+# ===== 资源系统（通过 SessionData 管理）=====
+var mana: float:
+	get:
+		return session_data.mana if session_data else 500.0
+	set(value):
+		if session_data:
+			session_data.mana = value
 
-# 金币系统
-var gold: int = 150              # 初始金币
+var max_mana: float:
+	get:
+		return session_data.max_mana if session_data else 1000.0
+	set(value):
+		if session_data:
+			session_data.max_mana = value
 
-# 波次状态
-var wave: int = 1
-var is_wave_active: bool = false
+var base_mana_rate: float:
+	get:
+		return session_data.base_mana_rate if session_data else 10.0
+	set(value):
+		if session_data:
+			session_data.base_mana_rate = value
 
-# ===== 核心血量系统 =====
-# 基础核心血量（固定值）+ 单位血量加成
-# 初始没有单位时：core_health = max_core_health = BASE_CORE_HP(500)
-var core_health: float = 500.0
-var max_core_health: float = 500.0
+var gold: int:
+	get:
+		return session_data.gold if session_data else 150
+	set(value):
+		if session_data:
+			session_data.gold = value
+
+# ===== 波次状态（通过 SessionData 管理）=====
+var wave: int:
+	get:
+		return session_data.wave if session_data else 1
+	set(value):
+		if session_data:
+			session_data.wave = value
+
+var is_wave_active: bool:
+	get:
+		return session_data.is_wave_active if session_data else false
+	set(value):
+		if session_data:
+			session_data.is_wave_active = value
+
+# ===== 核心血量系统（通过 SessionData 管理）=====
+var core_health: float:
+	get:
+		return session_data.core_health if session_data else 500.0
+	set(value):
+		if session_data:
+			session_data.core_health = value
+
+var max_core_health: float:
+	get:
+		return session_data.max_core_health if session_data else 500.0
+	set(value):
+		if session_data:
+			session_data.max_core_health = value
 
 var damage_multiplier: float = 1.0
 
@@ -167,6 +210,10 @@ func _ready():
 	wave_system_manager.boss_wave_started.connect(_on_boss_wave_started)
 
 	_initialize_mechanic()
+
+	# Initialize SessionData
+	var SessionDataScript = load("res://src/Scripts/Data/SessionData.gd")
+	session_data = SessionDataScript.new()
 
 # ===== P0批次遗物回调函数 =====
 func _setup_soul_catcher():
@@ -368,8 +415,8 @@ func get_stat_modifier(stat_type: String, context: Dictionary = {}) -> float:
 	return modifier
 
 func update_resources(delta):
-	if mana < max_mana:
-		mana = min(max_mana, mana + base_mana_rate * delta)
+	if session_data:
+		session_data.update_mana(delta)
 	resource_changed.emit()
 
 func start_wave():
@@ -419,11 +466,10 @@ func _on_upgrade_selected(upgrade_data):
 	_finish_wave_process()
 
 func heal_core(amount: float):
-	var old_hp = core_health
-	core_health = min(max_core_health, core_health + amount)
-	var actual_heal = core_health - old_hp
-	var overheal = amount - actual_heal
-
+	if session_data:
+		session_data.heal_core(amount)
+	var actual_heal = amount
+	var overheal = 0.0
 	resource_changed.emit()
 	core_healed.emit(actual_heal, overheal)
 
@@ -452,33 +498,41 @@ func damage_core(amount: float):
 	if amount > 0 and (core_health - amount <= 0):
 		if reward_manager and "indomitable_will" in reward_manager.acquired_artifacts and not indomitable_triggered:
 			indomitable_triggered = true
-			core_health = 1.0
+			if session_data:
+				session_data.core_health = 1.0
 			indomitable_timer = 5.0
 			spawn_floating_text(grid_manager.global_position if grid_manager else Vector2.ZERO, "UNDYING!", Color.PURPLE)
 			resource_changed.emit()
 			return
 
-	core_health -= amount
+	if session_data:
+		session_data.damage_core(amount)
 	resource_changed.emit()
-	if core_health <= 0:
-		core_health = 0
-		is_wave_active = false
-		# 通知波次系统游戏结束
+	_check_game_over()
+
+func _check_game_over():
+	if session_data and session_data.core_health <= 0:
+		if session_data:
+			session_data.core_health = 0
+			session_data.is_wave_active = false
 		if wave_system_manager:
 			wave_system_manager.force_end_wave()
-		get_tree().call_group("enemies", "queue_free")
+		if Engine.get_main_loop() and Engine.get_main_loop().get_root():
+			Engine.get_main_loop().get_root().call_group("enemies", "queue_free")
 		game_over.emit()
-
 func retry_wave():
 	"""重试当前波次"""
 	# 重试波次：完全恢复核心血量（包括基础血量+单位加成）
-	core_health = max_core_health
+	if session_data:
+		session_data.core_health = session_data.max_core_health
 
 	# Clear enemies
-	get_tree().call_group("enemies", "queue_free")
+	if Engine.get_main_loop() and Engine.get_main_loop().get_root():
+		Engine.get_main_loop().get_root().call_group("enemies", "queue_free")
 
 	# Reset state
-	is_wave_active = false
+	if session_data:
+		session_data.is_wave_active = false
 
 	# 重置波次系统
 	if wave_system_manager:
@@ -538,43 +592,49 @@ func _on_sacrifice_state_changed(is_active: bool):
 	resource_changed.emit()
 
 func spend_gold(amount: int) -> bool:
-	if gold >= amount:
-		gold -= amount
-		resource_changed.emit()
-		return true
+	if session_data:
+		var result = session_data.spend_gold(amount)
+		if result:
+			resource_changed.emit()
+		return result
 	return false
 
 func add_gold(amount: int):
-	gold += amount
-	resource_changed.emit()
+	if session_data:
+		session_data.add_gold(amount)
+		resource_changed.emit()
 
 func activate_cheat():
-	gold += 1000
-	mana = max_mana
+	if session_data:
+		session_data.gold += 1000
+		session_data.mana = session_data.max_mana
+		resource_changed.emit()
 
-	resource_changed.emit()
 func check_resource(type: String, amount: float) -> bool:
 	if type == "mana":
 		return mana >= amount
 	return true
 
 func consume_resource(type: String, amount: float) -> bool:
-	if cheat_infinite_resources:
+	if session_data and session_data.cheat_infinite_resources:
 		return true
 
 	if !check_resource(type, amount): return false
 
 	if type == "mana":
-		mana -= amount
+		if session_data:
+			session_data.mana -= amount
 
 	resource_changed.emit()
 	return true
 
 func add_resource(type: String, amount: float):
 	if type == "mana":
-		mana = min(max_mana, mana + amount)
+		if session_data:
+			session_data.mana = min(session_data.max_mana, session_data.mana + amount)
 	elif type == "gold":
-		gold += int(amount)
+		if session_data:
+			session_data.gold += int(amount)
 
 	resource_changed.emit()
 
