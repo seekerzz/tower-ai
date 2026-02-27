@@ -19,6 +19,20 @@ func _ready():
 			var style = StyleBoxEmpty.new()
 			parent.add_theme_stylebox_override("panel", style)
 
+	# 连接 SessionData 信号
+	if GameManager.session_data:
+		GameManager.session_data.bench_updated.connect(_on_bench_updated)
+
+func _on_bench_updated(bench_units: Dictionary):
+	# 转换为数组格式
+	var bench_array = []
+	bench_array.resize(Constants.BENCH_SIZE)
+	bench_array.fill(null)
+	for index in bench_units.keys():
+		if index >= 0 and index < Constants.BENCH_SIZE:
+			bench_array[index] = bench_units[index]
+	update_bench_ui(bench_array)
+
 func update_bench_ui(data):
 	if !slots_container: return
 
