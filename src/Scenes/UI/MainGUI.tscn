@@ -1,0 +1,263 @@
+[gd_scene load_steps=5 format=3 uid="uid://gui123"]
+
+[ext_resource type="Script" path="res://src/Scripts/UI/MainGUI.gd" id="1_gui"]
+[ext_resource type="PackedScene" uid="uid://skillbarscene" path="res://src/Scenes/UI/SkillBar.tscn" id="2_skillbar"]
+[ext_resource type="PackedScene" uid="uid://enemyprogressbar" path="res://src/Scenes/HUD/EnemyProgressBar.tscn" id="3_enemybar"]
+[ext_resource type="PackedScene" uid="uid://artifactspanel" path="res://src/Scenes/UI/ArtifactsPanel.tscn" id="4_artifacts"]
+[ext_resource type="PackedScene" uid="uid://cutinmanager" path="res://src/Scenes/UI/Effects/CutInManager.tscn" id="5_cutin"]
+[ext_resource type="PackedScene" uid="uid://inventorypanel" path="res://src/Scenes/UI/InventoryPanel.tscn" id="6_inv"]
+[ext_resource type="PackedScene" uid="uid://passiveskillbar" path="res://src/Scenes/UI/PassiveSkillBar.tscn" id="7_pass"]
+
+[node name="MainGUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_gui")
+
+[node name="TopLeftPanel" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 270.0
+offset_bottom = 150.0
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="HPBar" type="ProgressBar" parent="TopLeftPanel"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+show_percentage = false
+
+[node name="Label" type="Label" parent="TopLeftPanel/HPBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FoodBar" type="ProgressBar" parent="TopLeftPanel"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+show_percentage = false
+
+[node name="Label" type="Label" parent="TopLeftPanel/FoodBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ManaBar" type="ProgressBar" parent="TopLeftPanel"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+show_percentage = false
+
+[node name="Label" type="Label" parent="TopLeftPanel/ManaBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ArtifactsPanel" parent="TopLeftPanel" instance=ExtResource("4_artifacts")]
+layout_mode = 2
+
+[node name="CutInManager" parent="." instance=ExtResource("5_cutin")]
+offset_left = 10.0
+offset_top = -280.0
+offset_right = 280.0
+offset_bottom = -160.0
+
+[node name="LeftSidebar" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -260.0
+offset_right = 270.0
+offset_bottom = -10.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 30
+alignment = 2
+
+[node name="SkillBar" parent="LeftSidebar" instance=ExtResource("2_skillbar")]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="EnemyProgressBar" parent="LeftSidebar" instance=ExtResource("3_enemybar")]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="RightSidebar" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -260.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="InventoryPanel" parent="RightSidebar" instance=ExtResource("6_inv")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PassiveSkillBar" parent="RightSidebar" instance=ExtResource("7_pass")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1066.0
+offset_top = 10.0
+offset_right = 1266.0
+offset_bottom = 50.0
+
+[node name="WaveLabel" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Wave 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+
+[node name="DamageStats" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -150.0
+offset_right = -10.0
+offset_bottom = 150.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DamageStats"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 30.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DamageStats/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Header" type="Label" parent="DamageStats"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "Damage Stats"
+horizontal_alignment = 1
+
+[node name="ToggleButton" type="Button" parent="DamageStats"]
+layout_mode = 1
+offset_left = -40.0
+offset_bottom = 40.0
+focus_mode = 0
+text = "📊"
+
+[node name="GameOverPanel" type="Panel" parent="."]
+visible = false
+z_index = 100
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 48
+text = "CORE DESTROYED"
+horizontal_alignment = 1
+
+[node name="RetryWaveButton" type="Button" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = 0.0
+offset_right = 150.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Retry Wave"
+
+[node name="NewGameButton" type="Button" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = 70.0
+offset_right = 150.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "New Game"

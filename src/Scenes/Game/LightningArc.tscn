@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://lightningarc"]
+
+[ext_resource type="Script" path="res://src/Scripts/Game/LightningArc.gd" id="1_script"]
+
+[node name="LightningArc" type="Line2D"]
+width = 10.0
+default_color = Color(0.4, 0.6, 1, 1)
+script = ExtResource("1_script")

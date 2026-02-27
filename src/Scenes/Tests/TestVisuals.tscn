@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://testvisuals"]
+
+[ext_resource type="Script" path="res://src/Scripts/Tests/TestProjectileVisuals.gd" id="1_test"]
+
+[node name="TestNode" type="Node"]
+script = ExtResource("1_test")

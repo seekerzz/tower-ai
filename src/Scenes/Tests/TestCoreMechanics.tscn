@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://testcoremechanics"]
+
+[ext_resource type="Script" path="res://src/Scripts/Tests/TestCoreMechanics.gd" id="1_script"]
+
+[node name="TestCoreMechanics" type="Node"]
+script = ExtResource("1_script")

@@ -1,0 +1,40 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+*.uid
+*.import
+*.png
+
+# Developer workspace - not tracked in GitHub
+dev/
+
+# Project documentation and tracking
+# docs/  # 注释掉以允许提交文档，但排除敏感文件
+tasks/
+# progress.md  # 允许提交进度跟踪
+summary.md
+CLAUDE.md
+
+# Secrets and sensitive data
+docs/secrets/.env
+docs/secrets/*.key
+docs/secrets/*.json
+!docs/secrets/.env.example
+!docs/secrets/README.md
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

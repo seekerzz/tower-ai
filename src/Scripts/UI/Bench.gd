@@ -1,0 +1,67 @@
+extends Control
+
+const UIConstants = preload("res://src/Scripts/Constants/UIConstants.gd")
+const StyleMaker = preload("res://src/Scripts/Utils/StyleMaker.gd")
+
+var bench_data = []
+
+@onready var slots_container = $PanelContainer/SlotsContainer
+
+const BENCH_UNIT_SCRIPT = preload("res://src/Scripts/UI/BenchUnit.gd")
+const BENCH_SLOT_SCRIPT = preload("res://src/Scripts/UI/BenchSlot.gd")
+
+func _ready():
+	if slots_container:
+		slots_container.add_theme_constant_override("h_separation", 10)
+		slots_container.add_theme_constant_override("v_separation", 10)
+		var parent = slots_container.get_parent()
+		if parent is PanelContainer:
+			var style = StyleBoxEmpty.new()
+			parent.add_theme_stylebox_override("panel", style)
+
+func update_bench_ui(data):
+	if !slots_container: return
+
+	bench_data = data
+
+	# Clear existing slots
+	for child in slots_container.get_children():
+		slots_container.remove_child(child)
+		child.queue_free()
+
+	# Create slots using Constants.BENCH_SIZE (should be 8)
+	var slot_count = Constants.BENCH_SIZE
+
+	for i in range(slot_count):
+		var slot = Control.new()
+		slot.custom_minimum_size = UIConstants.CARD_SIZE.medium
+		slot.set_script(BENCH_SLOT_SCRIPT)
+		slot.slot_index = i
+
+		# Visual style: Panel child
+		# To make sure it is visible, we add a Panel node with StyleBoxFlat
+		# and ensure it expands to fill the Control.
+		var panel = Panel.new()
+		panel.layout_mode = 1 # Anchors
+		panel.anchors_preset = 15 # Full Rect
+		panel.mouse_filter = MOUSE_FILTER_IGNORE # Let the slot handle events
+
+		var style = StyleMaker.get_slot_style()
+
+		panel.add_theme_stylebox_override("panel", style)
+		slot.add_child(panel)
+
+		# Add Unit if data exists
+		if i < bench_data.size() and bench_data[i] != null:
+			var unit_data = bench_data[i]
+			var unit_display = Control.new()
+			unit_display.set_script(BENCH_UNIT_SCRIPT)
+			unit_display.setup(unit_data.key, i)
+
+			# Ensure unit display fills slot but respects logic
+			unit_display.layout_mode = 1
+			unit_display.anchors_preset = 15
+
+			slot.add_child(unit_display)
+
+		slots_container.add_child(slot)

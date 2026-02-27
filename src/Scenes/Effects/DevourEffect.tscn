@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://devour_effect_001"]
+
+[ext_resource type="Script" path="res://src/Scenes/Effects/DevourEffect.gd" id="1_effect"]
+
+[node name="DevourEffect" type="Node2D"]
+script = ExtResource("1_effect")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 30
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+emission_shape = 1
+emission_sphere_radius = 10.0
+gravity = Vector2(0, 0)
+orbit_velocity_min = 2.0
+orbit_velocity_max = 3.0
+scale_amount_min = 3.0
+scale_amount_max = 6.0
+color = Color(0.545, 0, 0, 1)

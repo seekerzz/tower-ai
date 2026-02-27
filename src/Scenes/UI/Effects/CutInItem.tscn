@@ -1,0 +1,67 @@
+[gd_scene load_steps=3 format=3 uid="uid://cutinitem"]
+
+[ext_resource type="Script" path="res://src/Scenes/UI/Effects/CutInItem.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/Scenes/UI/Effects/CutInBackground.gd" id="2_bg"]
+
+[node name="CutInItem" type="Control"]
+custom_minimum_size = Vector2(270, 120)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 270.0
+offset_bottom = 120.0
+script = ExtResource("1_script")
+
+[node name="Background" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_bg")
+
+[node name="Portrait" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -110.0
+offset_top = -50.0
+offset_right = -10.0
+offset_bottom = 50.0
+grow_horizontal = 0
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LabelSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = 150.0
+offset_bottom = 35.0
+theme_override_font_sizes/font_size = 14
+text = "ULTIMATE"
+
+[node name="LabelSkillName" type="Label" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 35.0
+offset_right = 200.0
+offset_bottom = 95.0
+theme_override_font_sizes/font_size = 32
+text = "SKILL NAME"
+autowrap_mode = 2
+text_overrun_behavior = 3
+
+[node name="Flash" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_bg")
