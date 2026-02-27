@@ -41,6 +41,10 @@ func _ready():
 	GameManager.wave_started.connect(_on_wave_started)
 	GameManager.wave_ended.connect(_on_wave_ended)
 
+	# 连接 BoardController 信号
+	BoardController.unit_moved.connect(_on_unit_moved)
+	BoardController.unit_sold.connect(_on_unit_sold)
+
 	# Camera Setup
 	# Calculate min allowed zoom (maximum field of view)
 	calculate_min_allowed_zoom()
@@ -249,18 +253,30 @@ func _on_wave_started():
 func _on_wave_ended():
 	zoom_to_shop_open()
 
+# ===== BoardController 信号处理 =====
+
+func _on_unit_moved(from_zone: String, from_pos: Variant,
+                    to_zone: String, to_pos: Variant, unit_data: Dictionary):
+	update_bench_ui()
+
+func _on_unit_sold(zone: String, pos: Variant, gold_refund: int):
+	update_bench_ui()
+
 # Bench Logic
 func add_to_bench(unit_key: String) -> bool:
-	for i in range(bench.size()):
-		if bench[i] == null:
-			bench[i] = { "key": unit_key, "level": 1 } # Simplified data
-			update_bench_ui()
-			return true
+	"""添加单位到备战区 - 现在通过 SessionData 操作"""
+	if GameManager.session_data:
+		for i in range(Constants.BENCH_SIZE):
+			if GameManager.session_data.get_bench_unit(i) == null:
+				var unit_data = {"key": unit_key, "level": 1}
+				GameManager.session_data.set_bench_unit(i, unit_data)
+				update_bench_ui()
+				return true
 	return false
 
 func remove_from_bench(index: int):
-	if index >= 0 and index < bench.size():
-		bench[index] = null
+	if GameManager.session_data:
+		GameManager.session_data.set_bench_unit(index, null)
 		update_bench_ui()
 
 func move_unit_from_grid_to_bench(unit_node, target_index: int):
