@@ -61,9 +61,8 @@ func _perform_devour(target: Unit):
     max_hp += consumed_data.hp_bonus
     current_hp = max_hp
 
-    # Souls
-    if SoulManager:
-        SoulManager.add_souls(10, "wolf_devour")
+    # 增加狼图腾魂魄
+    TotemManager.add_resource("wolf", 10)
 
     # Remove target
     if GameManager.grid_manager:

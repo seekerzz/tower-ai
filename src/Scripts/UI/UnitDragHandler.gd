@@ -105,11 +105,8 @@ func _drop_data(_at_position, data):
 			GameManager.grid_manager.handle_grid_move_at(target_tile, data)
 
 func _on_units_merged(consumed_unit):
-	if SoulManager:
-		SoulManager.add_souls_from_unit_merge({
-			"level": consumed_unit.level,
-			"type": consumed_unit.type_key
-		})
+	# 单位合并时增加狼图腾魂魄
+	TotemManager.add_resource("wolf", 10)
 
 	if unit_ref is UnitWolf and consumed_unit is UnitWolf:
 		unit_ref.on_merged_with(consumed_unit)

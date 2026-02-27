@@ -756,7 +756,7 @@ func _run_enemy_death_test():
 	# 使用一个独立节点来跟踪信号计数（避免lambda的变量捕获问题）
 	var tracker = Node.new()
 	tracker.set_meta("death_count", 0)
-	tracker.set_meta("soul_before", SoulManager.current_souls)
+	tracker.set_meta("soul_before", TotemManager.get_resource("wolf"))
 	get_tree().current_scene.add_child(tracker)
 
 	# 创建测试敌人
@@ -797,7 +797,7 @@ func _run_enemy_death_test():
 	var test_passed = true
 
 	var death_count = tracker.get_meta("death_count")
-	var soul_increase = SoulManager.current_souls - tracker.get_meta("soul_before")
+	var soul_increase = TotemManager.get_resource("wolf") - tracker.get_meta("soul_before")
 
 	# 验证1: died 信号只应该触发一次
 	if death_count == 0:
@@ -817,7 +817,7 @@ func _run_enemy_death_test():
 		printerr("[TestRunner] ✗ 魂魄增加了 ", soul_increase, " 次!")
 		test_passed = false
 	else:
-		print("[TestRunner] ✓ 魂魄正确增加1次 (", SoulManager.current_souls, ")")
+		print("[TestRunner] ✓ 魂魄正确增加1次 (", TotemManager.get_resource("wolf"), ")")
 
 	if test_passed:
 		print("\n[TestRunner] ========== 测试通过 ✓ ==========")
@@ -917,13 +917,11 @@ func _log_status():
 		"is_active": not GameManager.is_wave_active
 	}
 
-	# 获取魂魄系统状态（狼图腾）
-	var soul_info = {}
-	if get_node_or_null("/root/SoulManager"):
-		soul_info = {
-			"current_souls": SoulManager.current_souls,
-			"max_souls": SoulManager.max_souls
-		}
+	# 获取狼图腾魂魄状态
+	var soul_info = {
+		"current_souls": TotemManager.get_resource("wolf"),
+		"max_souls": TotemManager.get_max_resource("wolf")
+	}
 
 	var entry = {
 		"frame": Engine.get_process_frames(),

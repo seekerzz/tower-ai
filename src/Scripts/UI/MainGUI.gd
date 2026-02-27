@@ -76,9 +76,9 @@ func _ready():
 	_setup_combat_gold_label()
 	_setup_soul_label()
 
-	if SoulManager:
-		SoulManager.soul_count_changed.connect(_on_soul_count_changed)
-		_on_soul_count_changed(SoulManager.current_souls, 0)
+	# 连接狼图腾魂魄变化信号
+	TotemManager.totem_resource_changed.connect(_on_totem_resource_changed)
+	_on_totem_resource_changed("wolf", TotemManager.get_resource("wolf"), TotemManager.get_max_resource("wolf"))
 	
 	# 2. 布局核心修复：重新组织右侧栏内容，解决重叠
 	_setup_right_sidebar_layout()
@@ -203,9 +203,10 @@ func _setup_soul_label():
 			# Place below combat gold label (which is at size.y + 10)
 			soul_label.position.y = top_left_panel.size.y + 40
 
-func _on_soul_count_changed(count, _delta):
-	if soul_label:
-		soul_label.text = "🔮 %d" % count
+func _on_totem_resource_changed(totem_id: String, current: int, max_value: int):
+	# 只显示狼图腾的魂魄数量
+	if totem_id == "wolf" and soul_label:
+		soul_label.text = "🔮 %d/%d" % [current, max_value]
 
 func _setup_stats_panel():
 	damage_stats_panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)

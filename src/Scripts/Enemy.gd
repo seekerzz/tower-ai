@@ -689,14 +689,13 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 		die(source_unit)
 
 func _on_death():
+	# 增加狼图腾魂魄（魅惑击杀额外+1）
+	var soul_amount = 1
 	if faction == "player" and has_meta("charm_source"):
-		SoulManager.add_souls(1, "charm_kill")
-		GameManager.spawn_floating_text(global_position, "+1 Soul", Color.MAGENTA)
+		soul_amount += 1
+		GameManager.spawn_floating_text(global_position, "+1 Soul (Charm)", Color.MAGENTA)
 
-	SoulManager.add_souls_from_enemy_death({
-		"type": type_key,
-		"wave": GameManager.wave
-	})
+	TotemManager.add_resource("wolf", soul_amount)
 
 func die(killer_unit = null):
 	if is_dying:
