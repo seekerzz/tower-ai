@@ -165,10 +165,17 @@ class AIGameClient:
                 try:
                     data = json.loads(message)
                     self._last_state = data
+                    logger.debug(f"收到 WebSocket 消息: {data.get('event', 'unknown')}")
 
                     # 如果有等待的响应，设置结果
                     if self._pending_response and not self._pending_response.done():
                         self._pending_response.set_result(data)
+                        logger.info(f"响应已设置: {data.get('event', 'unknown')}")
+                    else:
+                        # 没有等待的请求，只是更新状态
+                        event_type = data.get('event', 'unknown')
+                        if event_type != 'AI_Wakeup':  # 减少日志噪音
+                            logger.info(f"收到未请求的状态更新: {event_type}")
 
                 except json.JSONDecodeError:
                     logger.warning(f"收到无效 JSON: {message}")
@@ -215,12 +222,12 @@ class AIGameClient:
 
         # 发送动作到 Godot
         try:
+            # 创建 Future 等待响应（必须先创建，避免响应到达时 Future 不存在）
+            self._pending_response = asyncio.Future()
+
             message = {"actions": actions}
             await self.websocket.send(json.dumps(message))
             logger.info(f"发送动作: {len(actions)} 个")
-
-            # 创建 Future 等待响应
-            self._pending_response = asyncio.Future()
 
             # 等待响应（带超时）
             try:
@@ -231,6 +238,10 @@ class AIGameClient:
                 return response
 
             except asyncio.TimeoutError:
+                # 如果超时，返回最后一次收到的状态
+                if self._last_state:
+                    logger.warning(f"等待响应超时，返回最后一次状态: {self._last_state.get('event', 'unknown')}")
+                    return self._last_state
                 return {
                     "event": "Error",
                     "error_message": "Timeout waiting for game state"

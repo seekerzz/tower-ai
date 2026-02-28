@@ -515,20 +515,26 @@ func _check_game_over():
 		if session_data:
 			session_data.core_health = 0
 			session_data.is_wave_active = false
+		# Emit game_over signal BEFORE force_end_wave to ensure AI receives it
+		print("[GameManager] Game Over triggered at wave %d" % wave)
+		game_over.emit()
 		if wave_system_manager:
 			wave_system_manager.force_end_wave()
-		if Engine.get_main_loop() and Engine.get_main_loop().get_root():
-			Engine.get_main_loop().get_root().call_group("enemies", "queue_free")
-		game_over.emit()
+		# Clear enemies - handle headless mode where get_tree() may not work
+		var main_loop = Engine.get_main_loop()
+		if main_loop and main_loop.has_method("call_group"):
+			main_loop.call_group("enemies", "queue_free")
+
 func retry_wave():
 	"""重试当前波次"""
 	# 重试波次：完全恢复核心血量（包括基础血量+单位加成）
 	if session_data:
 		session_data.core_health = session_data.max_core_health
 
-	# Clear enemies
-	if Engine.get_main_loop() and Engine.get_main_loop().get_root():
-		Engine.get_main_loop().get_root().call_group("enemies", "queue_free")
+	# Clear enemies - handle headless mode where get_tree() may not work
+	var main_loop = Engine.get_main_loop()
+	if main_loop and main_loop.has_method("call_group"):
+		main_loop.call_group("enemies", "queue_free")
 
 	# Reset state
 	if session_data:

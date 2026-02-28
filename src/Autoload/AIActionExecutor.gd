@@ -56,6 +56,14 @@ func _on_actions_received(actions: Array):
 	_current_actions = []
 	AILogger.action("所有动作执行完成")
 
+	# 发送成功响应
+	if AIManager:
+		AILogger.action("正在发送 ActionsCompleted 响应...")
+		AIManager._send_state_async("ActionsCompleted", {})
+		AILogger.action("ActionsCompleted 响应已发送")
+	else:
+		AILogger.error("AIManager 未初始化，无法发送响应")
+
 # ===== 动作执行 =====
 
 func _execute_action(action: Dictionary) -> Dictionary:
@@ -91,6 +99,8 @@ func _execute_action(action: Dictionary) -> Dictionary:
 			return _action_cheat_spawn_unit(action)
 		"cheat_set_time_scale":
 			return _action_cheat_set_time_scale(action)
+		"cheat_set_shop_unit":
+			return _action_cheat_set_shop_unit(action)
 		_:
 			return {"success": false, "error_message": "未知动作类型: %s" % action_type}
 
@@ -184,7 +194,7 @@ func _action_sell_unit(action: Dictionary) -> Dictionary:
 	# 校验位置
 	var unit_data = null
 	if zone == "bench":
-		var bench_index = pos if pos is int else -1
+		var bench_index = _to_int_index(pos)
 		if bench_index < 0 or bench_index >= Constants.BENCH_SIZE:
 			return {"success": false, "error_message": "备战区索引越界: %d (有效范围: 0-%d)" % [bench_index, Constants.BENCH_SIZE - 1]}
 		unit_data = session.get_bench_unit(bench_index)
@@ -226,10 +236,12 @@ func _action_move_unit(action: Dictionary) -> Dictionary:
 	# 校验来源位置
 	var unit_data = null
 	if from_zone == "bench":
-		var bench_index = from_pos if from_pos is int else -1
+		var bench_index = _to_int_index(from_pos)
+		AILogger.action("[DEBUG] Validating bench: from_pos=" + str(from_pos) + ", bench_index=" + str(bench_index))
 		if bench_index < 0 or bench_index >= Constants.BENCH_SIZE:
 			return {"success": false, "error_message": "来源备战区索引越界: %d" % bench_index}
 		unit_data = session.get_bench_unit(bench_index)
+		AILogger.action("[DEBUG] unit_data at bench " + str(bench_index) + ": " + str(unit_data))
 	else:
 		var grid_pos = _parse_position(from_pos)
 		if grid_pos == null:
@@ -241,16 +253,30 @@ func _action_move_unit(action: Dictionary) -> Dictionary:
 
 	# 校验目标位置
 	if to_zone == "bench":
-		var bench_index = to_pos if to_pos is int else -1
+		var bench_index = _to_int_index(to_pos)
 		if bench_index < 0 or bench_index >= Constants.BENCH_SIZE:
-			return {"success": false, "error_message": "目标备战区索引越界: %d" % bench_index}
+			return {"success": false, "error_message": "目标备战区索引越界: %d (有效范围: 0-%d)" % [bench_index, Constants.BENCH_SIZE - 1]}
 	else:
 		var grid_pos = _parse_position(to_pos)
 		if grid_pos == null:
-			return {"success": false, "error_message": "无效的目标网格位置"}
+			return {"success": false, "error_message": "无效的目标网格位置: %s (期望格式: {\"x\": int, \"y\": int} 或 [x, y])" % str(to_pos)}
 		# 检查网格是否可放置
-		if not _can_place_on_grid(grid_pos):
-			return {"success": false, "error_message": "目标网格位置 %s 不可放置" % str(to_pos)}
+		var placement_check = _check_grid_placement(grid_pos)
+		if not placement_check.can_place:
+			return {"success": false, "error_message": "目标网格位置 (%d,%d) 不可放置: %s" % [grid_pos.x, grid_pos.y, placement_check.reason]}
+
+	# 转换位置格式 (JSON字典转为Vector2i，float转为int)
+	if from_zone == "grid":
+		from_pos = _parse_position(from_pos)
+	else:  # bench
+		from_pos = _to_int_index(from_pos)
+	if to_zone == "grid":
+		to_pos = _parse_position(to_pos)
+	else:  # bench
+		to_pos = _to_int_index(to_pos)
+
+	AILogger.action("[DEBUG] move_unit: from_zone=%s, from_pos=%s, to_zone=%s, to_pos=%s" % [from_zone, str(from_pos), to_zone, str(to_pos)])
+	AILogger.action("[DEBUG] from_pos type: %d, to_pos type: %d" % [typeof(from_pos), typeof(to_pos)])
 
 	# 执行移动
 	var result = BoardController.try_move_unit(from_zone, from_pos, to_zone, to_pos)
@@ -382,7 +408,7 @@ func _action_cheat_spawn_unit(action: Dictionary) -> Dictionary:
 	}
 
 	if zone == "bench":
-		var bench_index = pos if pos is int else _find_empty_bench_slot()
+		var bench_index = _to_int_index(pos) if pos != null else _find_empty_bench_slot()
 		if bench_index == -1:
 			return {"success": false, "error_message": "备战区已满"}
 		session.set_bench_unit(bench_index, unit_data)
@@ -412,6 +438,31 @@ func _action_cheat_set_time_scale(action: Dictionary) -> Dictionary:
 	AILogger.action("[作弊] 设置 time_scale = %.2f" % scale)
 	return {"success": true}
 
+func _action_cheat_set_shop_unit(action: Dictionary) -> Dictionary:
+	var shop_index = action.get("shop_index", -1)
+	var unit_key = action.get("unit_key", "")
+
+	# 前置校验
+	if shop_index < 0 or shop_index >= 4:
+		return {"success": false, "error_message": "商店索引越界: %d (有效范围: 0-3)" % shop_index}
+
+	if not Constants.UNIT_TYPES.has(unit_key):
+		return {"success": false, "error_message": "无效的单位类型: %s" % unit_key}
+
+	var session = GameManager.session_data
+	if not session:
+		return {"success": false, "error_message": "SessionData 未初始化"}
+
+	# 设置商店单位
+	session.set_shop_unit(shop_index, unit_key)
+	AILogger.action("[作弊] 设置商店槽位 %d 为单位 %s" % [shop_index, unit_key])
+
+	# 发送状态更新
+	if AIManager:
+		AIManager._send_state_async("ShopUpdated", {"shop_index": shop_index, "unit_key": unit_key})
+
+	return {"success": true}
+
 # ===== 辅助函数 =====
 
 func _find_empty_bench_slot() -> int:
@@ -433,28 +484,175 @@ func _parse_position(pos) -> Variant:
 	return null
 
 func _can_place_on_grid(grid_pos: Vector2i) -> bool:
+	var result = _check_grid_placement(grid_pos)
+	return result.can_place
+
+func _check_grid_placement(grid_pos: Vector2i) -> Dictionary:
+	"""检查网格位置是否可以放置单位，返回详细结果"""
+	var result = {
+		"can_place": false,
+		"reason": ""
+	}
+
 	var grid_manager = GameManager.grid_manager
 	if not grid_manager:
-		return false
+		result.reason = "GridManager not initialized"
+		return result
 
 	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
 	if not grid_manager.tiles.has(key):
-		return false
+		result.reason = "tile does not exist at (%d,%d)" % [grid_pos.x, grid_pos.y]
+		return result
 
 	var tile = grid_manager.tiles[key]
-	if tile.state != "unlocked":
-		return false
-	if tile.type == "core":
-		return false
-	if tile.unit != null:
-		return false
 
-	return true
+	if tile.state != "unlocked":
+		result.reason = "tile state is '%s' (expected 'unlocked')" % tile.state
+		return result
+
+	if tile.type == "core":
+		result.reason = "tile is the core (cannot place on core)"
+		return result
+
+	if tile.unit != null:
+		result.reason = "tile already has a unit"
+		return result
+
+	result.can_place = true
+	result.reason = "valid"
+	return result
+
+func _to_int_index(value) -> int:
+	"""Convert a value (int or float from JSON) to an integer index.
+
+	JSON numbers are parsed as floats in Godot, so we need to handle both types.
+	Returns -1 if the value cannot be converted to a valid index."""
+	if value is int:
+		return value
+	if value is float:
+		return int(value)
+	return -1
 
 func _send_action_error(error_message: String, failed_action: Dictionary):
 	AILogger.error("动作执行失败: %s" % error_message)
+	AILogger.error("失败动作详情: %s" % JSON.stringify(failed_action))
+
+	# Add context information to help debug
+	var context = _build_error_context(failed_action)
+
 	if AIManager:
-		AIManager.send_action_error(error_message, failed_action)
+		AILogger.action("正在发送 ActionError 响应...")
+		# Include both error message and context
+		var full_error = error_message
+		if not context.is_empty():
+			full_error += " | Context: %s" % JSON.stringify(context)
+		AIManager.send_action_error(full_error, failed_action)
+		AILogger.action("ActionError 响应已发送")
+	else:
+		AILogger.error("AIManager 未初始化，无法发送错误响应")
+
+func _build_error_context(failed_action: Dictionary) -> Dictionary:
+	"""构建错误上下文信息，帮助AI理解当前游戏状态"""
+	var context = {}
+	var action_type = failed_action.get("type", "")
+
+	match action_type:
+		"buy_unit":
+			var session = GameManager.session_data
+			if session:
+				context["available_gold"] = session.gold
+				context["shop_contents"] = _get_shop_contents()
+				context["bench_full"] = _find_empty_bench_slot() == -1
+
+		"move_unit":
+			var session = GameManager.session_data
+			if session:
+				var to_pos = failed_action.get("to_pos")
+				var to_zone = failed_action.get("to_zone", "")
+				if to_zone == "grid" and to_pos != null:
+					var grid_pos = _parse_position(to_pos)
+					if grid_pos != null:
+						context["target_grid_valid"] = _can_place_on_grid(grid_pos)
+						context["target_position"] = {"x": grid_pos.x, "y": grid_pos.y}
+						# Check why grid position is invalid
+						context["grid_check"] = _get_grid_placement_info(grid_pos)
+						# Suggest valid positions
+						context["suggested_positions"] = _get_valid_grid_positions()
+
+		"sell_unit":
+			var zone = failed_action.get("zone", "")
+			var pos = failed_action.get("pos")
+			context["zone"] = zone
+			context["position"] = pos
+
+		"start_wave":
+			var session = GameManager.session_data
+			if session:
+				context["is_wave_active"] = session.is_wave_active
+				context["wave"] = session.wave
+				context["units_on_grid"] = _get_grid_unit_count()
+
+	return context
+
+func _get_shop_contents() -> Array:
+	var contents = []
+	var session = GameManager.session_data
+	if not session:
+		return contents
+	for i in range(4):
+		var unit_key = session.get_shop_unit(i)
+		contents.append(unit_key if unit_key else null)
+	return contents
+
+func _get_grid_unit_count() -> int:
+	var session = GameManager.session_data
+	if not session:
+		return 0
+	return session.grid_units.size()
+
+func _get_grid_placement_info(grid_pos: Vector2i) -> Dictionary:
+	"""获取网格位置放置检查的详细信息"""
+	var info = {
+		"exists": false,
+		"state": "unknown",
+		"type": "unknown",
+		"has_unit": false,
+		"can_place": false
+	}
+
+	var grid_manager = GameManager.grid_manager
+	if not grid_manager:
+		return info
+
+	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
+	info["exists"] = grid_manager.tiles.has(key)
+
+	if not info["exists"]:
+		return info
+
+	var tile = grid_manager.tiles[key]
+	info["state"] = tile.state if tile.get("state") else "unknown"
+	info["type"] = tile.type if tile.get("type") else "unknown"
+	info["has_unit"] = tile.unit != null if tile.get("unit") else false
+	info["can_place"] = _can_place_on_grid(grid_pos)
+
+	return info
+
+func _get_valid_grid_positions(max_positions: int = 5) -> Array:
+	"""获取当前可用的网格位置列表"""
+	var positions = []
+	var grid_manager = GameManager.grid_manager
+	if not grid_manager:
+		return positions
+
+	for key in grid_manager.tiles:
+		if positions.size() >= max_positions:
+			break
+		var tile = grid_manager.tiles[key]
+		if tile.state == "unlocked" and tile.type != "core" and tile.unit == null:
+			positions.append({"x": tile.x, "y": tile.y})
+
+	return positions
 
 # ===== 公共 API =====
 

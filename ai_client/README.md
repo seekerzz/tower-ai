@@ -154,6 +154,16 @@ python3 ai_game_client.py [选项]
 | 开始波次 | `{"type": "start_wave"}` |
 | 恢复游戏 | `{"type": "resume", "wait_time": 0.5}` |
 
+### 作弊指令（测试用）
+
+| 动作 | 示例 | 说明 |
+|------|------|------|
+| 添加金币 | `{"type": "cheat_add_gold", "amount": 100}` | 添加指定数量金币 |
+| 添加法力 | `{"type": "cheat_add_mana", "amount": 100}` | 添加指定数量法力 |
+| 生成单位 | `{"type": "cheat_spawn_unit", "unit_type": "wolf", "level": 1, "zone": "bench", "pos": 0}` | 在指定位置生成单位 |
+| 设置商店单位 | `{"type": "cheat_set_shop_unit", "shop_index": 0, "unit_key": "wolf"}` | 设置商店指定槽位为单位 |
+| 设置时间流速 | `{"type": "cheat_set_time_scale", "scale": 2.0}` | 设置游戏时间流速（0.1-10.0） |
+
 ### 可用图腾
 
 | 图腾 | 类型 |

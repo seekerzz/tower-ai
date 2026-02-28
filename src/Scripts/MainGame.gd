@@ -262,7 +262,7 @@ func _on_wave_ended():
 # ===== BoardController 信号处理 =====
 
 func _on_unit_moved(from_zone: String, from_pos: Variant,
-                    to_zone: String, to_pos: Variant, unit_data: Dictionary):
+					to_zone: String, to_pos: Variant, unit_data: Dictionary):
 	update_bench_ui()
 
 func _on_unit_sold(zone: String, pos: Variant, gold_refund: int):
@@ -323,7 +323,17 @@ func skip_wave():
 		return
 
 	# Clear all enemies
-	get_tree().call_group("enemies", "queue_free")
+	# In headless mode, get_tree() may return Window instead of SceneTree
+	# Use Engine.get_main_loop() which should return SceneTree
+	var main_loop = Engine.get_main_loop()
+	if main_loop and main_loop.has_method("call_group"):
+		main_loop.call_group("enemies", "queue_free")
+	else:
+		# Fallback: manually find and free enemies
+		var enemies = get_tree().get_nodes_in_group("enemies") if get_tree() else []
+		for enemy in enemies:
+			if is_instance_valid(enemy):
+				enemy.queue_free()
 
 	# Stop spawning
 	if combat_manager:

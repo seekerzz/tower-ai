@@ -154,7 +154,8 @@ func _on_wave_reset():
 	_send_state_async("WaveReset", {"wave": GameManager.wave})
 
 func _on_game_over():
-	_pause_and_send("GameOver", {"wave": GameManager.wave})
+	AILogger.event("游戏结束，发送 GameOver 事件给 AI")
+	_pause_and_send("GameOver", {"wave": GameManager.wave, "core_health": GameManager.core_health})
 
 func _on_enemy_spawned(enemy: Node):
 	# Boss 生成时暂停
@@ -204,7 +205,9 @@ func _pause_and_send(event_type: String, event_data: Dictionary = {}):
 	state_sent.emit(event_type, state)
 
 func _send_state_async(event_type: String, event_data: Dictionary = {}):
+	AILogger.net("准备发送状态: %s (客户端连接: %s)" % [event_type, str(is_client_connected)])
 	if not is_client_connected:
+		AILogger.error("状态发送失败: 客户端未连接")
 		return
 	var state = _build_state(event_type, event_data)
 	_send_json(state)
@@ -365,12 +368,20 @@ func _handle_client_message(text: String):
 # ===== 网络发送 =====
 
 func _send_json(data: Dictionary):
-	if not websocket_peer or websocket_peer.get_ready_state() != WebSocketPeer.STATE_OPEN:
+	if not websocket_peer:
+		AILogger.error("发送失败: WebSocket peer 不存在")
+		return
+
+	var state = websocket_peer.get_ready_state()
+	if state != WebSocketPeer.STATE_OPEN:
+		AILogger.error("发送失败: WebSocket 未打开，状态: %d" % state)
 		return
 
 	var json_str = JSON.stringify(data)
 	AILogger.net_json("发送", data)
-	websocket_peer.send_text(json_str)
+	var err = websocket_peer.send_text(json_str)
+	if err != OK:
+		AILogger.error("发送失败: WebSocket 发送错误: %d" % err)
 
 func _send_error(error_type: String, message: String):
 	_send_json({

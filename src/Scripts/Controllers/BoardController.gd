@@ -389,9 +389,10 @@ func retry_wave():
 	# 完全恢复核心血量
 	session_data.core_health = session_data.max_core_health
 
-	# 清除敌人
-	if Engine.get_main_loop() and Engine.get_main_loop().get_root():
-		Engine.get_main_loop().get_root().call_group("enemies", "queue_free")
+	# 清除敌人 - handle headless mode where get_tree() may not work
+	var main_loop = Engine.get_main_loop()
+	if main_loop and main_loop.has_method("call_group"):
+		main_loop.call_group("enemies", "queue_free")
 
 	# 重置波次状态
 	session_data.is_wave_active = false
