@@ -28,6 +28,9 @@ func _deal_damage():
 	if host and host.has_method("take_damage"):
 		var dmg = base_damage * stacks
 		host.take_damage(dmg, source_unit, "fire")
+		# Emit signal for test logging
+		if GameManager.has_signal("burn_damage"):
+			GameManager.burn_damage.emit(host, dmg, stacks, source_unit)
 
 func _on_host_died():
 	# Explosion logic

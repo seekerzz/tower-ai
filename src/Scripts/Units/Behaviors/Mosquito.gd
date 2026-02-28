@@ -3,7 +3,15 @@ extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	if not is_instance_valid(target): return
 
+	# Get base lifesteal from unit_data
 	var lifesteal_pct = unit.unit_data.get("lifesteal_percent", 0.0)
+
+	# Check for level-specific lifesteal in mechanics
+	var level_data = unit.unit_data.get("levels", {}).get(str(unit.level), {})
+	var mechanics = level_data.get("mechanics", {})
+	if mechanics.has("lifesteal_percent"):
+		lifesteal_pct = mechanics["lifesteal_percent"]
+
 	var heal_amt = damage * lifesteal_pct
 
 	if heal_amt > 0:

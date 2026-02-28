@@ -102,6 +102,14 @@ func _setup_test():
 	GameManager.bleed_damage.connect(_on_bleed_damage)
 	GameManager.orb_hit.connect(_on_orb_hit)
 
+	# Connect new combat log signals
+	GameManager.burn_damage.connect(_on_burn_damage)
+	GameManager.freeze_applied.connect(_on_freeze_applied)
+	GameManager.petrify_applied.connect(_on_petrify_applied)
+	GameManager.charm_applied.connect(_on_charm_applied)
+	GameManager.splash_damage.connect(_on_splash_damage)
+	GameManager.burn_explosion.connect(_on_burn_explosion)
+
 	# Connect core heal event for lifesteal logging
 	GameManager.core_healed.connect(_on_core_healed)
 
@@ -421,6 +429,92 @@ func _on_orb_hit(target, damage, mana_gained, source):
 		"target_instance_id": target.get_instance_id(),
 		"damage": damage,
 		"mana_gained": mana_gained
+	})
+
+# ===== New Combat Log Signal Handlers =====
+
+func _on_burn_damage(target, damage, stacks, source):
+	if not is_instance_valid(target):
+		return
+	var source_id = "unknown"
+	if source and is_instance_valid(source):
+		source_id = source.type_key if source.get("type_key") else "unknown"
+	_frame_events.append({
+		"type": "burn_damage",
+		"target_id": target.type_key if target.get("type_key") else "unknown",
+		"target_instance_id": target.get_instance_id(),
+		"damage": damage,
+		"stacks": stacks,
+		"source_id": source_id
+	})
+
+func _on_freeze_applied(target, duration, source):
+	if not is_instance_valid(target):
+		return
+	var source_id = "unknown"
+	if source and is_instance_valid(source):
+		source_id = source.type_key if source.get("type_key") else "unknown"
+	_frame_events.append({
+		"type": "freeze_applied",
+		"target_id": target.type_key if target.get("type_key") else "unknown",
+		"target_instance_id": target.get_instance_id(),
+		"duration": duration,
+		"source_id": source_id
+	})
+
+func _on_petrify_applied(target, duration, source):
+	if not is_instance_valid(target):
+		return
+	var source_id = "unknown"
+	if source and is_instance_valid(source):
+		source_id = source.type_key if source.get("type_key") else "unknown"
+	_frame_events.append({
+		"type": "petrify_applied",
+		"target_id": target.type_key if target.get("type_key") else "unknown",
+		"target_instance_id": target.get_instance_id(),
+		"duration": duration,
+		"source_id": source_id
+	})
+
+func _on_charm_applied(target, duration, source):
+	if not is_instance_valid(target):
+		return
+	var source_id = "unknown"
+	if source and is_instance_valid(source):
+		source_id = source.type_key if source.get("type_key") else "unknown"
+	_frame_events.append({
+		"type": "charm_applied",
+		"target_id": target.type_key if target.get("type_key") else "unknown",
+		"target_instance_id": target.get_instance_id(),
+		"duration": duration,
+		"source_id": source_id
+	})
+
+func _on_splash_damage(target, damage, source, center_pos):
+	if not is_instance_valid(target):
+		return
+	var source_id = "unknown"
+	if source and is_instance_valid(source):
+		source_id = source.type_key if source.get("type_key") else "unknown"
+	_frame_events.append({
+		"type": "splash_damage",
+		"target_id": target.type_key if target.get("type_key") else "unknown",
+		"target_instance_id": target.get_instance_id(),
+		"damage": damage,
+		"source_id": source_id,
+		"center_pos": {"x": center_pos.x, "y": center_pos.y} if center_pos else null
+	})
+
+func _on_burn_explosion(pos, damage, source, affected_targets):
+	var source_id = "unknown"
+	if source and is_instance_valid(source):
+		source_id = source.type_key if source.get("type_key") else "unknown"
+	_frame_events.append({
+		"type": "burn_explosion",
+		"position": {"x": pos.x, "y": pos.y},
+		"damage": damage,
+		"source_id": source_id,
+		"affected_count": affected_targets.size() if affected_targets else 0
 	})
 
 func _on_core_healed(amount, overheal):

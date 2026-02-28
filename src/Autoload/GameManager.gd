@@ -42,6 +42,15 @@ signal bleed_damage(target, damage, stacks, source)
 signal orb_hit(target, damage, mana_gained, source)
 signal totem_attacked(totem_type: String)
 
+# Combat log signals for test framework
+signal burn_damage(target, damage, stacks, source)
+signal freeze_applied(target, duration, source)
+signal petrify_applied(target, duration, source)
+signal charm_applied(target, duration, source)
+signal splash_damage(target, damage, source, center_pos)
+signal burn_explosion(pos, damage, source, affected_targets)
+signal poison_explosion(pos, damage, stacks, source)
+
 var is_running_test: bool = false
 var current_test_scenario: Dictionary = {}
 

@@ -58,6 +58,30 @@ func _update_visuals():
 	else:
 		host.modulate = col
 
+func _on_host_died():
+	# Poison explosion logic - similar to burn explosion but spreads poison
+	var host = get_parent()
+	if not host: return
+
+	var center = host.global_position
+	var explosion_damage = base_damage * stacks * 0.5  # 50% of normal poison damage
+
+	# Visual effect - green cross explosion
+	var effect = load("res://src/Scripts/Effects/SlashEffect.gd").new()
+	host.get_parent().call_deferred("add_child", effect)
+	effect.global_position = center
+	effect.configure("cross", Color.GREEN)
+	effect.scale = Vector2(2, 2)
+	effect.play()
+
+	# Damage area and spread poison (delegate to CombatManager)
+	if GameManager.combat_manager:
+		GameManager.combat_manager.trigger_poison_explosion(center, explosion_damage, stacks, source_unit)
+
+	# Emit signal for test logging
+	if GameManager.has_signal("poison_explosion"):
+		GameManager.poison_explosion.emit(center, explosion_damage, stacks, source_unit)
+
 func _exit_tree():
 	var host = get_parent()
 	if host:

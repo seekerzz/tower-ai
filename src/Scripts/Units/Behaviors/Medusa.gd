@@ -61,6 +61,10 @@ func _petrify_enemy(enemy: Node2D):
 	GameManager.spawn_floating_text(enemy.global_position, "石化!", Color.GRAY)
 	_play_petrify_effect(enemy.global_position)
 
+	# Emit signal for test logging
+	if GameManager.has_signal("petrify_applied"):
+		GameManager.petrify_applied.emit(enemy, duration, unit)
+
 func _play_petrify_effect(pos: Vector2):
 	var effect = PetrifyEffectScene.instantiate()
 	effect.global_position = pos

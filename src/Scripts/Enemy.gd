@@ -170,6 +170,10 @@ func apply_charm(source_unit, duration: float = 3.0):
 	faction = "player"
 	modulate = Color(1.0, 0.5, 1.0)
 
+	# Emit signal for test logging
+	if GameManager.has_signal("charm_applied"):
+		GameManager.charm_applied.emit(self, duration, source_unit)
+
 func _ensure_visual_controller():
 	if not visual_controller:
 		visual_controller = load("res://src/Scripts/Components/VisualController.gd").new()
@@ -537,6 +541,9 @@ func apply_stun(duration: float):
 func apply_freeze(duration: float):
 	freeze_timer = duration
 	GameManager.spawn_floating_text(global_position, "Frozen!", Color.CYAN)
+	# Emit signal for test logging
+	if GameManager.has_signal("freeze_applied"):
+		GameManager.freeze_applied.emit(self, duration, null)
 
 func apply_blind(duration: float):
 	blind_timer = duration

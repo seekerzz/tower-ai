@@ -1286,7 +1286,7 @@
 			"attackType": "ranged",
 			"proj": "dot",
 			"trait": "lifesteal",
-			"lifesteal_percent": 1.0,
+			"lifesteal_percent": 0.2,
 			"damageType": "physical",
 			"crit_rate": 0.1,
 			"crit_dmg": 1.5,
@@ -1295,25 +1295,29 @@
 					"damage": 20,
 					"hp": 50,
 					"cost": 25,
-					"desc": "造成伤害治疗核心",
-					"mechanics": {}
+					"desc": "造成伤害治疗核心20%",
+					"mechanics": {
+						"lifesteal_percent": 0.2
+					}
 				},
 				"2": {
 					"damage": 30,
 					"hp": 75,
 					"cost": 50,
-					"desc": "造成伤害治疗核心",
+					"desc": "造成伤害治疗核心25%",
 					"mechanics": {
-						"crit_rate_bonus": 0.1
+						"crit_rate_bonus": 0.1,
+						"lifesteal_percent": 0.25
 					}
 				},
 				"3": {
 					"damage": 45,
 					"hp": 112,
 					"cost": 100,
-					"desc": "造成伤害治疗核心",
+					"desc": "造成伤害治疗核心30%",
 					"mechanics": {
-						"crit_rate_bonus": 0.2
+						"crit_rate_bonus": 0.2,
+						"lifesteal_percent": 0.3
 					}
 				}
 			},
@@ -3802,110 +3806,6 @@
 			},
 			"type_key": "life_chain",
 			"faction": "bat_totem"
-		},
-		"ice_butterfly": {
-			"name": "冰晶蝶",
-			"icon": "🦋",
-			"size": [1, 1],
-			"range": 300,
-			"atkSpeed": 1.0,
-			"manaCost": 30,
-			"attackType": "ranged",
-			"proj": "ice_orb",
-			"damageType": "ice",
-			"crit_rate": 0.1,
-			"crit_dmg": 1.5,
-			"levels": {
-				"1": {
-					"damage": 80,
-					"hp": 180,
-					"cost": 70,
-					"desc": "冰霜法球: 冰系法球攻击，附带减速效果",
-					"mechanics": {
-						"slow_percent": 0.3,
-						"slow_duration": 2.0
-					}
-				},
-				"2": {
-					"damage": 120,
-					"hp": 270,
-					"cost": 140,
-					"desc": "冰霜法球: 冰系法球攻击，附带减速效果",
-					"mechanics": {
-						"slow_percent": 0.4,
-						"slow_duration": 2.5,
-						"crit_rate_bonus": 0.1
-					}
-				},
-				"3": {
-					"damage": 180,
-					"hp": 405,
-					"cost": 280,
-					"desc": "冰霜法球: 冰系法球攻击，概率冻结敌人",
-					"mechanics": {
-						"slow_percent": 0.5,
-						"slow_duration": 3.0,
-						"freeze_chance": 0.2,
-						"freeze_duration": 1.5,
-						"crit_rate_bonus": 0.2
-					}
-				}
-			},
-			"type_key": "ice_butterfly",
-			"faction": "butterfly_totem"
-		},
-		"firefly": {
-			"name": "萤火虫",
-			"icon": "✨",
-			"size": [1, 1],
-			"range": 250,
-			"atkSpeed": 1.2,
-			"manaCost": 20,
-			"attackType": "ranged",
-			"proj": "light_orb",
-			"damageType": "magic",
-			"crit_rate": 0.1,
-			"crit_dmg": 1.5,
-			"levels": {
-				"1": {
-					"damage": 50,
-					"hp": 150,
-					"cost": 55,
-					"desc": "荧光增益: 辅助单位，为友方提供攻击加速",
-					"mechanics": {
-						"buff_targets": 1,
-						"atk_speed_bonus": 0.15,
-						"buff_duration": 3.0
-					}
-				},
-				"2": {
-					"damage": 75,
-					"hp": 225,
-					"cost": 110,
-					"desc": "荧光增益: 辅助单位，为友方提供攻击加速",
-					"mechanics": {
-						"buff_targets": 2,
-						"atk_speed_bonus": 0.2,
-						"buff_duration": 3.5,
-						"crit_rate_bonus": 0.1
-					}
-				},
-				"3": {
-					"damage": 112,
-					"hp": 337,
-					"cost": 220,
-					"desc": "荧光增益: 辅助单位，为友方提供攻击加速和伤害加成",
-					"mechanics": {
-						"buff_targets": 3,
-						"atk_speed_bonus": 0.25,
-						"damage_bonus": 0.1,
-						"buff_duration": 4.0,
-						"crit_rate_bonus": 0.2
-					}
-				}
-			},
-			"type_key": "firefly",
-			"faction": "butterfly_totem"
 		}
 	}
 }

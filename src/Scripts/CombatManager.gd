@@ -22,7 +22,10 @@ func _process(delta):
 		var process_count = min(explosion_queue.size(), MAX_EXPLOSIONS_PER_FRAME)
 		for i in range(process_count):
 			var expl = explosion_queue.pop_front()
-			_process_burn_explosion_logic(expl.pos, expl.damage, expl.source)
+			if expl.type == "poison":
+				_process_poison_explosion_logic(expl.pos, expl.damage, expl.stacks, expl.source)
+			else:
+				_process_burn_explosion_logic(expl.pos, expl.damage, expl.source)
 
 func _on_wave_started():
 	start_wave_logic()
@@ -437,12 +440,16 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 	return proj
 
 func trigger_burn_explosion(pos: Vector2, damage: float, source: Node2D):
-	explosion_queue.append({ "pos": pos, "damage": damage, "source": source })
+	explosion_queue.append({ "type": "burn", "pos": pos, "damage": damage, "source": source, "stacks": 1 })
+
+func trigger_poison_explosion(pos: Vector2, damage: float, stacks: int, source: Node2D):
+	explosion_queue.append({ "type": "poison", "pos": pos, "damage": damage, "source": source, "stacks": stacks })
 
 func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Node2D):
 	var radius = 120.0
 	var enemies = get_tree().get_nodes_in_group("enemies")
 	var burn_script = load("res://src/Scripts/Effects/BurnEffect.gd")
+	var affected_targets = []
 
 	for enemy in enemies:
 		if !is_instance_valid(enemy): continue
@@ -450,6 +457,7 @@ func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Node2D):
 		var dist = pos.distance_to(enemy.global_position)
 		if dist <= radius:
 			enemy.take_damage(damage, source, "fire")
+			affected_targets.append(enemy)
 			# Chain reaction: Apply burn
 			if enemy.has_method("apply_status"):
 				enemy.apply_status(burn_script, {
@@ -457,6 +465,36 @@ func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Node2D):
 					"damage": damage,
 					"stacks": 1
 				})
+
+	# Emit signal for test logging with affected targets
+	if GameManager.has_signal("burn_explosion"):
+		GameManager.burn_explosion.emit(pos, damage, source, affected_targets)
+
+func _process_poison_explosion_logic(pos: Vector2, damage: float, stacks: int, source: Node2D):
+	var radius = 100.0
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var poison_script = load("res://src/Scripts/Effects/PoisonEffect.gd")
+	var affected_targets = []
+
+	for enemy in enemies:
+		if !is_instance_valid(enemy): continue
+
+		var dist = pos.distance_to(enemy.global_position)
+		if dist <= radius:
+			enemy.take_damage(damage, source, "poison")
+			affected_targets.append(enemy)
+			# Spread poison with reduced stacks (half of original, min 1)
+			if enemy.has_method("apply_status"):
+				var spread_stacks = max(1, int(stacks * 0.5))
+				enemy.apply_status(poison_script, {
+					"duration": 5.0,
+					"damage": damage / spread_stacks if spread_stacks > 0 else damage,
+					"stacks": spread_stacks
+				})
+
+	# Emit signal for test logging with affected targets
+	if GameManager.has_signal("poison_explosion"):
+		GameManager.poison_explosion.emit(pos, damage, stacks, source)
 
 func check_kill_bonuses(killer_unit, victim = null):
 	if killer_unit and "active_buffs" in killer_unit:

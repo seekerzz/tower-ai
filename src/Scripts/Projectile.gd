@@ -368,6 +368,10 @@ func _handle_hit(target_node):
 			# 中文战斗日志
 			_log_combat_hit(source_unit, target_node, damage, final_damage_type, is_critical)
 
+		# Apply Splash Damage if source has splash buff (Dog unit)
+		if source_unit and "active_buffs" in source_unit and "splash" in source_unit.active_buffs:
+			_apply_splash_damage(target_node.global_position, damage, source_unit)
+
 		# Apply Status Effects via Payload (New System)
 		apply_payload(target_node)
 
@@ -604,6 +608,34 @@ func perform_physical_bounce(hit_node):
 	life = 1.0
 
 	return true
+
+func _apply_splash_damage(center_pos: Vector2, base_damage: float, source):
+	"""Apply splash damage to nearby enemies."""
+	var splash_radius = 80.0
+	var splash_damage = base_damage * 0.5  # 50% splash damage
+
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var affected_targets = []
+
+	for enemy in enemies:
+		if not is_instance_valid(enemy): continue
+		if enemy.global_position.distance_to(center_pos) <= splash_radius:
+			enemy.take_damage(splash_damage, source, "physical", self, 0.0)
+			affected_targets.append(enemy)
+
+	# Emit signal for test logging
+	if GameManager.has_signal("splash_damage"):
+		for target in affected_targets:
+			GameManager.splash_damage.emit(target, splash_damage, source, center_pos)
+
+	# Visual effect
+	if affected_targets.size() > 0:
+		var effect = load("res://src/Scripts/Effects/SlashEffect.gd").new()
+		get_parent().add_child(effect)
+		effect.global_position = center_pos
+		effect.configure("circle", Color.ORANGE)
+		effect.scale = Vector2(2, 2)
+		effect.play()
 
 func trigger_eagle_echo(target_node, multiplier: float):
 	if not is_instance_valid(target_node): return

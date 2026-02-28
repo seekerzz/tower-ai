@@ -46,7 +46,14 @@ func _remove_slow():
 	var host = get_parent()
 	if host and is_instance_valid(host) and "speed" in host:
 		host.speed += original_val_cache
-		host.modulate = Color.WHITE # Restore color (might conflict with Poison, but ok for now)
+		# Restore color, but check for PoisonEffect to avoid visual conflict
+		var poison_effect = host.get_node_or_null("PoisonEffect")
+		if poison_effect:
+			# Restore poison's green visual based on its stacks
+			var t = clamp(float(poison_effect.stacks) / 10.0, 0.0, 1.0)
+			host.modulate = Color.WHITE.lerp(Color(0.2, 1.0, 0.2), t)
+		else:
+			host.modulate = Color.WHITE
 	applied = false
 
 func _exit_tree():
