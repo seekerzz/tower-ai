@@ -3,7 +3,9 @@ extends Node
 ## AI 管理器 - WebSocket 服务端
 ## 监听游戏事件，暂停游戏，下发状态给 AI 客户端
 
-const PORT: int = 45678
+# 默认端口，可通过 --ai-port=<port> 覆盖
+const DEFAULT_PORT: int = 45678
+var port: int = DEFAULT_PORT
 
 # ===== 网络组件 =====
 var tcp_server: TCPServer = null
@@ -27,6 +29,19 @@ var ai_paused: bool = false:
 func is_game_effectively_paused() -> bool:
 	return ai_paused or get_tree().paused
 
+func _parse_command_line_args():
+	"""解析命令行参数，支持 --ai-port=<port>"""
+	var args = OS.get_cmdline_args()
+	for arg in args:
+		if arg.begins_with("--ai-port="):
+			var port_str = arg.substr("--ai-port=".length())
+			var parsed_port = port_str.to_int()
+			if parsed_port > 1024 and parsed_port < 65535:
+				port = parsed_port
+				AILogger.net_connection("使用自定义端口", str(port))
+			else:
+				AILogger.error("无效的端口: %s，使用默认 %d" % [port_str, DEFAULT_PORT])
+
 # ===== 信号 =====
 signal state_sent(event_type: String, state: Dictionary)
 signal action_received(actions: Array)
@@ -35,6 +50,7 @@ signal client_disconnected
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_parse_command_line_args()  # 解析命令行参数
 	# 延迟启动服务器，确保网络子系统就绪
 	call_deferred("_delayed_start_server")
 	_connect_game_signals()
@@ -50,12 +66,12 @@ func _exit_tree():
 
 func _start_server():
 	tcp_server = TCPServer.new()
-	var err = tcp_server.listen(PORT)
+	var err = tcp_server.listen(port)
 	if err != OK:
-		AILogger.error("WebSocket 服务器启动失败，端口: %d，错误码: %d" % [PORT, err])
+		AILogger.error("WebSocket 服务器启动失败，端口: %d，错误码: %d" % [port, err])
 		tcp_server = null
 		return
-	AILogger.net_connection("服务器已启动", "监听端口 %d" % PORT)
+	AILogger.net_connection("服务器已启动", "监听端口 %d" % port)
 
 func _stop_server():
 	if websocket_peer:
