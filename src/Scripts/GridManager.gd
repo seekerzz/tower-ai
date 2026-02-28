@@ -1154,11 +1154,11 @@ func handle_bench_drop_at(target_tile, data):
 
 	# Try to place
 	if place_unit(unit_key, target_tile.x, target_tile.y):
-		# Success, remove from bench
-		if GameManager.main_game:
-			GameManager.main_game.remove_from_bench(bench_index)
+		# Success, remove from bench via SessionData
+		if GameManager.session_data:
+			GameManager.session_data.set_bench_unit(bench_index, null)
 		else:
-			print("GridManager: GameManager.main_game is null during bench drop!")
+			print("GridManager: GameManager.session_data is null during bench drop!")
 		return
 
 	# If place_unit failed, check for interactions (Devour/Merge)
@@ -1176,8 +1176,8 @@ func handle_bench_drop_at(target_tile, data):
 		# Check Merge
 		if target_unit.can_merge_with(temp_unit):
 			target_unit.merge_with(temp_unit)
-			if GameManager.main_game:
-				GameManager.main_game.remove_from_bench(bench_index)
+			if GameManager.session_data:
+				GameManager.session_data.set_bench_unit(bench_index, null)
 			recalculate_buffs()
 			temp_unit.queue_free()
 			GameManager.recalculate_max_health()
@@ -1186,8 +1186,8 @@ func handle_bench_drop_at(target_tile, data):
 		# Check Devour
 		if can_devour(target_unit, temp_unit):
 			target_unit.devour(temp_unit)
-			if GameManager.main_game:
-				GameManager.main_game.remove_from_bench(bench_index)
+			if GameManager.session_data:
+				GameManager.session_data.set_bench_unit(bench_index, null)
 			recalculate_buffs()
 			temp_unit.queue_free()
 			GameManager.recalculate_max_health()

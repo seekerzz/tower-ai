@@ -15,8 +15,8 @@ func _drop_data(_at_position, data):
 
 	GameManager.add_gold(refund)
 
-	if GameManager.main_game:
-		GameManager.main_game.remove_from_bench(data.index)
+	if GameManager.session_data:
+		GameManager.session_data.set_bench_unit(data.index, null)
 
 	# Show floating text at the center of the sell zone
 	var center_pos = global_position + size / 2

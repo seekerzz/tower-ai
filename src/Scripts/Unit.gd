@@ -824,12 +824,18 @@ func end_drag():
 		if GameManager.grid_manager.handle_unit_drop(self):
 			return
 
-		if GameManager.main_game:
-			var viewport_rect = get_viewport_rect()
-			var mouse_pos = get_global_mouse_position()
-			if mouse_pos.y > (viewport_rect.size.y - 200):
-				if GameManager.main_game.try_add_to_bench_from_grid(self):
+		# Check if dropped in bench area (bottom of screen)
+		var viewport_rect = get_viewport_rect()
+		var mouse_pos = get_global_mouse_position()
+		if mouse_pos.y > (viewport_rect.size.y - 200):
+			# Try to move unit from grid to bench using BoardController
+			var bench_index = _find_empty_bench_slot()
+			if bench_index >= 0 and grid_pos != null:
+				var result = BoardController.try_move_unit("grid", grid_pos, "bench", bench_index)
+				if result.success:
 					return
+			return_to_start()
+			return
 
 	return_to_start()
 
@@ -853,6 +859,15 @@ func remove_ghost():
 
 func return_to_start():
 	position = start_position
+
+func _find_empty_bench_slot() -> int:
+	"""Find an empty bench slot, returns -1 if full"""
+	if not GameManager.session_data:
+		return -1
+	for i in range(Constants.BENCH_SIZE):
+		if GameManager.session_data.get_bench_unit(i) == null:
+			return i
+	return -1
 
 func heal(amount: float):
 	current_hp = min(current_hp + amount, max_hp)

@@ -27,7 +27,7 @@ ai_client/
 ### 方式1：Headless 模式（推荐用于训练）
 
 ```bash
-cd /home/zhangzhan/tower
+cd /mnt/f/Desktop/tower-ai
 python3 ai_client/ai_game_client.py
 ```
 
@@ -135,7 +135,7 @@ python3 ai_game_client.py [选项]
 选项:
   --visual, --gui       启用 GUI 模式（显示游戏窗口）
   --project PATH, -p PATH
-                        Godot 项目路径 (默认: /home/zhangzhan/tower)
+                        Godot 项目路径 (默认: /mnt/f/Desktop/tower-ai)
   --scene PATH, -s PATH
                         启动场景路径 (默认: res://src/Scenes/UI/CoreSelection.tscn)
   --http-port PORT      HTTP 服务器端口 (0=自动分配)
