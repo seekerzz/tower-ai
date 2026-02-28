@@ -24,6 +24,7 @@ signal core_healed(amount, overheal)
 signal unit_devoured(eater_unit, eaten_unit, inherited_stats)
 signal skill_used(unit, skill_id, target_pos)
 signal unit_upgraded(unit, old_level, new_level)
+signal upgrade_selection_shown
 
 # Buff/Debuff/Shield/Crit events for AI analysis
 signal buff_applied(target_unit, buff_type, source_unit, amount)
@@ -351,6 +352,8 @@ func _show_upgrade_selection():
 		var upgrade_ui = upgrade_selection_scene.instantiate()
 		add_child(upgrade_ui)
 		upgrade_ui.upgrade_selected.connect(_on_upgrade_selected)
+		# 通知AI客户端升级选择已显示
+		upgrade_selection_shown.emit()
 	else:
 		_finish_wave_process()
 

@@ -171,10 +171,16 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 		operation_failed.emit("try_move_unit", "Cannot move during wave")
 		return false
 
+	# Debug logging
+	print("[BoardController] try_move_unit: from_zone=%s, from_pos=%s (type=%d), to_zone=%s, to_pos=%s (type=%d)" % [
+		from_zone, str(from_pos), typeof(from_pos), to_zone, str(to_pos), typeof(to_pos)
+	])
+
 	# 获取来源单位
 	var unit_data = _get_unit_at(from_zone, from_pos)
 	if unit_data == null:
-		operation_failed.emit("try_move_unit", "No unit at source position")
+		operation_failed.emit("try_move_unit", "No unit at source position: zone=%s, pos=%s" % [from_zone, str(from_pos)])
+		print("[BoardController] No unit at source position: zone=%s, pos=%s" % [from_zone, str(from_pos)])
 		return false
 
 	# 检查目标位置
@@ -222,15 +228,19 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 	elif to_zone == ZONE_BENCH:
 		# 移动到备战区
 		var bench_index = to_pos as int
+		print("[BoardController] Moving to bench: bench_index=%d, from_zone=%s" % [bench_index, from_zone])
+
 		_remove_unit_from_zone(from_zone, from_pos)
 		unit_data["grid_pos"] = null
 		session_data.set_bench_unit(bench_index, unit_data)
 
 		# 如果是从网格移动，需要从网格移除
 		if from_zone == ZONE_GRID:
+			print("[BoardController] Removing from grid: from_pos=%s" % str(from_pos))
 			_remove_from_grid(from_pos)
 
 		unit_moved.emit(from_zone, from_pos, to_zone, to_pos, unit_data)
+		print("[BoardController] Successfully moved to bench")
 		return true
 
 	return false
@@ -238,21 +248,55 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 func _get_unit_at(zone: String, pos: Variant):
 	match zone:
 		ZONE_BENCH:
-			return session_data.get_bench_unit(pos as int)
+			var bench_idx = pos as int
+			if bench_idx < 0 or bench_idx >= Constants.BENCH_SIZE:
+				return null
+			return session_data.get_bench_unit(bench_idx)
 		ZONE_GRID:
-			return session_data.get_grid_unit(pos as Vector2i)
+			var grid_pos: Vector2i
+			if pos is Vector2i:
+				grid_pos = pos
+			elif pos is Dictionary:
+				grid_pos = Vector2i(pos.get("x", 0), pos.get("y", 0))
+			elif pos is Array and pos.size() == 2:
+				grid_pos = Vector2i(pos[0], pos[1])
+			else:
+				operation_failed.emit("try_move_unit", "Invalid grid position type: %d" % typeof(pos))
+				return null
+			return session_data.get_grid_unit(grid_pos)
 	return null
 
 func _remove_unit_from_zone(zone: String, pos: Variant):
 	match zone:
 		ZONE_BENCH:
-			session_data.set_bench_unit(pos as int, null)
+			var bench_idx = pos as int
+			if bench_idx >= 0 and bench_idx < Constants.BENCH_SIZE:
+				session_data.set_bench_unit(bench_idx, null)
 		ZONE_GRID:
-			session_data.set_grid_unit(pos as Vector2i, null)
+			var grid_pos: Vector2i
+			if pos is Vector2i:
+				grid_pos = pos
+			elif pos is Dictionary:
+				grid_pos = Vector2i(pos.get("x", 0), pos.get("y", 0))
+			elif pos is Array and pos.size() == 2:
+				grid_pos = Vector2i(pos[0], pos[1])
+			else:
+				return
+			session_data.set_grid_unit(grid_pos, null)
 
-func _remove_from_grid(grid_pos: Vector2i):
+func _remove_from_grid(grid_pos: Variant):
+	var pos: Vector2i
+	if grid_pos is Vector2i:
+		pos = grid_pos
+	elif grid_pos is Dictionary:
+		pos = Vector2i(grid_pos.get("x", 0), grid_pos.get("y", 0))
+	elif grid_pos is Array and grid_pos.size() == 2:
+		pos = Vector2i(grid_pos[0], grid_pos[1])
+	else:
+		return
+
 	if grid_manager:
-		var key = "%d,%d" % [grid_pos.x, grid_pos.y]
+		var key = "%d,%d" % [pos.x, pos.y]
 		if grid_manager.tiles.has(key):
 			var tile = grid_manager.tiles[key]
 			if tile.unit:

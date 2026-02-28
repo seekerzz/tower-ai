@@ -13,7 +13,7 @@
 | 指标 | 数量 |
 |------|------|
 | 测试单位总数 | 64+ |
-| 修复的 Bug | 11 |
+| 修复的 Bug | 13 |
 | 添加的缺失单位 | 7 |
 | 生成的测试报告 | 9 |
 | 创建的测试脚本 | 15+ |
@@ -68,10 +68,44 @@
 
 | Bug | 严重性 | 位置 | 描述 |
 |-----|----------|----------|-------------|
-| move_unit 失败 | **中** | BoardController | 网格检查通过但 try_move_unit 失败 |
-| AI 客户端不稳定 | **中** | 网络层 | 波次转换期间连接断开 |
+| 无 | - | - | 所有已知高优先级Bug已修复 |
 
-### 4. 已修复的 Bug (共 11 个)
+### 4. AI 客户端稳定性修复 (2026-02-28)
+
+**问题描述:**
+AI 客户端在波次转换期间会断开连接，导致自动化测试中断。
+
+**根本原因:**
+1. `AIManager` 只连接到 `GameManager.wave_ended` 信号，但该信号只在升级选择完成后才发射
+2. 波次实际结束时（`WaveSystemManager.wave_ended`），AI 客户端没有收到通知
+3. AI 客户端 Python 端的 30 秒超时在等待期间触发
+4. 升级选择 UI 显示期间，WebSocket 连接处于空闲状态
+
+**修复方案:**
+1. **信号连接修复** (`src/Autoload/AIManager.gd`):
+   - 添加 `WaveSystemManager.wave_started` 连接，立即获得波次开始通知
+   - 添加 `WaveSystemManager.wave_ended` 连接，立即获得波次结束通知
+   - 添加 `upgrade_selection_shown` 信号，通知 AI 升级选择已显示
+
+2. **心跳保活机制** (`src/Autoload/AIManager.gd`):
+   - 每 10 秒发送一次 Ping 消息
+   - Python 客户端忽略 Ping 消息但保持连接活跃
+
+3. **超时时间增加** (`ai_client/ai_game_client.py`):
+   - 从 30 秒增加到 60 秒
+   - 为波次转换期间的延迟提供缓冲
+
+4. **新事件类型**:
+   - `WaveStarted` - 波次开始时立即发送（来自 WaveSystemManager）
+   - `WaveEnded` - 波次结束时立即发送（来自 WaveSystemManager）
+   - `UpgradeSelection` - 升级选择显示时发送
+
+**测试验证:**
+- 创建 `test_wave_transition.py` 测试脚本
+- 验证波次 1 和波次 2 转换期间连接保持
+- 验证升级选择期间连接不中断
+
+### 5. 已修复的 Bug (共 13 个)
 
 | 优先级 | Bug | 文件 |
 |----------|-----|------|
@@ -81,6 +115,8 @@
 | 高 | 多次技能激活保护 | Dog.gd |
 | 高 | 缺少 bleed_stacks 检查 | Mosquito.gd |
 | 高 | 使用了错误的治疗方式 | BloodAncestor.gd |
+| 高 | **move_unit 失败 - 类型转换问题** | **AIActionExecutor.gd, BoardController.gd** |
+| 高 | **AI 客户端波次转换不稳定** | **AIManager.gd, ai_game_client.py** |
 | 中 | 攻击计数器逻辑错误 | Peacock.gd |
 | 中 | 信号断开检查 | Plant.gd |
 | 中 | 错误的治疗间隔 | Cow.gd |
@@ -122,7 +158,7 @@
 | 狼图腾报告 | 7 个单位，吞噬/灵魂机制 | [test_results_wolf_totem.md](/home/zhangzhan/tower/test_results_wolf_totem.md) |
 | 通用单位报告 | 7 个单位，Buff 提供者 | [test_results_universal_units.md](/home/zhangzhan/tower/test_results_universal_units.md) |
 | 技能与 Buff 报告 | 技能系统，Buff 机制 | [test_results_skills_buffs.md](/home/zhangzhan/tower/test_results_skills_buffs.md) |
-| Bug 修复报告 | 10 个已修复的 Bug 详情 | [bug_fixes_report.md](/home/zhangzhan/tower/bug_fixes_report.md) |
+| Bug 修复报告 | 13 个已修复的 Bug 详情 | [bug_fixes_report.md](/home/zhangzhan/tower/bug_fixes_report.md) |
 
 ---
 
@@ -134,6 +170,7 @@
 - 技能激活（含冷却和法力消耗）
 - Buff 应用（射程、攻速、暴击、弹射、分裂）
 - 波次开始/完成
+- **波次转换期间 AI 客户端连接稳定**
 - 核心血量和法力系统
 - 金币经济
 
@@ -170,11 +207,11 @@
 ### 立即处理（高优先级）
 1. ~~**修复 sell_unit 崩溃**~~ - 已修复 (AIActionExecutor.gd)
 2. ~~**添加缺失的单位条目**~~ - 已完成 (7个单位已添加到 game_data.json)
-3. **稳定 AI 客户端** 波次转换期间的连接
+3. ~~**稳定 AI 客户端**~~ - 已修复 (波次转换期间连接稳定)
 
 ### 短期（中优先级）
 4. 实现 4 个缺失的单位（shell, rage_bear, sunflower, blood_meat）
-5. 调试 move_unit 从备战区到网格的问题
+5. ~~调试 move_unit 从备战区到网格的问题~~ - 已修复
 6. 添加用于测试的冷却重置作弊码
 
 ### 长期（低优先级）
@@ -187,3 +224,4 @@
 *报告由 AI 测试团队生成 - 2026-02-28*
 *团队结构更新: 2026-02-28*
 *Bug修复更新: 2026-02-28*
+*AI客户端稳定性修复: 2026-02-28*

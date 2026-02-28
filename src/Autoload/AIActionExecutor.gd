@@ -288,20 +288,34 @@ func _action_move_unit(action: Dictionary) -> Dictionary:
 			return {"success": false, "error_message": "目标网格位置 (%d,%d) 不可放置: %s" % [grid_pos.x, grid_pos.y, placement_check.reason]}
 
 	# 转换位置格式 (JSON字典转为Vector2i，float转为int)
-	if from_zone == "grid":
-		from_pos = _parse_position(from_pos)
-	else:  # bench
-		from_pos = _to_int_index(from_pos)
-	if to_zone == "grid":
-		to_pos = _parse_position(to_pos)
-	else:  # bench
-		to_pos = _to_int_index(to_pos)
+	var from_pos_typed: Variant
+	var to_pos_typed: Variant
 
-	AILogger.action("[DEBUG] move_unit: from_zone=%s, from_pos=%s, to_zone=%s, to_pos=%s" % [from_zone, str(from_pos), to_zone, str(to_pos)])
-	AILogger.action("[DEBUG] from_pos type: %d, to_pos type: %d" % [typeof(from_pos), typeof(to_pos)])
+	if from_zone == "grid":
+		from_pos_typed = _parse_position(from_pos)
+		if from_pos_typed == null or not (from_pos_typed is Vector2i):
+			return {"success": false, "error_message": "来源网格位置格式错误: %s" % str(from_pos)}
+	else:  # bench
+		var bench_idx = _to_int_index(from_pos)
+		if bench_idx < 0:
+			return {"success": false, "error_message": "来源备战区索引格式错误: %s" % str(from_pos)}
+		from_pos_typed = bench_idx
+
+	if to_zone == "grid":
+		to_pos_typed = _parse_position(to_pos)
+		if to_pos_typed == null or not (to_pos_typed is Vector2i):
+			return {"success": false, "error_message": "目标网格位置格式错误: %s" % str(to_pos)}
+	else:  # bench
+		var bench_idx = _to_int_index(to_pos)
+		if bench_idx < 0:
+			return {"success": false, "error_message": "目标备战区索引格式错误: %s" % str(to_pos)}
+		to_pos_typed = bench_idx
+
+	AILogger.action("[DEBUG] move_unit: from_zone=%s, from_pos=%s, to_zone=%s, to_pos=%s" % [from_zone, str(from_pos_typed), to_zone, str(to_pos_typed)])
+	AILogger.action("[DEBUG] from_pos type: %d, to_pos type: %d" % [typeof(from_pos_typed), typeof(to_pos_typed)])
 
 	# 执行移动
-	var result = BoardController.try_move_unit(from_zone, from_pos, to_zone, to_pos)
+	var result = BoardController.try_move_unit(from_zone, from_pos_typed, to_zone, to_pos_typed)
 	if not result:
 		return {"success": false, "error_message": "BoardController.try_move_unit 返回失败"}
 

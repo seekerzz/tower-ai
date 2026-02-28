@@ -47,7 +47,7 @@ class AITestClient:
             r = requests.post(
                 f"{self.base_url}/action",
                 json={"actions": actions if isinstance(actions, list) else [actions]},
-                timeout=35
+                timeout=65
             )
             return r.json()
         except requests.Timeout:

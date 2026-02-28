@@ -17,6 +17,10 @@ var is_waiting_for_action: bool = false
 var last_event_type: String = ""
 var last_event_data: Dictionary = {}
 
+# ===== 心跳/保活 =====
+var _last_ping_time: float = 0.0
+const PING_INTERVAL: float = 10.0  # 每10秒发送一次ping
+
 ## AI 暂停标志 - 用于非原生暂停（只停逻辑，UI继续）
 var ai_paused: bool = false:
 	get:
@@ -111,6 +115,12 @@ func _process(_delta):
 				AILogger.net_connection("客户端已连接", "WebSocket握手成功")
 				client_connected.emit()
 
+			# 发送心跳保活
+			var current_time = Time.get_unix_time_from_system()
+			if current_time - _last_ping_time > PING_INTERVAL:
+				_send_ping()
+				_last_ping_time = current_time
+
 			while websocket_peer.get_available_packet_count() > 0:
 				var packet = websocket_peer.get_packet()
 				var text = packet.get_string_from_utf8()
@@ -127,11 +137,19 @@ func _process(_delta):
 # ===== 游戏信号连接 =====
 
 func _connect_game_signals():
-	# 波次相关
+	# 波次相关 - 连接GameManager的信号
 	GameManager.wave_started.connect(_on_wave_started)
 	GameManager.wave_ended.connect(_on_wave_ended)
 	GameManager.wave_reset.connect(_on_wave_reset)
 	GameManager.game_over.connect(_on_game_over)
+
+	# 波次相关 - 连接WaveSystemManager的信号（用于立即获得波次结束通知）
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(_on_wave_system_started)
+		GameManager.wave_system_manager.wave_ended.connect(_on_wave_system_ended)
+
+	# 升级选择相关
+	GameManager.upgrade_selection_shown.connect(_on_upgrade_selection_shown)
 
 	# 敌人相关
 	GameManager.enemy_spawned.connect(_on_enemy_spawned)
@@ -152,6 +170,37 @@ func _on_wave_ended():
 
 func _on_wave_reset():
 	_send_state_async("WaveReset", {"wave": GameManager.wave})
+
+func _on_wave_system_started(wave_number: int, wave_type: String, difficulty: float):
+	"""波次系统开始新波次的回调 - 立即通知AI客户端"""
+	AILogger.event("波次系统开始波次 %d，立即通知AI客户端" % wave_number)
+	_pause_and_send("WaveStarted", {
+		"wave": wave_number,
+		"wave_type": wave_type,
+		"difficulty": difficulty
+	})
+
+func _on_wave_system_ended(wave_number: int, stats: Dictionary):
+	"""波次系统结束波次的回调 - 立即通知AI客户端，避免等待升级选择"""
+	AILogger.event("波次系统结束波次 %d，立即通知AI客户端" % wave_number)
+	# 构建包含波次统计的状态
+	var event_data = {
+		"wave": wave_number,
+		"stats": {
+			"duration": stats.get("duration", 0),
+			"enemies_defeated": stats.get("enemies_defeated", 0),
+			"enemies_spawned": stats.get("enemies_spawned", 0),
+			"gold_earned": stats.get("gold_earned", 0)
+		}
+	}
+	_pause_and_send("WaveEnded", event_data)
+
+func _on_upgrade_selection_shown():
+	"""升级选择界面显示时通知AI客户端"""
+	AILogger.event("升级选择界面已显示，通知AI客户端")
+	_send_state_async("UpgradeSelection", {
+		"message": "Wave completed. Upgrade selection is now available. Send 'resume' action to continue."
+	})
 
 func _on_game_over():
 	AILogger.event("游戏结束，发送 GameOver 事件给 AI")
@@ -388,6 +437,13 @@ func _send_error(error_type: String, message: String):
 		"event": "Error",
 		"error_type": error_type,
 		"error_message": message
+	})
+
+func _send_ping():
+	"""发送心跳保活消息"""
+	_send_json({
+		"event": "Ping",
+		"timestamp": Time.get_unix_time_from_system()
 	})
 
 func send_action_error(error_message: String, failed_action: Dictionary):

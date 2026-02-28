@@ -165,15 +165,20 @@ class AIGameClient:
                 try:
                     data = json.loads(message)
                     self._last_state = data
-                    logger.debug(f"收到 WebSocket 消息: {data.get('event', 'unknown')}")
+                    event_type = data.get('event', 'unknown')
+                    logger.debug(f"收到 WebSocket 消息: {event_type}")
+
+                    # 处理心跳消息 - 不设置响应，只更新最后状态
+                    if event_type == 'Ping':
+                        logger.debug(f"收到心跳: {data.get('timestamp', 'unknown')}")
+                        continue
 
                     # 如果有等待的响应，设置结果
                     if self._pending_response and not self._pending_response.done():
                         self._pending_response.set_result(data)
-                        logger.info(f"响应已设置: {data.get('event', 'unknown')}")
+                        logger.info(f"响应已设置: {event_type}")
                     else:
                         # 没有等待的请求，只是更新状态
-                        event_type = data.get('event', 'unknown')
                         if event_type != 'AI_Wakeup':  # 减少日志噪音
                             logger.info(f"收到未请求的状态更新: {event_type}")
 
@@ -229,11 +234,11 @@ class AIGameClient:
             await self.websocket.send(json.dumps(message))
             logger.info(f"发送动作: {len(actions)} 个")
 
-            # 等待响应（带超时）
+            # 等待响应（带超时）- 增加超时时间以应对波次转换期间的延迟
             try:
                 response = await asyncio.wait_for(
                     self._pending_response,
-                    timeout=30.0
+                    timeout=60.0
                 )
                 return response
 
