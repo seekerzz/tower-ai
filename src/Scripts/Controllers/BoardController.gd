@@ -68,6 +68,7 @@ func buy_unit(shop_index: int, expected_unit_key: String = "") -> bool:
 		return false
 
 	var cost = proto.get("cost", 0)
+	print("[BoardController] 购买单位: %s, 价格: %d, 拥有金币: %d" % [unit_key, cost, session_data.gold])
 
 	# 特殊处理：meat 物品
 	if unit_key == "meat":

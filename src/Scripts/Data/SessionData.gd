@@ -57,23 +57,14 @@ var is_wave_active: bool = false:
 
 # ===== 棋盘状态 =====
 # bench_units: { bench_index (0-7): UnitData }
-var bench_units: Dictionary = {}:
-	set(value):
-		bench_units = value
-		bench_updated.emit(bench_units)
+var bench_units: Dictionary = {}
 
 # grid_units: { "x,y": UnitData }
-var grid_units: Dictionary = {}:
-	set(value):
-		grid_units = value
-		grid_updated.emit(grid_units)
+var grid_units: Dictionary = {}
 
 # ===== 商店状态 =====
 # shop_units: Array of 4 unit keys or null
-var shop_units: Array = [null, null, null, null]:
-	set(value):
-		shop_units = value
-		shop_updated.emit(shop_units)
+var shop_units: Array = [null, null, null, null]
 
 var shop_locked: Array = [false, false, false, false]
 var shop_refresh_cost: int = 10
@@ -97,9 +88,12 @@ func reset():
 	permanent_health_bonus = 0.0
 	wave = 1
 	is_wave_active = false
-	bench_units = {}
-	grid_units = {}
+	bench_units.clear()
+	bench_updated.emit(bench_units)
+	grid_units.clear()
+	grid_updated.emit(grid_units)
 	shop_units = [null, null, null, null]
+	shop_updated.emit(shop_units)
 	shop_locked = [false, false, false, false]
 	artifacts = []
 

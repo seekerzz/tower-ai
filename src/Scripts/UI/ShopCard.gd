@@ -79,7 +79,8 @@ func setup(key: String):
 		icon_label.show()
 
 	name_label.text = proto.name
-	price_label.text = "%d💰" % proto.cost
+	var cost = proto.get("cost", 0)
+	price_label.text = "%d💰" % cost
 
 	# Tooltip handled by Shop.gd via GameManager signals
 

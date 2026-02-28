@@ -1,5 +1,7 @@
 extends Node
 
+const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
+
 ## AI 管理器 - WebSocket 服务端
 ## 监听游戏事件，暂停游戏，下发状态给 AI 客户端
 
@@ -423,6 +425,14 @@ func _build_enemies_state() -> Array:
 		# 魅惑状态
 		if "faction" in enemy and enemy.faction == "player":
 			enemy_info["is_charmed"] = true
+
+		# 史莱姆分裂代数信息
+		if "behavior" in enemy and enemy.behavior:
+			var behavior = enemy.behavior
+			if behavior.has_method("set_split_info"):
+				# 这是史莱姆行为，包含分裂信息
+				enemy_info["split_generation"] = behavior.get("split_generation", 0)
+				enemy_info["is_slime"] = true
 
 		enemies.append(enemy_info)
 

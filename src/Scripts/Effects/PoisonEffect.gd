@@ -61,7 +61,7 @@ func _update_stack_visuals():
 
 	# Position above enemy
 	var radius = 20.0
-	if host.get("enemy_data") and host.enemy_data.get("radius"):
+	if host.get("enemy_data") and host.enemy_data is Dictionary and host.enemy_data.has("radius"):
 		radius = host.enemy_data.radius
 	_stack_indicator.position = Vector2(-15, -radius - 35)
 	_stack_indicator.size = Vector2(30, 20)
@@ -152,10 +152,11 @@ func _update_visuals():
 
 	# We only apply if we are the dominant effect or just apply it.
 	# If we want to be safe, we can skip if host.modulate is blue (Frozen).
-	if host.modulate.b > host.modulate.r + 0.2: # Rough check for blue tint
-		pass
-	else:
-		host.modulate = col
+	if "modulate" in host and host.modulate is Color:
+		if host.modulate.b > host.modulate.r + 0.2: # Rough check for blue tint
+			pass
+		else:
+			host.modulate = col
 
 func _on_host_died():
 	# Poison explosion logic - similar to burn explosion but spreads poison
@@ -183,7 +184,7 @@ func _on_host_died():
 
 func _exit_tree():
 	var host = get_parent()
-	if host:
+	if host and "modulate" in host:
 		host.modulate = Color.WHITE
 	# Clean up visual indicators
 	if _stack_indicator and is_instance_valid(_stack_indicator):

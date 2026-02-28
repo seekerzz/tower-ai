@@ -182,6 +182,7 @@ func _action_buy_unit(action: Dictionary) -> Dictionary:
 		return {"success": false, "error_message": "无效的单位类型: %s" % unit_key}
 
 	var cost = proto.get("cost", 0)
+	AILogger.action("[购买校验] 单位: %s, 价格: %d, 拥有金币: %d" % [unit_key, cost, session.gold])
 	if not session.can_afford(cost):
 		return {"success": false, "error_message": "金币不足: 需要 %d，拥有 %d" % [cost, session.gold]}
 
