@@ -1,143 +1,146 @@
-# Godot AI 游戏客户端
+# Godot AI 游戏客户端 - HTTP REST API 网关
 
-外部 AI 控制 Godot 游戏的完整方案。
+外部 AI 控制 Godot 游戏的 HTTP REST API 方案。支持动态端口、Headless/GUI 双模式、崩溃检测。
+
+## 功能特性
+
+- **HTTP REST API**: 通过 HTTP 接收动作请求，返回游戏状态
+- **动态端口分配**: 自动寻找可用端口，避免冲突
+- **双模式启动**: 支持 Headless（无头）和 GUI（图形界面）模式
+- **崩溃检测**: 实时监控 Godot 输出，捕获 SCRIPT ERROR 等崩溃
+- **进程管理**: 自动启动、监控和清理 Godot 进程
 
 ## 目录结构
 
 ```
-ai_client/                       # Python 客户端代码
-├── README.md                    # 本文件（主入口）
+ai_client/
+├── README.md                    # 本文件
 ├── API_DOCUMENTATION.md         # 完整 API 参考
-├── QUICKSTART.md                # 快速入门指南
-├── run_visual.py                # 一键启动脚本（游戏窗口+AI）
-├── ai_game_client.py            # 完整客户端实现（可直接使用）
-├── example_minimal.py           # 极简示例（30行代码）
-└── example_with_cheats.py       # 作弊模式示例（快速体验）
-
-src/Autoload/                    # Godot 服务端代码
-├── AILogger.gd                 # 中文日志系统
-├── AIManager.gd                # WebSocket 服务端
-└── AIActionExecutor.gd         # 动作执行器
+├── ai_game_client.py            # 主程序（HTTP 网关）
+├── godot_process.py             # Godot 进程管理器
+├── http_server.py               # HTTP REST 服务器
+└── utils.py                     # 工具函数
 ```
 
 ## 快速开始
 
-### 方式1：可视化运行（推荐）
-同时看到游戏画面和 AI 决策日志：
+### 方式1：Headless 模式（推荐用于训练）
 
-```bash
-cd ai_client
-
-# 使用脚本一键启动（自动启动 Godot 游戏窗口 + AI 客户端）
-# 默认从 CoreSelection.tscn 场景开始，AI 会选择图腾后进入游戏
-python3 run_visual.py
-
-# 或者指定其他场景
-python3 run_visual.py --scene res://src/Scenes/Game/MainGame.tscn
-
-# 或者带作弊功能快速体验
-python3 run_visual.py --ai cheat
-```
-
-### 方式2：手动运行（带UI版本）
-
-如果你想同时看到游戏画面和AI决策过程，使用以下步骤：
-
-**步骤1 - 启动 Godot 游戏（带图形界面）：**
 ```bash
 cd /home/zhangzhan/tower
-# 从CoreSelection场景开始，AI会自动选择图腾
-godot --path . res://src/Scenes/UI/CoreSelection.tscn --ai-mode
+python3 ai_client/ai_game_client.py
 ```
-*注意：这会启动AI图腾选择场景，等待AI连接*
 
-**步骤2 - 在另一个终端运行 AI 客户端：**
+输出示例：
+```
+============================================================
+Godot AI 客户端已启动 - Headless 模式
+============================================================
+HTTP 端口: 10000
+Godot WebSocket 端口: 10001
+
+使用示例:
+  curl -X POST http://127.0.0.1:10000/action \
+       -H "Content-Type: application/json" \
+       -d '{"actions": [{"type": "start_wave"}]}'
+
+按 Ctrl+C 停止
+============================================================
+```
+
+### 方式2：GUI 模式（用于调试观察）
+
 ```bash
-cd /home/zhangzhan/tower/ai_client
-python3 example_minimal.py
+python3 ai_client/ai_game_client.py --visual
 ```
 
-**你会看到：**
-- Godot窗口：显示图腾选择 → 进入游戏 → 波次战斗
-- 终端输出：彩色中文日志，显示AI接收事件和发送动作
+### 使用 curl 发送请求
 
-**手动操作验证步骤：**
-1. 启动Godot后，等待"等待AI客户端连接..."消息
-2. 启动AI客户端，观察连接成功日志
-3. 在Godot窗口中你应该看到：
-   - 图腾选择界面（自动跳过，AI选择）
-   - 主游戏场景加载
-   - 商店界面和战斗场景
-4. 在终端中观察AI决策过程（选择图腾、开始波次等）
-
-### 方式3：无界面运行（仅 AI 测试）
 ```bash
-# 终端1
-godot --headless --path .
+# 获取状态
+curl http://127.0.0.1:<port>/status
 
-# 终端2
-cd ai_client
-python3 example_minimal.py
+# 发送动作
+curl -X POST http://127.0.0.1:<port>/action \
+  -H "Content-Type: application/json" \
+  -d '{"actions": [{"type": "select_totem", "totem_id": "wolf_totem"}]}'
 ```
 
-## 核心概念
+## HTTP API
 
-### 通信流程
-1. 游戏事件触发 → 游戏暂停 → 服务端发送状态 JSON
-2. AI 客户端接收状态 → 做出决策 → 发送动作 JSON
-3. 服务端执行动作 → 返回结果 → 恢复游戏
+### POST /action
 
-### 连接信息
-- 地址: `ws://localhost:9090`
-- 格式: JSON
+发送游戏动作，返回游戏状态。
 
-### 完整游戏流程示例
-```python
-import asyncio, websockets, json
-
-async def ai():
-    async with websockets.connect("ws://localhost:9090") as ws:
-        while True:
-            state = json.loads(await ws.recv())
-            event = state["event"]
-            actions = []
-
-            if event == "TotemSelection":
-                # 1. 选择图腾（游戏开始）
-                available = state.get("available_totems", [])
-                selected = available[0] if available else "wolf_totem"
-                print(f"选择图腾: {selected}")
-                actions = [{"type": "select_totem", "totem_id": selected}]
-
-            elif event == "WaveEnded":
-                # 2. 购买单位并布置
-                print(f"金币: {state['global']['gold']}")
-                actions = [
-                    {"type": "buy_unit", "shop_index": 0},
-                    {"type": "move_unit", "from_zone": "bench", "from_pos": 0,
-                     "to_zone": "grid", "to_pos": {"x": 0, "y": 0}},
-                    {"type": "start_wave"}
-                ]
-
-            elif event == "GameOver":
-                print("游戏结束!")
-                break
-
-            else:
-                actions = [{"type": "resume", "wait_time": 1.0}]
-
-            await ws.send(json.dumps({"actions": actions}))
-
-asyncio.run(ai())
+**请求体：**
+```json
+{
+  "actions": [
+    {"type": "buy_unit", "shop_index": 0},
+    {"type": "start_wave"}
+  ]
+}
 ```
 
-## 文档导航
+**正常响应：**
+```json
+{
+  "event": "WaveStarted",
+  "event_data": {"wave": 1},
+  "timestamp": 1234567890,
+  "global": {...},
+  "board": {...}
+}
+```
 
-| 需求 | 阅读文档 |
-|------|----------|
-| 5分钟快速上手 | [QUICKSTART.md](QUICKSTART.md) |
-| 完整协议参考 | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) |
-| 使用完整客户端库 | [ai_game_client.py](ai_game_client.py) |
+**崩溃响应：**
+```json
+{
+  "event": "SystemCrash",
+  "error_type": "SCRIPT ERROR: ...",
+  "stack_trace": "..."
+}
+```
+
+### GET /status
+
+获取服务器和 Godot 进程状态。
+
+**响应：**
+```json
+{
+  "godot_running": true,
+  "ws_connected": true,
+  "http_port": 12345,
+  "godot_ws_port": 45678,
+  "visual_mode": false,
+  "crashed": false
+}
+```
+
+### GET /health
+
+健康检查。
+
+**响应：**
+```json
+{"status": "ok"}
+```
+
+## 命令行参数
+
+```
+python3 ai_game_client.py [选项]
+
+选项:
+  --visual, --gui       启用 GUI 模式（显示游戏窗口）
+  --project PATH, -p PATH
+                        Godot 项目路径 (默认: /home/zhangzhan/tower)
+  --scene PATH, -s PATH
+                        启动场景路径 (默认: res://src/Scenes/UI/CoreSelection.tscn)
+  --http-port PORT      HTTP 服务器端口 (0=自动分配)
+  --godot-port PORT     Godot WebSocket 端口 (0=自动分配)
+```
 
 ## 核心动作
 
@@ -174,56 +177,64 @@ asyncio.run(ai())
 | `CoreCritical` | 核心血量低于 30% |
 | `AI_Wakeup` | resume 延时到期 |
 | `GameOver` | 游戏结束 |
+| `SystemCrash` | Godot 崩溃（Python 端检测） |
 
-## 完整客户端使用
+## 测试
 
-```python
-from ai_client.ai_game_client import AIGameClient, ActionBuilder, run_ai_game, SimpleAI
+### 崩溃检测测试
 
-# 方式1: 使用内置 AI
-asyncio.run(run_ai_game())
-
-# 方式2: 自定义 AI
-class MyAI(SimpleAI):
-    async def make_decision(self, state):
-        actions = []
-        if state.event == "WaveEnded":
-            # 只买 wolf
-            shop = self.client.get_shop_units()
-            for slot in shop:
-                if slot.unit_key == "wolf":
-                    actions.append(ActionBuilder.buy_unit(slot.index))
-            actions.append(ActionBuilder.start_wave())
-        elif state.is_wave_active:
-            actions.append(ActionBuilder.resume(wait_time=1.0))
-        return actions
-
-asyncio.run(run_ai_game(ai_class=MyAI))
+```bash
+# 使用 TestCrash 场景（主动触发 GDScript 错误）
+python3 ai_client/ai_game_client.py --scene res://src/Scenes/Test/TestCrash.tscn --visual
 ```
 
-## 状态结构
+预期输出包含 `SystemCrash` 事件。
 
-```json
-{
-  "event": "WaveEnded",
-  "global": {
-    "wave": 3,
-    "gold": 250,
-    "mana": 500,
-    "max_mana": 1000,
-    "core_health": 450,
-    "max_core_health": 500,
-    "is_wave_active": false
-  },
-  "board": {
-    "shop": [{"index": 0, "unit_key": "wolf", "locked": false}],
-    "bench": [{"index": 0, "unit": {"key": "wolf", "level": 1}}],
-    "grid": [{"position": {"x": 0, "y": 0}, "unit": {"key": "bat", "level": 2}}]
-  },
-  "enemies": [
-    {"type": "slime", "hp": 80, "max_hp": 100, "position": {"x": 100, "y": 200}}
-  ]
-}
+### 完整测试套件
+
+```bash
+python3 tests/test_crash_detection.py
+```
+
+## 文档导航
+
+| 需求 | 阅读文档 |
+|------|----------|
+| 完整协议参考 | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) |
+
+## 架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ai_game_client.py                        │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
+│  │  HTTP Server │◄───│  请求路由    │◄───│ 外部 curl    │  │
+│  │  (随机端口)  │    │  /action     │    │ 调用         │  │
+│  └──────────────┘    └──────┬───────┘    └──────────────┘  │
+│                             │                               │
+│                        ┌────┴────┐                         │
+│                        │ WebSocket│ ← 内部转发              │
+│                        │ Client   │                         │
+│                        └────┬────┘                         │
+│                             │                               │
+│  ┌──────────────────────────┼──────────────────────────┐   │
+│  │    Godot 子进程          │                          │   │
+│  │  ┌───────────────────────┼──────────────────────┐   │   │
+│  │  │   AIManager.gd        ▼                      │   │   │
+│  │  │  ┌──────────────┐  ┌──────────────┐         │   │   │
+│  │  │  │WebSocket Srv │  │ --ai-port    │         │   │   │
+│  │  │  │ (动态端口)   │  │ 参数解析     │         │   │   │
+│  │  │  └──────────────┘  └──────────────┘         │   │   │
+│  │  └─────────────────────────────────────────────┘   │   │
+│  │           ▲                                        │   │
+│  │           │ stdout/stderr 流监控                   │   │
+│  │           │ (SCRIPT ERROR 检测)                    │   │
+│  │           ▼                                        │   │
+│  │  ┌─────────────────────────────────────────────┐   │   │
+│  │  │  崩溃处理器: kill() + 返回 SystemCrash JSON │   │   │
+│  │  └─────────────────────────────────────────────┘   │   │
+│  └────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## 调试技巧
