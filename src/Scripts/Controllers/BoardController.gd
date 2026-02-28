@@ -234,10 +234,11 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 			return {"success": false, "error_message": msg}
 
 		# 实际放置单位到网格
-		if grid_manager:
+		var gm = _get_grid_manager()
+		if gm:
 			var grid_pos = to_pos as Vector2i
 			var unit_key = unit_data.get("key", "")
-			if grid_manager.place_unit(unit_key, grid_pos.x, grid_pos.y):
+			if gm.place_unit(unit_key, grid_pos.x, grid_pos.y):
 				_remove_unit_from_zone(from_zone, from_pos)
 				unit_data["grid_pos"] = grid_pos
 				session_data.set_grid_unit(grid_pos, unit_data)
@@ -322,30 +323,55 @@ func _remove_from_grid(grid_pos: Variant):
 	else:
 		return
 
-	if grid_manager:
+	var gm = _get_grid_manager()
+	if gm:
 		var key = "%d,%d" % [pos.x, pos.y]
-		if grid_manager.tiles.has(key):
-			var tile = grid_manager.tiles[key]
+		if gm.tiles.has(key):
+			var tile = gm.tiles[key]
 			if tile.unit:
-				grid_manager.remove_unit_from_grid(tile.unit)
+				gm.remove_unit_from_grid(tile.unit)
+
+# 动态获取 grid_manager
+func _get_grid_manager():
+	if grid_manager == null and GameManager.grid_manager:
+		grid_manager = GameManager.grid_manager
+	return grid_manager
 
 func _can_place_on_grid(grid_pos: Vector2i) -> bool:
-	if grid_manager == null:
+	var gm = _get_grid_manager()
+	if gm == null:
+		print("[BoardController] _can_place_on_grid: grid_manager is null")
 		return false
 	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
-	if not grid_manager.tiles.has(key):
+	if not gm.tiles.has(key):
+		print("[BoardController] _can_place_on_grid: tile key %s not found" % key)
 		return false
-	var tile = grid_manager.tiles[key]
+	var tile = gm.tiles[key]
 	if tile.state != "unlocked":
+		print("[BoardController] _can_place_on_grid: tile %s state is '%s', not 'unlocked'" % [key, tile.state])
 		return false
 	if tile.type == "core":
+		print("[BoardController] _can_place_on_grid: tile %s is core" % key)
 		return false
 	if tile.unit != null:
+		print("[BoardController] _can_place_on_grid: tile %s already has unit" % key)
 		return false
 	return true
 
 func _can_merge(unit_a: Dictionary, unit_b: Dictionary) -> bool:
 	return unit_a["key"] == unit_b["key"] and unit_a["level"] == unit_b["level"]
+
+# 获取所有已解锁的格子位置
+func get_unlocked_tiles() -> Array:
+	var unlocked = []
+	var gm = _get_grid_manager()
+	if gm == null:
+		return unlocked
+	for key in gm.tiles:
+		var tile = gm.tiles[key]
+		if tile.state == "unlocked":
+			unlocked.append({"x": tile.x, "y": tile.y, "type": tile.type})
+	return unlocked
 
 func _perform_merge(from_zone: String, from_pos: Variant,
 					to_zone: String, to_pos: Variant,
@@ -367,10 +393,11 @@ func _perform_merge(from_zone: String, from_pos: Variant,
 	unit_moved.emit(from_zone, from_pos, to_zone, to_pos, target_unit)
 
 func _update_unit_level_on_grid(grid_pos: Vector2i, new_level: int):
-	if grid_manager:
+	var gm = _get_grid_manager()
+	if gm:
 		var key = "%d,%d" % [grid_pos.x, grid_pos.y]
-		if grid_manager.tiles.has(key):
-			var tile = grid_manager.tiles[key]
+		if gm.tiles.has(key):
+			var tile = gm.tiles[key]
 			if tile.unit and tile.unit.has_method("set_level"):
 				tile.unit.set_level(new_level)
 

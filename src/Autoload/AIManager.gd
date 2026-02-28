@@ -18,6 +18,7 @@ var is_client_connected: bool = false
 var is_waiting_for_action: bool = false
 var last_event_type: String = ""
 var last_event_data: Dictionary = {}
+var is_game_over: bool = false
 
 # ===== 心跳/保活 =====
 var _last_ping_time: float = 0.0
@@ -175,6 +176,7 @@ func _on_wave_ended():
 	_pause_and_send("WaveEnded", {"wave": GameManager.wave})
 
 func _on_wave_reset():
+	is_game_over = false
 	_send_state_async("WaveReset", {"wave": GameManager.wave})
 
 func _on_wave_system_started(wave_number: int, wave_type: String, difficulty: float):
@@ -189,6 +191,13 @@ func _on_wave_system_started(wave_number: int, wave_type: String, difficulty: fl
 func _on_wave_system_ended(wave_number: int, stats: Dictionary):
 	"""波次系统结束波次的回调 - 立即通知AI客户端，避免等待升级选择"""
 	AILogger.event("波次系统结束波次 %d，立即通知AI客户端" % wave_number)
+
+	# 获取已解锁的格子
+	var unlocked_tiles = []
+	if BoardController:
+		unlocked_tiles = BoardController.get_unlocked_tiles()
+		AILogger.event("波次结束 - 已解锁格子数量: %d" % unlocked_tiles.size())
+
 	# 构建包含波次统计的状态
 	var event_data = {
 		"wave": wave_number,
@@ -197,7 +206,8 @@ func _on_wave_system_ended(wave_number: int, stats: Dictionary):
 			"enemies_defeated": stats.get("enemies_defeated", 0),
 			"enemies_spawned": stats.get("enemies_spawned", 0),
 			"gold_earned": stats.get("gold_earned", 0)
-		}
+		},
+		"unlocked_tiles": unlocked_tiles
 	}
 	_pause_and_send("WaveEnded", event_data)
 
@@ -209,6 +219,7 @@ func _on_upgrade_selection_shown():
 	})
 
 func _on_game_over():
+	is_game_over = true
 	AILogger.event("游戏结束，发送 GameOver 事件给 AI")
 	_pause_and_send("GameOver", {"wave": GameManager.wave, "core_health": GameManager.core_health})
 
@@ -471,6 +482,12 @@ func _handle_client_message(text: String):
 	if not data is Dictionary:
 		AILogger.error("消息格式错误，期望对象: %s" % text)
 		_send_error("InvalidFormat", "消息必须是 JSON 对象")
+		return
+
+	# 检查游戏是否已结束
+	if is_game_over:
+		AILogger.event("游戏已结束，拒绝动作并发送 GameOver 状态")
+		_send_state_async("GameOver", {"wave": GameManager.wave, "core_health": 0, "message": "Game already over"})
 		return
 
 	# 检查是否是动作数组
