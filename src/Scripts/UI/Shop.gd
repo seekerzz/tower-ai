@@ -185,6 +185,12 @@ func _perform_refresh():
 			new_items.append(available_units.pick_random())
 
 	shop_items = new_items
+
+	# 同步到 SessionData，这样 BoardController 才能获取到商店单位
+	if GameManager.session_data:
+		for i in range(SHOP_SIZE):
+			GameManager.session_data.set_shop_unit(i, shop_items[i])
+
 	_update_shop_ui()
 
 func _update_shop_ui():
@@ -235,8 +241,8 @@ func create_shop_card(index, unit_key):
 	shop_container.add_child(card)
 
 func buy_unit(index, unit_key, card_ref):
-	# 调用 BoardController API
-	var success = BoardController.buy_unit(index)
+	# 调用 BoardController API，传入期望的单位key进行验证
+	var success = BoardController.buy_unit(index, unit_key)
 	if success:
 		card_ref.modulate = Color(0.5, 0.5, 0.5)
 		card_ref.mouse_filter = MOUSE_FILTER_IGNORE
@@ -278,8 +284,10 @@ func _on_shop_refreshed(new_shop_units: Array):
 	_update_shop_ui()
 
 func _on_unit_purchased(unit_key: String, target_zone: String, target_pos: Variant):
-	# 找到对应的 card 并更新显示为已购买
-	for i in range(shop_items.size()):
-		if shop_items[i] == unit_key:
-			# 标记该槽位为已购买（会在下次刷新时更新）
-			pass
+	# 金币已更新，刷新UI显示
+	update_ui()
+
+	# 如果购买成功且目标是暂存区，确保暂存区UI已刷新
+	if target_zone == "bench" and target_pos is int:
+		# 暂存区会通过 SessionData.bench_updated 信号自动刷新
+		pass

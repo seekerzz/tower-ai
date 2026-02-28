@@ -263,10 +263,14 @@ func _on_wave_ended():
 
 func _on_unit_moved(from_zone: String, from_pos: Variant,
 					to_zone: String, to_pos: Variant, unit_data: Dictionary):
-	update_bench_ui()
+	# 单位移动后，SessionData 会发射 bench_updated 信号
+	# Bench UI 会自动更新，这里不需要手动更新
+	pass
 
 func _on_unit_sold(zone: String, pos: Variant, gold_refund: int):
-	update_bench_ui()
+	# 单位出售后，SessionData 会发射 bench_updated 信号
+	# Bench UI 会自动更新，这里不需要手动更新
+	pass
 
 # Bench Logic
 func add_to_bench(unit_key: String) -> bool:
@@ -315,8 +319,17 @@ func try_add_to_bench_from_grid(unit) -> bool:
 	return false
 
 func update_bench_ui():
-	if bench_ui:
-		bench_ui.update_bench_ui(bench)
+	# 从 SessionData 获取最新数据来更新 UI
+	if bench_ui and GameManager.session_data:
+		var bench_array = []
+		bench_array.resize(Constants.BENCH_SIZE)
+		bench_array.fill(null)
+		for index in GameManager.session_data.bench_units.keys():
+			if index >= 0 and index < Constants.BENCH_SIZE:
+				bench_array[index] = GameManager.session_data.bench_units[index]
+		bench_ui.update_bench_ui(bench_array)
+		# 同步本地 bench 数组
+		bench = bench_array
 
 func skip_wave():
 	if not GameManager.is_wave_active:

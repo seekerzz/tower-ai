@@ -22,6 +22,16 @@ func _ready():
 	# 连接 SessionData 信号
 	if GameManager.session_data:
 		GameManager.session_data.bench_updated.connect(_on_bench_updated)
+		# 初始化时立即刷新一次暂存区显示
+		_on_bench_updated(GameManager.session_data.bench_units)
+	else:
+		# 如果 session_data 还没初始化，延迟连接
+		var _timer = get_tree().create_timer(0.1)
+		_timer.timeout.connect(func():
+			if GameManager.session_data:
+				GameManager.session_data.bench_updated.connect(_on_bench_updated)
+				_on_bench_updated(GameManager.session_data.bench_units)
+		)
 
 func _on_bench_updated(bench_units: Dictionary):
 	# 转换为数组格式

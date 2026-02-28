@@ -232,6 +232,9 @@ func _ready():
 	var SessionDataScript = load("res://src/Scripts/Data/SessionData.gd")
 	session_data = SessionDataScript.new()
 
+	# Connect SessionData signals to GameManager signals
+	session_data.gold_changed.connect(_on_session_gold_changed)
+
 # ===== P0批次遗物回调函数 =====
 func _setup_soul_catcher():
 	"""
@@ -395,6 +398,9 @@ func trigger_hit_stop(duration_sec: float, time_scale: float = 0.05):
 	# Create a timer that ignores time scale
 	var timer = get_tree().create_timer(duration_sec, true, false, true)
 	timer.timeout.connect(_on_hit_stop_end)
+
+func _on_session_gold_changed(new_amount: int):
+	resource_changed.emit()
 
 func _on_hit_stop_end():
 	Engine.time_scale = 1.0
