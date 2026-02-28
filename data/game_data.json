@@ -440,43 +440,43 @@
 		"lion": {
 			"name": "狮子",
 			"icon": "🦁",
-			"size": [
-				1,
-				1
-			],
+			"size": [1, 1],
 			"range": 200,
 			"atkSpeed": 2.0,
 			"manaCost": 0,
-			"attackType": "ranged",
-			"proj": "roar",
-			"damageType": "poison",
+			"attackType": "shockwave",
+			"damageType": "physical",
 			"crit_rate": 0.1,
 			"crit_dmg": 1.5,
 			"levels": {
 				"1": {
-					"damage": 400,
+					"damage": 150,
 					"hp": 200,
 					"cost": 90,
-					"desc": "声波: 狮吼造成范围伤害",
-					"mechanics": {}
+					"desc": "声波:狮吼对范围内所有敌人造成伤害",
+					"mechanics": {
+						"shockwave_radius": 150
+					}
 				},
 				"2": {
-					"damage": 600,
+					"damage": 225,
 					"hp": 300,
 					"cost": 180,
-					"desc": "声波: 狮吼造成范围伤害",
+					"desc": "声波:范围扩大，20%概率击退",
 					"mechanics": {
-						"crit_rate_bonus": 0.1
+						"shockwave_radius": 180,
+						"knockback_chance": 0.20
 					}
 				},
 				"3": {
-					"damage": 900,
+					"damage": 337,
 					"hp": 450,
 					"cost": 360,
-					"desc": "声波: 狮吼造成范围伤害",
+					"desc": "声波:范围200，每3次攻击产生延迟冲击波",
 					"mechanics": {
-						"crit_rate_bonus": 0.2,
-						"multi_shot_chance": 0.3
+						"shockwave_radius": 200,
+						"knockback_chance": 0.30,
+						"secondary_shockwave": true
 					}
 				}
 			},
@@ -2938,6 +2938,207 @@
 			},
 			"type_key": "ascetic",
 			"faction": "cow_totem"
+		},
+		"shell": {
+			"name": "贝壳",
+			"icon": "🐚",
+			"size": [1, 1],
+			"range": 0,
+			"atkSpeed": 0,
+			"manaCost": 0,
+			"attackType": "none",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 200,
+					"cost": 40,
+					"desc": "珍珠:承受5次以下伤害，波次结束获得50金币",
+					"mechanics": {
+						"hit_threshold": 5,
+						"pearl_value": 50
+					}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 300,
+					"cost": 80,
+					"desc": "珍珠:承受8次以下伤害，波次结束获得75金币",
+					"mechanics": {
+						"hit_threshold": 8,
+						"pearl_value": 75
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 450,
+					"cost": 160,
+					"desc": "珍珠:承受8次以下伤害，波次结束获得100金币。邻接单位减伤5%",
+					"mechanics": {
+						"hit_threshold": 8,
+						"pearl_value": 100,
+						"damage_reduction_aura": 0.05
+					}
+				}
+			},
+			"type_key": "shell",
+			"faction": "universal"
+		},
+		"rage_bear": {
+			"name": "暴怒熊",
+			"icon": "🐻",
+			"size": [1, 1],
+			"range": 80,
+			"atkSpeed": 1.2,
+			"manaCost": 300,
+			"attackType": "melee",
+			"skill": "ground_slam",
+			"skillCd": 15,
+			"damageType": "physical",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 80,
+					"hp": 400,
+					"cost": 65,
+					"desc": "近战:15%概率眩晕1秒，对眩晕敌人+50%伤害。技能:地面猛击眩晕范围敌人",
+					"mechanics": {
+						"stun_chance": 0.15,
+						"stun_duration": 1.0,
+						"bonus_vs_stunned": 0.5,
+						"skill_stun_duration": 1.5
+					}
+				},
+				"2": {
+					"damage": 120,
+					"hp": 600,
+					"cost": 130,
+					"desc": "近战:22%概率眩晕1.2秒，对眩晕敌人+75%伤害",
+					"mechanics": {
+						"stun_chance": 0.22,
+						"stun_duration": 1.2,
+						"bonus_vs_stunned": 0.75,
+						"skill_stun_duration": 2.0
+					}
+				},
+				"3": {
+					"damage": 180,
+					"hp": 900,
+					"cost": 260,
+					"desc": "近战:30%概率眩晕1.5秒，对眩晕敌人+100%伤害。击杀眩晕敌人重置技能CD",
+					"mechanics": {
+						"stun_chance": 0.30,
+						"stun_duration": 1.5,
+						"bonus_vs_stunned": 1.0,
+						"skill_stun_duration": 2.5,
+						"kill_reset_cd": true
+					}
+				}
+			},
+			"type_key": "rage_bear",
+			"faction": "universal"
+		},
+		"sunflower": {
+			"name": "向日葵",
+			"icon": "🌻",
+			"size": [1, 1],
+			"range": 0,
+			"atkSpeed": 0,
+			"manaCost": 0,
+			"attackType": "none",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 80,
+					"cost": 20,
+					"desc": "产出:每5秒生成10法力",
+					"mechanics": {
+						"mana_per_tick": 10,
+						"tick_interval": 5.0
+					}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 120,
+					"cost": 40,
+					"desc": "产出:每4秒生成18法力",
+					"mechanics": {
+						"mana_per_tick": 18,
+						"tick_interval": 4.0
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 180,
+					"cost": 80,
+					"desc": "产出:每4秒生成36法力(双头向日葵)",
+					"mechanics": {
+						"mana_per_tick": 36,
+						"tick_interval": 4.0,
+						"double_headed": true
+					}
+				}
+			},
+			"type_key": "sunflower",
+			"faction": "universal"
+		},
+		"blood_meat": {
+			"name": "血食",
+			"icon": "🥩",
+			"size": [1, 1],
+			"range": 0,
+			"atkSpeed": 0,
+			"manaCost": 50,
+			"attackType": "none",
+			"skill": "sacrifice",
+			"skillCd": 20,
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 150,
+					"cost": 50,
+					"desc": "邻接狼族+10%攻击。技能:牺牲自己治疗核心5%，所有狼族+25%攻击5秒",
+					"mechanics": {
+						"adjacent_wolf_buff": 0.10,
+						"sacrifice_heal": 0.05,
+						"sacrifice_buff": 0.25,
+						"sacrifice_duration": 5.0
+					}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 225,
+					"cost": 100,
+					"desc": "邻接狼族+15%攻击。技能:牺牲治疗核心8%，所有狼族+30%攻击6秒",
+					"mechanics": {
+						"adjacent_wolf_buff": 0.15,
+						"sacrifice_heal": 0.08,
+						"sacrifice_buff": 0.30,
+						"sacrifice_duration": 6.0
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 337,
+					"cost": 200,
+					"desc": "邻接狼族+20%攻击，吞噬叠加层数。技能:牺牲治疗核心10%，所有狼族+40%攻击8秒",
+					"mechanics": {
+						"adjacent_wolf_buff": 0.20,
+						"sacrifice_heal": 0.10,
+						"sacrifice_buff": 0.40,
+						"sacrifice_duration": 8.0,
+						"blood_stacks": true
+					}
+				}
+			},
+			"type_key": "blood_meat",
+			"faction": "wolf_totem"
 		}
 	},
 	"TRAITS": [

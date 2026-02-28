@@ -124,9 +124,74 @@ var result = BoardController.sell_unit(zone, sell_pos)
 10. `/home/zhangzhan/tower/src/Scripts/Units/Behaviors/Gargoyle.gd`
 11. `/home/zhangzhan/tower/src/Scripts/Units/Behaviors/BloodAncestor.gd`
 
+## New Units Implemented
+
+### 1. Shell (贝壳) - Universal Support
+**File:** `/home/zhangzhan/tower/src/Scripts/Units/Behaviors/Shell.gd`
+
+**Mechanics:**
+- Tracks hits taken during a wave
+- If hit count stays below threshold at wave end, generates gold (Pearl) and removes itself
+- Lv1: 200 HP, 5 hit threshold, 50 gold pearl
+- Lv2: 300 HP, 8 hit threshold, 75 gold pearl
+- Lv3: 450 HP, 8 hit threshold, 100 gold pearl, 5% damage reduction aura to adjacent allies
+
+### 2. Rage Bear (暴怒熊) - Universal Melee
+**File:** `/home/zhangzhan/tower/src/Scripts/Units/Behaviors/RageBear.gd`
+
+**Mechanics:**
+- Attacks have chance to stun enemies
+- Deals bonus damage to already-stunned enemies
+- Active skill: Ground slam AoE stun (300 mana, 15s CD)
+- Lv1: 80 dmg, 400 HP, 15% stun chance, +50% vs stunned
+- Lv2: 120 dmg, 600 HP, 22% stun chance, +75% vs stunned
+- Lv3: 180 dmg, 900 HP, 30% stun chance, +100% vs stunned, kill stunned enemies resets skill CD
+
+### 3. Sunflower (向日葵) - Universal Support
+**File:** `/home/zhangzhan/tower/src/Scripts/Units/Behaviors/Sunflower.gd`
+
+**Mechanics:**
+- Periodically generates mana
+- Lv1: 80 HP, 10 mana every 5 seconds
+- Lv2: 120 HP, 18 mana every 4 seconds
+- Lv3: 180 HP, 36 mana every 4 seconds (Twin-Headed, double generation)
+
+### 4. Blood Meat (血食) - Wolf Support
+**File:** `/home/zhangzhan/tower/src/Scripts/Units/Behaviors/BloodMeat.gd`
+
+**Mechanics:**
+- ATK aura to adjacent Wolf units
+- Active skill: Self-sacrifice heals core and buffs all Wolf units
+- Lv1: 150 HP, +10% ATK aura, sacrifice heals 5% core HP, +25% ATK to Wolves for 5s
+- Lv2: 225 HP, +15% ATK aura, sacrifice heals 8% core HP, +30% ATK to Wolves for 6s
+- Lv3: 337 HP, +20% ATK aura, sacrifice heals 10% core HP, +40% ATK to Wolves for 8s, gains stacks when Wolves devour
+
+### 5. Lion (狮子) - Wolf Melee
+**File:** `/home/zhangzhan/tower/src/Scripts/Units/Behaviors/Lion.gd` (updated)
+
+**Mechanics:**
+- All attacks become circular shockwaves hitting ALL enemies in radius
+- Lv1: 150 dmg, 200 HP, 150 radius
+- Lv2: 225 dmg, 300 HP, 180 radius, 20% knockback chance
+- Lv3: 337 dmg, 450 HP, 200 radius, 30% knockback chance, every 3rd attack creates delayed secondary shockwave
+
+**Note:** Updated Lion stats in `game_data.json` to match design spec and completed the behavior implementation.
+
+## Data File Updates
+
+**File:** `/home/zhangzhan/tower/data/game_data.json`
+
+Added entries for:
+- `shell` - Universal support unit
+- `rage_bear` - Universal melee unit
+- `sunflower` - Universal mana generation unit
+- `blood_meat` - Wolf faction support unit
+
+Updated entry for:
+- `lion` - Updated stats and mechanics to match design spec
+
 ## Additional Notes
 
-- The Lion behavior file (`/home/zhangzhan/tower/src/Scripts/Units/Behaviors/Lion.gd`) is essentially empty and needs implementation according to the design spec (circular shockwave attack).
 - The Parrot behavior has complex mimic logic that may need additional testing.
 - Several units marked as "❌" (not implemented) in GameDesign.md were not reviewed for bugs.
 - The Shadow Bat unit (marked ❌ in design doc) is not implemented.
