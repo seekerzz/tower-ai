@@ -8,6 +8,9 @@ const CoreCardScene = preload("res://src/Scenes/UI/CoreCard.tscn")
 const AVAILABLE_TOTEMS = ["wolf_totem", "cow_totem", "bat_totem", "viper_totem", "butterfly_totem", "eagle_totem"]
 
 func _ready():
+	# 连接全局 totem_confirmed 信号
+	GameManager.totem_confirmed.connect(_on_totem_confirmed)
+
 	var args = OS.get_cmdline_args()
 	args.append_array(OS.get_cmdline_user_args())
 
@@ -31,6 +34,35 @@ func _ready():
 			return
 
 	_create_cards()
+
+func _on_totem_confirmed(totem_id: String):
+	"""监听 totem_confirmed 信号，自动处理场景切换"""
+	print("[CoreSelection] 收到 totem_confirmed 信号: " + totem_id)
+
+	# 验证图腾ID
+	var core_data = {}
+	if GameManager.data_manager and GameManager.data_manager.data.has("CORE_TYPES"):
+		core_data = GameManager.data_manager.data["CORE_TYPES"]
+
+	if not core_data.has(totem_id):
+		print("[CoreSelection] 错误: 无效的图腾类型 " + totem_id)
+		return
+
+	# 恢复游戏（如果处于暂停状态）
+	if get_tree().paused:
+		get_tree().paused = false
+		print("[CoreSelection] 游戏已恢复")
+
+	# 初始化游戏会话
+	_initialize_game_session()
+
+	# Load MainGame scene
+	var main_game_scene = load("res://src/Scenes/Game/MainGame.tscn")
+	if main_game_scene:
+		print("[CoreSelection] 正在切换到MainGame场景...")
+		call_deferred("_change_to_main_game", main_game_scene)
+	else:
+		print("[CoreSelection] 错误: MainGame场景未找到!")
 
 func _start_ai_mode():
 	"""启动AI模式：暂停游戏，等待AI连接并选择图腾"""
@@ -89,25 +121,6 @@ func _get_totem_info() -> Dictionary:
 				}
 	return info
 
-# 公共API：供AIActionExecutor调用来选择图腾
-func select_totem_by_ai(totem_id: String) -> bool:
-	"""AI选择图腾的接口"""
-	print("[CoreSelection] AI选择图腾: " + totem_id)
-
-	# 验证图腾ID
-	var core_data = {}
-	if GameManager.data_manager and GameManager.data_manager.data.has("CORE_TYPES"):
-		core_data = GameManager.data_manager.data["CORE_TYPES"]
-
-	if not core_data.has(totem_id):
-		print("[CoreSelection] 错误: 无效的图腾类型 " + totem_id)
-		return false
-
-	# 恢复游戏并进入主游戏
-	get_tree().paused = false
-	_on_core_selected(totem_id)
-	return true
-
 func _launch_test_mode(case_id: String):
 	print("[Test] Launching: ", case_id)
 
@@ -125,7 +138,9 @@ func _launch_test_mode(case_id: String):
 		return
 
 	GameManager.set_test_scenario(config)
-	_on_core_selected(config.get("core_type", "cornucopia"))
+	var test_core_type = config.get("core_type", "cornucopia")
+	GameManager.core_type = test_core_type
+	GameManager.totem_confirmed.emit(test_core_type)
 
 func _create_cards():
 	var core_data = {}
@@ -144,25 +159,12 @@ func _create_cards():
 		card.card_selected.connect(_on_core_selected)
 
 func _on_core_selected(core_key: String):
+	"""玩家手动选择图腾 - 设置 core_type 并发射 totem_confirmed 信号"""
 	GameManager.core_type = core_key
 	print("[CoreSelection] 已选择图腾: " + core_key)
 
-	# 恢复游戏（如果处于暂停状态）
-	if get_tree().paused:
-		get_tree().paused = false
-		print("[CoreSelection] 游戏已恢复")
-
-	# 初始化游戏会话状态
-	_initialize_game_session()
-
-	# Load MainGame scene
-	var main_game_scene = load("res://src/Scenes/Game/MainGame.tscn")
-	if main_game_scene:
-		print("[CoreSelection] 正在切换到MainGame场景...")
-		# 使用call_deferred确保在空闲帧切换场景
-		call_deferred("_change_to_main_game", main_game_scene)
-	else:
-		print("[CoreSelection] 错误: MainGame场景未找到!")
+	# 发射全局信号，由 _on_totem_confirmed 处理场景切换
+	GameManager.totem_confirmed.emit(core_key)
 
 func _initialize_game_session():
 	"""初始化游戏会话，确保商店和其他状态已准备好"""

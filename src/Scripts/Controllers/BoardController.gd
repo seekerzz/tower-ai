@@ -37,60 +37,70 @@ func initialize(p_session_data):
 
 # ===== 商店操作 =====
 
-func buy_unit(shop_index: int, expected_unit_key: String = "") -> bool:
+func buy_unit(shop_index: int, expected_unit_key: String = "") -> Dictionary:
 	"""
 	购买商店中的单位
 	@param shop_index: 商店槽位索引 (0-3)
 	@param expected_unit_key: 期望购买的单位key（用于验证，防止购买不一致）
-	@return: 是否购买成功
+	@return: 结果字典 { "success": bool, "error_message": String }
 	"""
 	if session_data == null:
-		operation_failed.emit("buy_unit", "SessionData not initialized")
-		return false
+		var msg = "SessionData not initialized"
+		operation_failed.emit("buy_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	if session_data.is_wave_active:
-		operation_failed.emit("buy_unit", "Cannot buy during wave")
-		return false
+		var msg = "Cannot buy during wave"
+		operation_failed.emit("buy_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	var unit_key = session_data.get_shop_unit(shop_index)
 	if unit_key == null:
-		operation_failed.emit("buy_unit", "Shop slot empty")
-		return false
+		var msg = "Shop slot %d is empty" % shop_index
+		operation_failed.emit("buy_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	# 验证购买的单位是否与预期一致
 	if expected_unit_key != "" and expected_unit_key != unit_key:
-		operation_failed.emit("buy_unit", "Shop unit mismatch: expected %s but found %s" % [expected_unit_key, unit_key])
-		return false
+		var msg = "Shop unit mismatch: expected %s but found %s" % [expected_unit_key, unit_key]
+		operation_failed.emit("buy_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	var proto = Constants.UNIT_TYPES.get(unit_key)
 	if proto == null:
-		operation_failed.emit("buy_unit", "Invalid unit type")
-		return false
+		var msg = "Invalid unit type: %s" % unit_key
+		operation_failed.emit("buy_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	var cost = proto.get("cost", 0)
 	print("[BoardController] 购买单位: %s, 价格: %d, 拥有金币: %d" % [unit_key, cost, session_data.gold])
 
+	if not session_data.can_afford(cost):
+		var msg = "Not enough gold: need %d, have %d" % [cost, session_data.gold]
+		operation_failed.emit("buy_unit", msg)
+		return {"success": false, "error_message": msg}
+
 	# 特殊处理：meat 物品
 	if unit_key == "meat":
 		if GameManager.inventory_manager and not GameManager.inventory_manager.is_full():
-			if session_data.spend_gold(cost):
-				GameManager.inventory_manager.add_item({"item_id": "meat", "count": 1})
-				session_data.set_shop_unit(shop_index, null)
-				unit_purchased.emit(unit_key, "inventory", 0)
-				return true
+			session_data.spend_gold(cost)
+			GameManager.inventory_manager.add_item({"item_id": "meat", "count": 1})
+			session_data.set_shop_unit(shop_index, null)
+			unit_purchased.emit(unit_key, "inventory", 0)
+			return {"success": true}
 		else:
-			operation_failed.emit("buy_unit", "Inventory full")
-			return false
+			var msg = "Inventory full"
+			operation_failed.emit("buy_unit", msg)
+			return {"success": false, "error_message": msg}
 
 	# 标准单位：尝试添加到备战区
 	var target_bench_index = _find_empty_bench_slot()
 	if target_bench_index == -1:
-		operation_failed.emit("buy_unit", "Bench full")
-		return false
+		var msg = "Bench is full"
+		operation_failed.emit("buy_unit", msg)
+		return {"success": false, "error_message": msg}
 
-	if not session_data.spend_gold(cost):
-		operation_failed.emit("buy_unit", "Not enough gold")
-		return false
+	session_data.spend_gold(cost)
 
 	# 创建单位数据
 	var unit_data = {
@@ -103,25 +113,28 @@ func buy_unit(shop_index: int, expected_unit_key: String = "") -> bool:
 	session_data.set_shop_unit(shop_index, null)
 	unit_purchased.emit(unit_key, ZONE_BENCH, target_bench_index)
 
-	return true
+	return {"success": true}
 
-func refresh_shop() -> bool:
+func refresh_shop() -> Dictionary:
 	"""
 	刷新商店
-	@return: 是否刷新成功
+	@return: 结果字典 { "success": bool, "error_message": String }
 	"""
 	if session_data == null:
-		operation_failed.emit("refresh_shop", "SessionData not initialized")
-		return false
+		var msg = "SessionData not initialized"
+		operation_failed.emit("refresh_shop", msg)
+		return {"success": false, "error_message": msg}
 
 	if session_data.is_wave_active:
-		operation_failed.emit("refresh_shop", "Cannot refresh during wave")
-		return false
+		var msg = "Cannot refresh during wave"
+		operation_failed.emit("refresh_shop", msg)
+		return {"success": false, "error_message": msg}
 
 	var cost = session_data.shop_refresh_cost
 	if not session_data.spend_gold(cost):
-		operation_failed.emit("refresh_shop", "Not enough gold")
-		return false
+		var msg = "Not enough gold: need %d, have %d" % [cost, session_data.gold]
+		operation_failed.emit("refresh_shop", msg)
+		return {"success": false, "error_message": msg}
 
 	# 获取可用单位池
 	var player_faction = GameManager.core_type if GameManager.core_type else ""
@@ -139,7 +152,7 @@ func refresh_shop() -> bool:
 		session_data.set_shop_unit(i, new_shop[i])
 
 	shop_refreshed.emit(new_shop)
-	return true
+	return {"success": true}
 
 func _get_units_for_faction(faction: String) -> Array:
 	var result = []
@@ -161,22 +174,24 @@ func _find_empty_bench_slot() -> int:
 # ===== 单位移动 =====
 
 func try_move_unit(from_zone: String, from_pos: Variant,
-				   to_zone: String, to_pos: Variant) -> bool:
+				   to_zone: String, to_pos: Variant) -> Dictionary:
 	"""
 	尝试移动单位
 	@param from_zone: 来源区域 ("bench", "grid")
 	@param from_pos: 来源位置 (bench索引 或 Vector2i)
 	@param to_zone: 目标区域 ("bench", "grid")
 	@param to_pos: 目标位置 (bench索引 或 Vector2i)
-	@return: 是否移动成功
+	@return: 结果字典 { "success": bool, "error_message": String }
 	"""
 	if session_data == null:
-		operation_failed.emit("try_move_unit", "SessionData not initialized")
-		return false
+		var msg = "SessionData not initialized"
+		operation_failed.emit("try_move_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	if session_data.is_wave_active:
-		operation_failed.emit("try_move_unit", "Cannot move during wave")
-		return false
+		var msg = "Cannot move during wave"
+		operation_failed.emit("try_move_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	# Debug logging
 	print("[BoardController] try_move_unit: from_zone=%s, from_pos=%s (type=%d), to_zone=%s, to_pos=%s (type=%d)" % [
@@ -186,9 +201,10 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 	# 获取来源单位
 	var unit_data = _get_unit_at(from_zone, from_pos)
 	if unit_data == null:
-		operation_failed.emit("try_move_unit", "No unit at source position: zone=%s, pos=%s" % [from_zone, str(from_pos)])
+		var msg = "No unit at source position: zone=%s, pos=%s" % [from_zone, str(from_pos)]
+		operation_failed.emit("try_move_unit", msg)
 		print("[BoardController] No unit at source position: zone=%s, pos=%s" % [from_zone, str(from_pos)])
-		return false
+		return {"success": false, "error_message": msg}
 
 	# 检查目标位置
 	var target_unit = _get_unit_at(to_zone, to_pos)
@@ -198,22 +214,24 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 		# 检查是否可以合并
 		if _can_merge(unit_data, target_unit):
 			_perform_merge(from_zone, from_pos, to_zone, to_pos, unit_data, target_unit)
-			return true
+			return {"success": true}
 
 		# 检查是否可以交换
 		if from_zone == ZONE_BENCH and to_zone == ZONE_BENCH:
 			_perform_swap(from_zone, from_pos, to_zone, to_pos, unit_data, target_unit)
-			return true
+			return {"success": true}
 
-		operation_failed.emit("try_move_unit", "Target occupied and cannot merge")
-		return false
+		var msg = "Target occupied and cannot merge"
+		operation_failed.emit("try_move_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	# 目标为空，执行移动
 	if to_zone == ZONE_GRID:
 		# 检查网格放置是否有效
 		if not _can_place_on_grid(to_pos):
-			operation_failed.emit("try_move_unit", "Cannot place at grid position")
-			return false
+			var msg = "Cannot place at grid position %s: tile not unlocked, is core, or has unit" % str(to_pos)
+			operation_failed.emit("try_move_unit", msg)
+			return {"success": false, "error_message": msg}
 
 		# 实际放置单位到网格
 		if grid_manager:
@@ -224,13 +242,15 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 				unit_data["grid_pos"] = grid_pos
 				session_data.set_grid_unit(grid_pos, unit_data)
 				unit_moved.emit(from_zone, from_pos, to_zone, to_pos, unit_data)
-				return true
+				return {"success": true}
 			else:
-				operation_failed.emit("try_move_unit", "Grid placement failed")
-				return false
+				var msg = "Grid placement failed at %s" % str(to_pos)
+				operation_failed.emit("try_move_unit", msg)
+				return {"success": false, "error_message": msg}
 		else:
-			operation_failed.emit("try_move_unit", "GridManager not available")
-			return false
+			var msg = "GridManager not available"
+			operation_failed.emit("try_move_unit", msg)
+			return {"success": false, "error_message": msg}
 
 	elif to_zone == ZONE_BENCH:
 		# 移动到备战区
@@ -248,9 +268,9 @@ func try_move_unit(from_zone: String, from_pos: Variant,
 
 		unit_moved.emit(from_zone, from_pos, to_zone, to_pos, unit_data)
 		print("[BoardController] Successfully moved to bench")
-		return true
+		return {"success": true}
 
-	return false
+	return {"success": false, "error_message": "Unknown error"}
 
 func _get_unit_at(zone: String, pos: Variant):
 	match zone:
@@ -364,31 +384,35 @@ func _perform_swap(zone_a: String, pos_a: Variant,
 
 # ===== 出售单位 =====
 
-func sell_unit(zone: String, pos: Variant) -> bool:
+func sell_unit(zone: String, pos: Variant) -> Dictionary:
 	"""
 	出售单位
 	@param zone: 区域 ("bench", "grid")
 	@param pos: 位置 (bench索引 或 Vector2i)
-	@return: 是否出售成功
+	@return: 结果字典 { "success": bool, "error_message": String }
 	"""
 	if session_data == null:
-		operation_failed.emit("sell_unit", "SessionData not initialized")
-		return false
+		var msg = "SessionData not initialized"
+		operation_failed.emit("sell_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	if session_data.is_wave_active:
-		operation_failed.emit("sell_unit", "Cannot sell during wave")
-		return false
+		var msg = "Cannot sell during wave"
+		operation_failed.emit("sell_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	var unit_data = _get_unit_at(zone, pos)
 	if unit_data == null or not unit_data is Dictionary:
-		operation_failed.emit("sell_unit", "No unit at position")
-		return false
+		var msg = "No unit at position: zone=%s, pos=%s" % [zone, str(pos)]
+		operation_failed.emit("sell_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	var unit_key = unit_data.get("key", "")
 	var proto = Constants.UNIT_TYPES.get(unit_key)
 	if proto == null:
-		operation_failed.emit("sell_unit", "Invalid unit type")
-		return false
+		var msg = "Invalid unit type: %s" % unit_key
+		operation_failed.emit("sell_unit", msg)
+		return {"success": false, "error_message": msg}
 
 	var base_cost = proto.get("cost", 0)
 	var level = unit_data.get("level", 1)
@@ -405,22 +429,24 @@ func sell_unit(zone: String, pos: Variant) -> bool:
 	session_data.add_gold(refund)
 
 	unit_sold.emit(zone, pos, refund)
-	return true
+	return {"success": true}
 
 # ===== 波次控制 =====
 
-func start_wave() -> bool:
+func start_wave() -> Dictionary:
 	"""
 	开始波次
-	@return: 是否成功开始
+	@return: 结果字典 { "success": bool, "error_message": String }
 	"""
 	if session_data == null:
-		operation_failed.emit("start_wave", "SessionData not initialized")
-		return false
+		var msg = "SessionData not initialized"
+		operation_failed.emit("start_wave", msg)
+		return {"success": false, "error_message": msg}
 
 	if session_data.is_wave_active:
-		operation_failed.emit("start_wave", "Wave already active")
-		return false
+		var msg = "Wave already active"
+		operation_failed.emit("start_wave", msg)
+		return {"success": false, "error_message": msg}
 
 	session_data.is_wave_active = true
 
@@ -428,7 +454,7 @@ func start_wave() -> bool:
 	if GameManager.wave_system_manager:
 		GameManager.wave_system_manager.start_wave(session_data.wave)
 
-	return true
+	return {"success": true}
 
 func retry_wave():
 	"""

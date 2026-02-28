@@ -1,7 +1,8 @@
 extends Node
 
-## AI 动作执行器 - 解析并执行客户端发送的动作指令
-## 包含严格的前置校验，防止运行时错误
+## AI 动作执行器 - 纯路由器
+## 只负责解析 JSON 参数并调用 BoardController 对应方法
+## 所有业务校验都在 BoardController 中进行
 
 # ===== 执行状态 =====
 var _is_executing: bool = false
@@ -119,125 +120,60 @@ func _execute_action(action: Dictionary) -> Dictionary:
 		_:
 			return {"success": false, "error_message": "未知动作类型: %s" % action_type}
 
-# ===== 具体动作实现 =====
+# ===== 具体动作实现（纯路由，无业务逻辑） =====
 
 func _action_select_totem(action: Dictionary) -> Dictionary:
 	var totem_id = action.get("totem_id", "")
 
-	# 前置校验
+	# 基本参数校验（仅检查参数存在性和类型）
 	var valid_totems = ["wolf_totem", "cow_totem", "bat_totem", "viper_totem", "butterfly_totem", "eagle_totem"]
 	if totem_id not in valid_totems:
 		return {"success": false, "error_message": "无效的图腾类型: %s (有效选项: %s)" % [totem_id, valid_totems]}
 
-	# 检查是否已经在战斗中
-	if GameManager.session_data and GameManager.session_data.is_wave_active:
-		return {"success": false, "error_message": "战斗阶段无法更换图腾"}
+	# 直接设置图腾类型，发射全局信号
+	GameManager.core_type = totem_id
+	AILogger.action("AI 选择了图腾: %s" % totem_id)
 
-	# 尝试调用当前场景的 select_totem_by_ai 方法（如果在 CoreSelection 场景中）
-	var current_scene = get_tree().current_scene
-	if current_scene and current_scene.has_method("select_totem_by_ai"):
-		var result = current_scene.select_totem_by_ai(totem_id)
-		if result:
-			AILogger.action("AI 选择了图腾: %s (通过CoreSelection)" % totem_id)
-			# 注意：场景切换会在下一帧发生，所以不在这里发送状态
-			# 状态会在场景加载完成后通过其他事件发送
-			return {"success": true}
-		else:
-			return {"success": false, "error_message": "CoreSelection 拒绝选择图腾"}
-	else:
-		# 直接设置图腾类型（备用方案）
-		GameManager.core_type = totem_id
-		AILogger.action("AI 选择了图腾: %s (直接设置)" % totem_id)
-		# 发送状态更新给AI
-		if AIManager:
-			AIManager._send_state_async("TotemSelected", {"totem_id": totem_id})
-		return {"success": true}
+	# 发射全局信号，让 UI 组件监听并处理
+	GameManager.totem_confirmed.emit(totem_id)
+
+	return {"success": true}
 
 func _action_buy_unit(action: Dictionary) -> Dictionary:
 	var shop_index_raw = action.get("shop_index", -1)
 
-	# 类型检查 - 确保 shop_index 是数字
+	# 类型检查
 	if not (shop_index_raw is int or shop_index_raw is float):
 		return {"success": false, "error_message": "商店索引类型错误: 期望数字，得到 %s" % typeof(shop_index_raw)}
 
 	var shop_index = _to_int_index(shop_index_raw)
 
-	# 前置校验
-	if shop_index < 0 or shop_index >= 4:
-		return {"success": false, "error_message": "商店索引越界: %d (有效范围: 0-3)" % shop_index}
-
-	var session = GameManager.session_data
-	if not session:
-		return {"success": false, "error_message": "SessionData 未初始化"}
-
-	if session.is_wave_active:
-		return {"success": false, "error_message": "战斗阶段无法购买单位"}
-
-	var unit_key = session.get_shop_unit(shop_index)
-	if unit_key == null:
-		return {"success": false, "error_message": "商店槽位 %d 为空" % shop_index}
-
-	var proto = Constants.UNIT_TYPES.get(unit_key)
-	if proto == null:
-		return {"success": false, "error_message": "无效的单位类型: %s" % unit_key}
-
-	var cost = proto.get("cost", 0)
-	AILogger.action("[购买校验] 单位: %s, 价格: %d, 拥有金币: %d" % [unit_key, cost, session.gold])
-	if not session.can_afford(cost):
-		return {"success": false, "error_message": "金币不足: 需要 %d，拥有 %d" % [cost, session.gold]}
-
-	# 检查备战区空间
-	var empty_slot = _find_empty_bench_slot()
-	if empty_slot == -1:
-		return {"success": false, "error_message": "备战区已满"}
-
-	# 执行购买 - 传递预期的单位key以确保购买一致性
-	var result = BoardController.buy_unit(shop_index, unit_key)
-	if not result:
-		return {"success": false, "error_message": "BoardController.buy_unit 返回失败"}
-
-	return {"success": true}
+	# 直接调用 BoardController，所有业务校验都在其中进行
+	var result = BoardController.buy_unit(shop_index)
+	return result
 
 func _action_sell_unit(action: Dictionary) -> Dictionary:
 	var zone = action.get("zone", "")
 	var pos = action.get("pos", null)
 
-	# 前置校验
+	# 基本参数校验
 	if zone != "bench" and zone != "grid":
 		return {"success": false, "error_message": "无效的区域: %s (应为 'bench' 或 'grid')" % zone}
 
-	var session = GameManager.session_data
-	if not session:
-		return {"success": false, "error_message": "SessionData 未初始化"}
-
-	if session.is_wave_active:
-		return {"success": false, "error_message": "战斗阶段无法出售单位"}
-
-	# 校验位置
-	var unit_data = null
+	# 转换位置格式
 	var sell_pos = null
 	if zone == "bench":
-		var bench_index = _to_int_index(pos)
-		if bench_index < 0 or bench_index >= Constants.BENCH_SIZE:
-			return {"success": false, "error_message": "备战区索引越界: %d (有效范围: 0-%d)" % [bench_index, Constants.BENCH_SIZE - 1]}
-		unit_data = session.get_bench_unit(bench_index)
-		sell_pos = bench_index
+		sell_pos = _to_int_index(pos)
+		if sell_pos < 0:
+			return {"success": false, "error_message": "无效的备战区索引: %s" % str(pos)}
 	else:  # grid
-		var grid_pos = _parse_position(pos)
-		if grid_pos == null:
+		sell_pos = _parse_position(pos)
+		if sell_pos == null:
 			return {"success": false, "error_message": "无效的网格位置: %s" % str(pos)}
-		unit_data = session.get_grid_unit(grid_pos)
-		sell_pos = grid_pos
 
-	if unit_data == null:
-		return {"success": false, "error_message": "%s 位置 %s 没有单位" % [zone, str(pos)]}
-
-	# 执行出售
+	# 直接调用 BoardController，所有业务校验都在其中进行
 	var result = BoardController.sell_unit(zone, sell_pos)
-	if not result:
-		return {"success": false, "error_message": "BoardController.sell_unit 返回失败"}
-
-	return {"success": true}
+	return result
 
 func _action_move_unit(action: Dictionary) -> Dictionary:
 	var from_zone = action.get("from_zone", "")
@@ -245,102 +181,46 @@ func _action_move_unit(action: Dictionary) -> Dictionary:
 	var to_zone = action.get("to_zone", "")
 	var to_pos = action.get("to_pos", null)
 
-	# 前置校验
+	# 基本参数校验
 	if from_zone != "bench" and from_zone != "grid":
 		return {"success": false, "error_message": "无效的来源区域: %s" % from_zone}
 	if to_zone != "bench" and to_zone != "grid":
 		return {"success": false, "error_message": "无效的目标区域: %s" % to_zone}
 
-	var session = GameManager.session_data
-	if not session:
-		return {"success": false, "error_message": "SessionData 未初始化"}
-
-	if session.is_wave_active:
-		return {"success": false, "error_message": "战斗阶段无法移动单位"}
-
-	# 校验来源位置
-	var unit_data = null
-	if from_zone == "bench":
-		var bench_index = _to_int_index(from_pos)
-		AILogger.action("[DEBUG] Validating bench: from_pos=" + str(from_pos) + ", bench_index=" + str(bench_index))
-		if bench_index < 0 or bench_index >= Constants.BENCH_SIZE:
-			return {"success": false, "error_message": "来源备战区索引越界: %d" % bench_index}
-		unit_data = session.get_bench_unit(bench_index)
-		AILogger.action("[DEBUG] unit_data at bench " + str(bench_index) + ": " + str(unit_data))
-	else:
-		var grid_pos = _parse_position(from_pos)
-		if grid_pos == null:
-			return {"success": false, "error_message": "无效的来源网格位置"}
-		unit_data = session.get_grid_unit(grid_pos)
-
-	if unit_data == null:
-		return {"success": false, "error_message": "来源位置没有单位"}
-
-	# 校验目标位置
-	if to_zone == "bench":
-		var bench_index = _to_int_index(to_pos)
-		if bench_index < 0 or bench_index >= Constants.BENCH_SIZE:
-			return {"success": false, "error_message": "目标备战区索引越界: %d (有效范围: 0-%d)" % [bench_index, Constants.BENCH_SIZE - 1]}
-	else:
-		var grid_pos = _parse_position(to_pos)
-		if grid_pos == null:
-			return {"success": false, "error_message": "无效的目标网格位置: %s (期望格式: {\"x\": int, \"y\": int} 或 [x, y])" % str(to_pos)}
-		# 检查网格是否可放置
-		var placement_check = _check_grid_placement(grid_pos)
-		if not placement_check.can_place:
-			return {"success": false, "error_message": "目标网格位置 (%d,%d) 不可放置: %s" % [grid_pos.x, grid_pos.y, placement_check.reason]}
-
-	# 转换位置格式 (JSON字典转为Vector2i，float转为int)
+	# 转换位置格式
 	var from_pos_typed: Variant
 	var to_pos_typed: Variant
 
 	if from_zone == "grid":
 		from_pos_typed = _parse_position(from_pos)
-		if from_pos_typed == null or not (from_pos_typed is Vector2i):
-			return {"success": false, "error_message": "来源网格位置格式错误: %s" % str(from_pos)}
+		if from_pos_typed == null:
+			return {"success": false, "error_message": "无效的来源网格位置: %s" % str(from_pos)}
 	else:  # bench
 		var bench_idx = _to_int_index(from_pos)
 		if bench_idx < 0:
-			return {"success": false, "error_message": "来源备战区索引格式错误: %s" % str(from_pos)}
+			return {"success": false, "error_message": "无效的来源备战区索引: %s" % str(from_pos)}
 		from_pos_typed = bench_idx
 
 	if to_zone == "grid":
 		to_pos_typed = _parse_position(to_pos)
-		if to_pos_typed == null or not (to_pos_typed is Vector2i):
-			return {"success": false, "error_message": "目标网格位置格式错误: %s" % str(to_pos)}
+		if to_pos_typed == null:
+			return {"success": false, "error_message": "无效的目标网格位置: %s" % str(to_pos)}
 	else:  # bench
 		var bench_idx = _to_int_index(to_pos)
 		if bench_idx < 0:
-			return {"success": false, "error_message": "目标备战区索引格式错误: %s" % str(to_pos)}
+			return {"success": false, "error_message": "无效的目标备战区索引: %s" % str(to_pos)}
 		to_pos_typed = bench_idx
 
 	AILogger.action("[DEBUG] move_unit: from_zone=%s, from_pos=%s, to_zone=%s, to_pos=%s" % [from_zone, str(from_pos_typed), to_zone, str(to_pos_typed)])
-	AILogger.action("[DEBUG] from_pos type: %d, to_pos type: %d" % [typeof(from_pos_typed), typeof(to_pos_typed)])
 
-	# 执行移动
+	# 直接调用 BoardController，所有业务校验都在其中进行
 	var result = BoardController.try_move_unit(from_zone, from_pos_typed, to_zone, to_pos_typed)
-	if not result:
-		return {"success": false, "error_message": "BoardController.try_move_unit 返回失败"}
-
-	return {"success": true}
+	return result
 
 func _action_refresh_shop(action: Dictionary) -> Dictionary:
-	var session = GameManager.session_data
-	if not session:
-		return {"success": false, "error_message": "SessionData 未初始化"}
-
-	if session.is_wave_active:
-		return {"success": false, "error_message": "战斗阶段无法刷新商店"}
-
-	var cost = session.shop_refresh_cost
-	if not session.can_afford(cost):
-		return {"success": false, "error_message": "金币不足: 需要 %d，拥有 %d" % [cost, session.gold]}
-
+	# 直接调用 BoardController，所有业务校验都在其中进行
 	var result = BoardController.refresh_shop()
-	if not result:
-		return {"success": false, "error_message": "BoardController.refresh_shop 返回失败"}
-
-	return {"success": true}
+	return result
 
 func _action_lock_shop_slot(action: Dictionary) -> Dictionary:
 	var shop_index_raw = action.get("shop_index", -1)
@@ -350,9 +230,8 @@ func _action_lock_shop_slot(action: Dictionary) -> Dictionary:
 		return {"success": false, "error_message": "商店索引类型错误: 期望数字，得到 %s" % typeof(shop_index_raw)}
 
 	var shop_index = _to_int_index(shop_index_raw)
-
 	if shop_index < 0 or shop_index >= 4:
-		return {"success": false, "error_message": "商店索引越界: %d" % shop_index}
+		return {"success": false, "error_message": "商店索引越界: %d (有效范围: 0-3)" % shop_index}
 
 	var session = GameManager.session_data
 	if not session:
@@ -370,9 +249,8 @@ func _action_unlock_shop_slot(action: Dictionary) -> Dictionary:
 		return {"success": false, "error_message": "商店索引类型错误: 期望数字，得到 %s" % typeof(shop_index_raw)}
 
 	var shop_index = _to_int_index(shop_index_raw)
-
 	if shop_index < 0 or shop_index >= 4:
-		return {"success": false, "error_message": "商店索引越界: %d" % shop_index}
+		return {"success": false, "error_message": "商店索引越界: %d (有效范围: 0-3)" % shop_index}
 
 	var session = GameManager.session_data
 	if not session:
@@ -383,18 +261,9 @@ func _action_unlock_shop_slot(action: Dictionary) -> Dictionary:
 	return {"success": true}
 
 func _action_start_wave(action: Dictionary) -> Dictionary:
-	var session = GameManager.session_data
-	if not session:
-		return {"success": false, "error_message": "SessionData 未初始化"}
-
-	if session.is_wave_active:
-		return {"success": false, "error_message": "波次已在进行中"}
-
+	# 直接调用 BoardController，所有业务校验都在其中进行
 	var result = BoardController.start_wave()
-	if not result:
-		return {"success": false, "error_message": "BoardController.start_wave 返回失败"}
-
-	return {"success": true}
+	return result
 
 func _action_retry_wave(action: Dictionary) -> Dictionary:
 	BoardController.retry_wave()
@@ -468,8 +337,6 @@ func _action_cheat_spawn_unit(action: Dictionary) -> Dictionary:
 		var grid_pos = _parse_position(pos)
 		if grid_pos == null:
 			return {"success": false, "error_message": "无效的网格位置"}
-		if not _can_place_on_grid(grid_pos):
-			return {"success": false, "error_message": "网格位置 %s 不可放置" % str(pos)}
 		session.set_grid_unit(grid_pos, unit_data)
 		if GameManager.grid_manager:
 			GameManager.grid_manager.place_unit(unit_type, grid_pos.x, grid_pos.y)
@@ -499,7 +366,7 @@ func _action_cheat_set_shop_unit(action: Dictionary) -> Dictionary:
 
 	var shop_index = _to_int_index(shop_index_raw)
 
-	# 前置校验
+	# 基本参数校验
 	if shop_index < 0 or shop_index >= 4:
 		return {"success": false, "error_message": "商店索引越界: %d (有效范围: 0-3)" % shop_index}
 
@@ -641,45 +508,6 @@ func _parse_position(pos) -> Variant:
 		return Vector2i(pos[0], pos[1])
 	return null
 
-func _can_place_on_grid(grid_pos: Vector2i) -> bool:
-	var result = _check_grid_placement(grid_pos)
-	return result.can_place
-
-func _check_grid_placement(grid_pos: Vector2i) -> Dictionary:
-	"""检查网格位置是否可以放置单位，返回详细结果"""
-	var result = {
-		"can_place": false,
-		"reason": ""
-	}
-
-	var grid_manager = GameManager.grid_manager
-	if not grid_manager:
-		result.reason = "GridManager not initialized"
-		return result
-
-	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
-	if not grid_manager.tiles.has(key):
-		result.reason = "tile does not exist at (%d,%d)" % [grid_pos.x, grid_pos.y]
-		return result
-
-	var tile = grid_manager.tiles[key]
-
-	if tile.state != "unlocked":
-		result.reason = "tile state is '%s' (expected 'unlocked')" % tile.state
-		return result
-
-	if tile.type == "core":
-		result.reason = "tile is the core (cannot place on core)"
-		return result
-
-	if tile.unit != null:
-		result.reason = "tile already has a unit"
-		return result
-
-	result.can_place = true
-	result.reason = "valid"
-	return result
-
 func _to_int_index(value) -> int:
 	"""Convert a value (int or float from JSON) to an integer index.
 
@@ -695,122 +523,12 @@ func _send_action_error(error_message: String, failed_action: Dictionary):
 	AILogger.error("动作执行失败: %s" % error_message)
 	AILogger.error("失败动作详情: %s" % JSON.stringify(failed_action))
 
-	# Add context information to help debug
-	var context = _build_error_context(failed_action)
-
 	if AIManager:
 		AILogger.action("正在发送 ActionError 响应...")
-		# Include both error message and context
-		var full_error = error_message
-		if not context.is_empty():
-			full_error += " | Context: %s" % JSON.stringify(context)
-		AIManager.send_action_error(full_error, failed_action)
+		AIManager.send_action_error(error_message, failed_action)
 		AILogger.action("ActionError 响应已发送")
 	else:
 		AILogger.error("AIManager 未初始化，无法发送错误响应")
-
-func _build_error_context(failed_action: Dictionary) -> Dictionary:
-	"""构建错误上下文信息，帮助AI理解当前游戏状态"""
-	var context = {}
-	var action_type = failed_action.get("type", "")
-
-	match action_type:
-		"buy_unit":
-			var session = GameManager.session_data
-			if session:
-				context["available_gold"] = session.gold
-				context["shop_contents"] = _get_shop_contents()
-				context["bench_full"] = _find_empty_bench_slot() == -1
-
-		"move_unit":
-			var session = GameManager.session_data
-			if session:
-				var to_pos = failed_action.get("to_pos")
-				var to_zone = failed_action.get("to_zone", "")
-				if to_zone == "grid" and to_pos != null:
-					var grid_pos = _parse_position(to_pos)
-					if grid_pos != null:
-						context["target_grid_valid"] = _can_place_on_grid(grid_pos)
-						context["target_position"] = {"x": grid_pos.x, "y": grid_pos.y}
-						# Check why grid position is invalid
-						context["grid_check"] = _get_grid_placement_info(grid_pos)
-						# Suggest valid positions
-						context["suggested_positions"] = _get_valid_grid_positions()
-
-		"sell_unit":
-			var zone = failed_action.get("zone", "")
-			var pos = failed_action.get("pos")
-			context["zone"] = zone
-			context["position"] = pos
-
-		"start_wave":
-			var session = GameManager.session_data
-			if session:
-				context["is_wave_active"] = session.is_wave_active
-				context["wave"] = session.wave
-				context["units_on_grid"] = _get_grid_unit_count()
-
-	return context
-
-func _get_shop_contents() -> Array:
-	var contents = []
-	var session = GameManager.session_data
-	if not session:
-		return contents
-	for i in range(4):
-		var unit_key = session.get_shop_unit(i)
-		contents.append(unit_key if unit_key else null)
-	return contents
-
-func _get_grid_unit_count() -> int:
-	var session = GameManager.session_data
-	if not session:
-		return 0
-	return session.grid_units.size()
-
-func _get_grid_placement_info(grid_pos: Vector2i) -> Dictionary:
-	"""获取网格位置放置检查的详细信息"""
-	var info = {
-		"exists": false,
-		"state": "unknown",
-		"type": "unknown",
-		"has_unit": false,
-		"can_place": false
-	}
-
-	var grid_manager = GameManager.grid_manager
-	if not grid_manager:
-		return info
-
-	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
-	info["exists"] = grid_manager.tiles.has(key)
-
-	if not info["exists"]:
-		return info
-
-	var tile = grid_manager.tiles[key]
-	info["state"] = tile.state if tile.get("state") else "unknown"
-	info["type"] = tile.type if tile.get("type") else "unknown"
-	info["has_unit"] = tile.unit != null if tile.get("unit") else false
-	info["can_place"] = _can_place_on_grid(grid_pos)
-
-	return info
-
-func _get_valid_grid_positions(max_positions: int = 5) -> Array:
-	"""获取当前可用的网格位置列表"""
-	var positions = []
-	var grid_manager = GameManager.grid_manager
-	if not grid_manager:
-		return positions
-
-	for key in grid_manager.tiles:
-		if positions.size() >= max_positions:
-			break
-		var tile = grid_manager.tiles[key]
-		if tile.state == "unlocked" and tile.type != "core" and tile.unit == null:
-			positions.append({"x": tile.x, "y": tile.y})
-
-	return positions
 
 # ===== 公共 API =====
 

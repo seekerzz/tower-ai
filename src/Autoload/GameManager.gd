@@ -2,6 +2,7 @@ extends Node
 
 signal resource_changed
 signal core_type_changed
+signal totem_confirmed(totem_id: String)  ## AI 选择图腾后发射的全局信号
 signal wave_started
 signal wave_ended
 signal wave_reset

@@ -35,13 +35,23 @@ func _ready():
 
 func _on_bench_updated(bench_units: Dictionary):
 	# 转换为数组格式
+	var bench_array = _bench_dict_to_array(bench_units)
+	update_bench_ui(bench_array)
+
+func _bench_dict_to_array(bench_units: Dictionary) -> Array:
 	var bench_array = []
 	bench_array.resize(Constants.BENCH_SIZE)
 	bench_array.fill(null)
 	for index in bench_units.keys():
 		if index >= 0 and index < Constants.BENCH_SIZE:
 			bench_array[index] = bench_units[index]
-	update_bench_ui(bench_array)
+	return bench_array
+
+func refresh_from_session_data():
+	"""从 SessionData 刷新 UI，用于初始化"""
+	if GameManager.session_data:
+		var bench_array = _bench_dict_to_array(GameManager.session_data.bench_units)
+		update_bench_ui(bench_array)
 
 func update_bench_ui(data):
 	if !slots_container: return

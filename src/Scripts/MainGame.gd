@@ -8,8 +8,6 @@ extends Node2D
 @onready var camera = $Camera2D
 @onready var background = $Background
 
-# Bench
-var bench: Array = [] # Array of Dictionary (Unit Data) or null
 
 # Camera Control
 var zoom_target: Vector2 = Vector2(0.8, 0.8)
@@ -31,10 +29,6 @@ func _ready():
 	add_child(summon_manager)
 	GameManager.summon_manager = summon_manager
 
-	# Initialize bench array with nulls based on constant
-	bench.resize(Constants.BENCH_SIZE)
-	bench.fill(null)
-
 	GameManager.ui_manager = main_gui
 	GameManager.main_game = self
 
@@ -54,8 +48,13 @@ func _ready():
 	# Initial camera position will be set by zoom_to_fit_board later or we call it now to verify
 	call_deferred("zoom_to_shop_open")
 
+	# 连接 SessionData 信号以更新 Bench UI
+	if GameManager.session_data:
+		GameManager.session_data.bench_updated.connect(_on_bench_updated)
+
 	# Initial Setup - 开局不再赠送松鼠，玩家需自行购买
-	update_bench_ui() # Ensure UI is initialized
+	if bench_ui:
+		bench_ui.refresh_from_session_data()
 
 	get_tree().root.size_changed.connect(_on_viewport_size_changed)
 
@@ -259,6 +258,13 @@ func _on_wave_started():
 func _on_wave_ended():
 	zoom_to_shop_open()
 
+# ===== SessionData 信号处理 =====
+
+func _on_bench_updated(bench_units: Dictionary):
+	# SessionData 的 bench_updated 信号回调
+	# Bench UI 会自动监听此信号并更新，这里不需要额外操作
+	pass
+
 # ===== BoardController 信号处理 =====
 
 func _on_unit_moved(from_zone: String, from_pos: Variant,
@@ -271,65 +277,6 @@ func _on_unit_sold(zone: String, pos: Variant, gold_refund: int):
 	# 单位出售后，SessionData 会发射 bench_updated 信号
 	# Bench UI 会自动更新，这里不需要手动更新
 	pass
-
-# Bench Logic
-func add_to_bench(unit_key: String) -> bool:
-	"""添加单位到备战区 - 现在通过 SessionData 操作"""
-	if GameManager.session_data:
-		for i in range(Constants.BENCH_SIZE):
-			if GameManager.session_data.get_bench_unit(i) == null:
-				var unit_data = {"key": unit_key, "level": 1}
-				GameManager.session_data.set_bench_unit(i, unit_data)
-				update_bench_ui()
-				return true
-	return false
-
-func remove_from_bench(index: int):
-	if GameManager.session_data:
-		GameManager.session_data.set_bench_unit(index, null)
-		update_bench_ui()
-
-func move_unit_from_grid_to_bench(unit_node, target_index: int):
-	if target_index < 0 or target_index >= bench.size():
-		return
-
-	if bench[target_index] != null:
-		# If target is occupied, we might want to swap or just fail.
-		# For now, simplistic approach: fail if occupied.
-		print("Bench slot occupied")
-		return
-
-	# Logic to move
-	bench[target_index] = {
-		"key": unit_node.type_key,
-		"level": unit_node.level
-	}
-
-	# Remove from grid
-	grid_manager.remove_unit_from_grid(unit_node)
-
-	update_bench_ui()
-
-func try_add_to_bench_from_grid(unit) -> bool:
-	for i in range(bench.size()):
-		if bench[i] == null:
-			move_unit_from_grid_to_bench(unit, i)
-			return true
-	print("Bench Full")
-	return false
-
-func update_bench_ui():
-	# 从 SessionData 获取最新数据来更新 UI
-	if bench_ui and GameManager.session_data:
-		var bench_array = []
-		bench_array.resize(Constants.BENCH_SIZE)
-		bench_array.fill(null)
-		for index in GameManager.session_data.bench_units.keys():
-			if index >= 0 and index < Constants.BENCH_SIZE:
-				bench_array[index] = GameManager.session_data.bench_units[index]
-		bench_ui.update_bench_ui(bench_array)
-		# 同步本地 bench 数组
-		bench = bench_array
 
 func skip_wave():
 	if not GameManager.is_wave_active:
