@@ -1,0 +1,9 @@
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+
+Game data loaded successfully.
+[WaveSystemManager] Wave config loaded successfully
+[AILogger] AI 日志系统已初始化
+[38;2;46;204;113m[事件] 游戏信号已连接[39m[0m
+[38;2;243;156;18m[动作] 动作执行器已初始化[39m[0m
+[38;2;243;156;18m[动作] 已连接到 AIManager[39m[0m
+[38;2;231;76;60m[错误] WebSocket 服务器启动失败，端口: 45678，错误码: 22[39m[0m

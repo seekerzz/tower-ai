@@ -126,26 +126,7 @@ AI 客户端在波次转换期间会断开连接，导致自动化测试中断�
 | 低 | 缺少来源验证 | IronTurtle.gd |
 | 低 | 法力消耗检查 | Butterfly.gd |
 
-详见 [bug_fixes_report.md](/home/zhangzhan/tower/bug_fixes_report.md) 了解详细的修复说明。
-
----
-
-## 测试报告索引
-
-| 优先级 | Bug | 文件 |
-|----------|-----|------|
-| 严重 | debuff 检查中的空引用 | DefaultBehavior.gd |
-| 严重 | 错误的信号连接 | Gargoyle.gd |
-| 高 | 多次技能激活保护 | Dog.gd |
-| 高 | 缺少 bleed_stacks 检查 | Mosquito.gd |
-| 高 | 使用了错误的治疗方式 | BloodAncestor.gd |
-| 中 | 攻击计数器逻辑错误 | Peacock.gd |
-| 中 | 信号断开检查 | Plant.gd |
-| 中 | 错误的治疗间隔 | Cow.gd |
-| 低 | 缺少来源验证 | IronTurtle.gd |
-| 低 | 法力消耗检查 | Butterfly.gd |
-
-详见 [bug_fixes_report.md](/home/zhangzhan/tower/bug_fixes_report.md) 了解详细的修复说明。
+详见 [bug_fixes_report.md](./bug_fixes_report.md) 了解详细的修复说明。
 
 ---
 
@@ -153,15 +134,15 @@ AI 客户端在波次转换期间会断开连接，导致自动化测试中断�
 
 | 报告 | 内容 | 位置 |
 |--------|----------|----------|
-| 蝙蝠图腾报告 | 6 个单位，生命偷取/流血机制 | [test_results_bat_totem.md](/home/zhangzhan/tower/test_results_bat_totem.md) |
-| 蝴蝶图腾报告 | 6 个单位，冻结/燃烧机制 | [test_results_butterfly_totem.md](/home/zhangzhan/tower/test_results_butterfly_totem.md) |
-| 牛图腾报告 | 10 个单位，防御/治疗机制 | [test_results_cow_totem.md](/home/zhangzhan/tower/test_results_cow_totem.md) |
-| 鹰图腾报告 | 9 个单位，暴击/回响机制 | [test_results_eagle_totem.md](/home/zhangzhan/tower/test_results_eagle_totem.md) |
-| 毒蛇图腾报告 | 7 个单位，毒素/陷阱机制 | [test_results_viper_totem.md](/home/zhangzhan/tower/test_results_viper_totem.md) |
-| 狼图腾报告 | 7 个单位，吞噬/灵魂机制 | [test_results_wolf_totem.md](/home/zhangzhan/tower/test_results_wolf_totem.md) |
-| 通用单位报告 | 7 个单位，Buff 提供者 | [test_results_universal_units.md](/home/zhangzhan/tower/test_results_universal_units.md) |
-| 技能与 Buff 报告 | 技能系统，Buff 机制 | [test_results_skills_buffs.md](/home/zhangzhan/tower/test_results_skills_buffs.md) |
-| Bug 修复报告 | 13 个已修复的 Bug 详情 | [bug_fixes_report.md](/home/zhangzhan/tower/bug_fixes_report.md) |
+| 蝙蝠图腾报告 | 6 个单位，生命偷取/流血机制 | [test_results_bat_totem.md](./test_results/test_results_bat_totem.md) |
+| 蝴蝶图腾报告 | 6 个单位，冻结/燃烧机制 | [test_results_butterfly_totem.md](./test_results/test_results_butterfly_totem.md) |
+| 牛图腾报告 | 10 个单位，防御/治疗机制 | [test_results_cow_totem.md](./test_results/test_results_cow_totem.md) |
+| 鹰图腾报告 | 9 个单位，暴击/回响机制 | [test_results_eagle_totem.md](./test_results/test_results_eagle_totem.md) |
+| 毒蛇图腾报告 | 7 个单位，毒素/陷阱机制 | [test_results_viper_totem.md](./test_results/test_results_viper_totem.md) |
+| 狼图腾报告 | 7 个单位，吞噬/灵魂机制 | [test_results_wolf_totem.md](./test_results/test_results_wolf_totem.md) |
+| 通用单位报告 | 7 个单位，Buff 提供者 | [test_results_universal_units.md](./test_results/test_results_universal_units.md) |
+| 技能与 Buff 报告 | 技能系统，Buff 机制 | [test_results_skills_buffs.md](./test_results/test_results_skills_buffs.md) |
+| Bug 修复报告 | 13 个已修复的 Bug 详情 | [bug_fixes_report.md](./bug_fixes_report.md) |
 
 ---
 
