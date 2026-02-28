@@ -139,7 +139,13 @@ func _action_select_totem(action: Dictionary) -> Dictionary:
 		return {"success": true}
 
 func _action_buy_unit(action: Dictionary) -> Dictionary:
-	var shop_index = action.get("shop_index", -1)
+	var shop_index_raw = action.get("shop_index", -1)
+
+	# 类型检查 - 确保 shop_index 是数字
+	if not (shop_index_raw is int or shop_index_raw is float):
+		return {"success": false, "error_message": "商店索引类型错误: 期望数字，得到 %s" % typeof(shop_index_raw)}
+
+	var shop_index = _to_int_index(shop_index_raw)
 
 	# 前置校验
 	if shop_index < 0 or shop_index >= 4:
@@ -304,7 +310,13 @@ func _action_refresh_shop(action: Dictionary) -> Dictionary:
 	return {"success": true}
 
 func _action_lock_shop_slot(action: Dictionary) -> Dictionary:
-	var shop_index = action.get("shop_index", -1)
+	var shop_index_raw = action.get("shop_index", -1)
+
+	# 类型检查
+	if not (shop_index_raw is int or shop_index_raw is float):
+		return {"success": false, "error_message": "商店索引类型错误: 期望数字，得到 %s" % typeof(shop_index_raw)}
+
+	var shop_index = _to_int_index(shop_index_raw)
 
 	if shop_index < 0 or shop_index >= 4:
 		return {"success": false, "error_message": "商店索引越界: %d" % shop_index}
@@ -318,7 +330,13 @@ func _action_lock_shop_slot(action: Dictionary) -> Dictionary:
 	return {"success": true}
 
 func _action_unlock_shop_slot(action: Dictionary) -> Dictionary:
-	var shop_index = action.get("shop_index", -1)
+	var shop_index_raw = action.get("shop_index", -1)
+
+	# 类型检查
+	if not (shop_index_raw is int or shop_index_raw is float):
+		return {"success": false, "error_message": "商店索引类型错误: 期望数字，得到 %s" % typeof(shop_index_raw)}
+
+	var shop_index = _to_int_index(shop_index_raw)
 
 	if shop_index < 0 or shop_index >= 4:
 		return {"success": false, "error_message": "商店索引越界: %d" % shop_index}
@@ -439,8 +457,14 @@ func _action_cheat_set_time_scale(action: Dictionary) -> Dictionary:
 	return {"success": true}
 
 func _action_cheat_set_shop_unit(action: Dictionary) -> Dictionary:
-	var shop_index = action.get("shop_index", -1)
+	var shop_index_raw = action.get("shop_index", -1)
 	var unit_key = action.get("unit_key", "")
+
+	# 类型检查
+	if not (shop_index_raw is int or shop_index_raw is float):
+		return {"success": false, "error_message": "商店索引类型错误: 期望数字，得到 %s" % typeof(shop_index_raw)}
+
+	var shop_index = _to_int_index(shop_index_raw)
 
 	# 前置校验
 	if shop_index < 0 or shop_index >= 4:
@@ -456,10 +480,6 @@ func _action_cheat_set_shop_unit(action: Dictionary) -> Dictionary:
 	# 设置商店单位
 	session.set_shop_unit(shop_index, unit_key)
 	AILogger.action("[作弊] 设置商店槽位 %d 为单位 %s" % [shop_index, unit_key])
-
-	# 发送状态更新
-	if AIManager:
-		AIManager._send_state_async("ShopUpdated", {"shop_index": shop_index, "unit_key": unit_key})
 
 	return {"success": true}
 
