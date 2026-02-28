@@ -138,117 +138,81 @@ func reset_stats():
             apply_buff(mech, self)
 
 func on_merged_with(other_unit: Unit):
-    """Called when merged, preserves devour bonuses from both wolves"""
-    if other_unit is UnitWolf:
-        var other_wolf = other_unit as UnitWolf
+    """Called when merged, preserves devour bonuses from both wolves.
 
-        # Merge stat bonuses
-        if other_wolf.consumed_data.has("damage_bonus"):
-            if not consumed_data.has("damage_bonus"): consumed_data["damage_bonus"] = 0.0
-            consumed_data["damage_bonus"] += other_wolf.consumed_data.damage_bonus * 0.5
+    合并规则:
+    1. 属性加成: 继承另一只狼50%的吞噬加成
+    2. 机制继承: 合并两只狼的所有特殊机制
+    3. 属性重算: 基于当前等级的基础属性 + 总加成
+    """
+    if not (other_unit is UnitWolf):
+        return
 
-        if other_wolf.consumed_data.has("hp_bonus"):
-            if not consumed_data.has("hp_bonus"): consumed_data["hp_bonus"] = 0.0
-            consumed_data["hp_bonus"] += other_wolf.consumed_data.hp_bonus * 0.5
+    var other_wolf = other_unit as UnitWolf
 
-        # Merge mechanics
-        for mechanic in other_wolf.consumed_mechanics:
-            if mechanic not in consumed_mechanics:
-                consumed_mechanics.append(mechanic)
-                if mechanic not in active_buffs:
-                    apply_buff(mechanic, self)
+    # 1. 合并属性加成 (继承50%)
+    _merge_stat_bonuses(other_wolf)
 
-        # Record merge info
-        consumed_data["merged_with"] = other_wolf.consumed_data
+    # 2. 合并特殊机制
+    _merge_mechanics(other_wolf)
 
-        GameManager.spawn_floating_text(global_position, "Wolf Merge!", Color.GOLD)
+    # 3. 记录合并信息
+    consumed_data["merged_with"] = other_wolf.consumed_data
 
-        # Apply stats immediately (base_damage is reset in reset_stats before this call usually,
-        # but reset_stats uses consumed_data. So if we update consumed_data, we should re-apply stats or call reset_stats again?
-        # merge_with calls reset_stats. Then UnitDragHandler calls on_merged_with.
-        # So we need to re-apply stats here.
+    # 4. 重新计算最终属性
+    _recalculate_merged_stats()
 
-        base_damage += consumed_data.get("damage_bonus", 0.0)
-        # Note: reset_stats sets base_damage = damage (from unit_data).
-        # Then adds consumed_data bonus.
-        # If we just updated consumed_data, we should re-run that logic.
+    GameManager.spawn_floating_text(global_position, "Wolf Merge!", Color.GOLD)
 
-        damage = base_damage # This might be wrong if base_damage already includes bonus?
-        # Let's look at reset_stats:
-        # base_damage = damage (from unit_data)
-        # if consumed_data.has("damage_bonus"): base_damage += bonus; damage = base_damage
 
-        # So here, we are AFTER reset_stats. base_damage has the OLD bonus included (from self).
-        # We need to add the NEW part of the bonus.
-        # OR simpler: just re-run the stat application part of reset_stats.
+func _merge_stat_bonuses(other_wolf: UnitWolf):
+    """合并另一只狼的属性加成 (继承50%)"""
+    const INHERIT_RATIO = 0.5
 
-        var damage_from_data = 0.0
-        if unit_data.has("levels") and unit_data["levels"].has(str(level)):
-             damage_from_data = unit_data["levels"][str(level)].get("damage", 0)
-        else:
-             damage_from_data = unit_data.get("damage", 0)
+    for bonus_key in ["damage_bonus", "hp_bonus"]:
+        if other_wolf.consumed_data.has(bonus_key):
+            if not consumed_data.has(bonus_key):
+                consumed_data[bonus_key] = 0.0
+            consumed_data[bonus_key] += other_wolf.consumed_data[bonus_key] * INHERIT_RATIO
 
-        base_damage = damage_from_data
-        if consumed_data.has("damage_bonus"):
-            base_damage += consumed_data.damage_bonus
-        damage = base_damage
 
-        max_hp += consumed_data.get("hp_bonus", 0.0) # This adds ON TOP of current max_hp?
-        # reset_stats sets max_hp from data.
-        # Then adds bonus.
-        # So we should recalculate max_hp from base too.
-        # But max_hp is trickier.
-        # Let's keep it simple: just update damage and max_hp by adding the *delta* or re-calculating.
-        # The simplest is to rely on the fact that consumed_data is updated.
-        # We can just run the logic from reset_stats again.
+func _merge_mechanics(other_wolf: UnitWolf):
+    """合并特殊机制，避免重复"""
+    for mechanic in other_wolf.consumed_mechanics:
+        if mechanic not in consumed_mechanics:
+            consumed_mechanics.append(mechanic)
+        if mechanic not in active_buffs:
+            apply_buff(mechanic, self)
 
-        # Recalculate max_hp
-        # We don't have easy access to base stats here without duplicating reset_stats logic.
-        # But we know what we added.
-        # Actually, let's just add the *other wolf's* contribution.
-        # No, because we multiplied by 0.5.
 
-        # Re-run logic:
-        # We can't call reset_stats because it resets active_buffs etc.
+func _recalculate_merged_stats():
+    """基于当前等级和合并后的加成重新计算属性"""
+    # 获取当前等级的基础属性
+    var base_stats = _get_base_stats_for_level()
 
-        # Let's trust base_damage is correct for *this* wolf's level (it was just leveled up and reset).
-        # reset_stats: base_damage = damage (base). base_damage += consumed_data.bonus.
-        # Now we added MORE to consumed_data.bonus.
-        # We need to add that difference to base_damage and damage.
+    # 应用属性加成
+    base_damage = base_stats.damage
+    max_hp = base_stats.hp
 
-        # But wait, reset_stats was called for level 2 (merged).
-        # It used the OLD consumed_data.
-        # Now we update consumed_data.
-        # We need to apply the difference.
+    if consumed_data.has("damage_bonus"):
+        base_damage += consumed_data.damage_bonus
+    if consumed_data.has("hp_bonus"):
+        max_hp += consumed_data.hp_bonus
 
-        # Since I can't easily calc difference without knowing old value,
-        # I'll just manually set damage = base_stat + total_bonus.
-        # And base_stat for damage we can get from unit_data (since we are level 2).
-        # Actually, `damage` right now is `base_stat + old_bonus`.
-        # `base_damage` right now is `base_stat + old_bonus`.
-        # So:
-        # damage = base_damage - old_bonus + new_bonus? No base_damage includes bonus.
+    damage = base_damage
+    current_hp = max_hp
 
-        # Correct approach:
-        # base_damage -= (consumed_data["damage_bonus"] - increase) # Hard.
 
-        # Let's just grab base damage from unit_data again.
-        var stats = unit_data
-        if unit_data.has("levels") and unit_data["levels"].has(str(level)):
-            stats = unit_data["levels"][str(level)]
-        var raw_damage = stats.get("damage", unit_data.get("damage", 0))
-        var raw_hp = stats.get("hp", unit_data.get("hp", 0))
+func _get_base_stats_for_level() -> Dictionary:
+    """从unit_data获取当前等级的基础属性"""
+    var stats = unit_data
+    if unit_data.has("levels") and unit_data["levels"].has(str(level)):
+        stats = unit_data["levels"][str(level)]
 
-        base_damage = raw_damage
-        if consumed_data.has("damage_bonus"):
-            base_damage += consumed_data.damage_bonus
-        damage = base_damage
-
-        max_hp = raw_hp
-        if consumed_data.has("hp_bonus"):
-            max_hp += consumed_data.hp_bonus
-
-        current_hp = max_hp
+    return {
+        "damage": stats.get("damage", unit_data.get("damage", 0)),
+        "hp": stats.get("hp", unit_data.get("hp", 0))
+    }
 
 func get_description() -> String:
     var desc = unit_data.get("description", "")

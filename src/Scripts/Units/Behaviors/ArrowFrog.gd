@@ -20,8 +20,8 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 			debuff_stacks += child.stacks
 
 	# 2. 判断斩杀
-	# 阈值 = Debuff总层数 * 3
-	var threshold = debuff_stacks * 3
+	# 阈值 = Debuff总层数 * 200% (根据设计文档: 若敌人HP<Debuff层数*200%，则引爆斩杀)
+	var threshold = debuff_stacks * 2
 
 	# 检查生命值是否低于阈值
 	# 注意：此时 damage 已经造成，target.hp 是扣除伤害后的值
