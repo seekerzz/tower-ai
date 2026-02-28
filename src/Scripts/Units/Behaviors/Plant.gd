@@ -9,10 +9,10 @@ func on_setup():
 		GameManager.wave_ended.disconnect(_on_wave_end)
 	GameManager.wave_ended.connect(_on_wave_end)
 
-	# Re-apply permanent growth
+	# Re-apply permanent growth - directly modify max_hp
 	var growth = unit.get_meta("permanent_hp_growth", 0.0)
 	if growth > 0:
-		unit.add_buff("max_hp_percent", growth)
+		unit.max_hp *= (1.0 + growth)
 
 func on_tick(delta: float):
 	production_timer -= delta
@@ -33,7 +33,7 @@ func _on_wave_end():
 	var current = unit.get_meta("permanent_hp_growth", 0.0)
 	unit.set_meta("permanent_hp_growth", current + growth)
 
-	unit.add_buff("max_hp_percent", growth)
+	unit.max_hp *= (1.0 + growth)
 	unit.spawn_buff_effect("🌱")
 
 func broadcast_buffs():
@@ -44,9 +44,8 @@ func _apply_nearby_hp_buff():
 	if !is_instance_valid(unit): return
 	var nearby = unit.get_units_in_cell_range(unit, 1)
 	for u in nearby:
-		u.add_buff("max_hp_percent", 0.05, unit)
-		# Only spawn effect if newly applied? Since recalculate clears buffs, it's always "new" in current context.
-		# Maybe suppress visual spam or just show it.
+		# Apply HP buff directly
+		u.max_hp *= 1.05
 		u.spawn_buff_effect("💚")
 
 func on_cleanup():

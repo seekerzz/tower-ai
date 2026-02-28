@@ -74,8 +74,9 @@ func _apply_damage_reduction_aura():
 	var neighbors = unit._get_neighbor_units()
 	for neighbor in neighbors:
 		if neighbor != unit and is_instance_valid(neighbor):
-			# Apply 5% damage reduction
-			neighbor.add_buff("damage_reduction", 0.05, unit)
+			# Apply 5% damage reduction using temporary buff
+			if neighbor.has_method("add_temporary_buff"):
+				neighbor.add_temporary_buff("damage_reduction", 0.05, 999999.0)  # Long duration for persistent effect
 
 func on_cleanup():
 	if GameManager.wave_ended.is_connected(_on_wave_ended):

@@ -214,22 +214,24 @@ func _action_sell_unit(action: Dictionary) -> Dictionary:
 
 	# 校验位置
 	var unit_data = null
+	var sell_pos = null
 	if zone == "bench":
 		var bench_index = _to_int_index(pos)
 		if bench_index < 0 or bench_index >= Constants.BENCH_SIZE:
 			return {"success": false, "error_message": "备战区索引越界: %d (有效范围: 0-%d)" % [bench_index, Constants.BENCH_SIZE - 1]}
 		unit_data = session.get_bench_unit(bench_index)
+		sell_pos = bench_index
 	else:  # grid
 		var grid_pos = _parse_position(pos)
 		if grid_pos == null:
 			return {"success": false, "error_message": "无效的网格位置: %s" % str(pos)}
 		unit_data = session.get_grid_unit(grid_pos)
+		sell_pos = grid_pos
 
 	if unit_data == null:
 		return {"success": false, "error_message": "%s 位置 %s 没有单位" % [zone, str(pos)]}
 
-	# 执行出售 - 使用转换后的位置（grid_pos 为 Vector2i，bench_index 为 int）
-	var sell_pos = grid_pos if zone == "grid" else bench_index
+	# 执行出售
 	var result = BoardController.sell_unit(zone, sell_pos)
 	if not result:
 		return {"success": false, "error_message": "BoardController.sell_unit 返回失败"}

@@ -17,6 +17,9 @@ var blood_stacks: int = 0
 var max_blood_stacks: int = 5
 var stack_bonus_per_devour: float = 0.02
 
+# Track buffed units for cleanup
+var buffed_units: Array = []
+
 func on_setup():
 	# Set level-based stats
 	match unit.level:
@@ -69,12 +72,20 @@ func _apply_wolf_aura():
 	if unit.level >= 3:
 		total_buff += blood_stacks * stack_bonus_per_devour
 
+	# Clear previous buffs
+	for buffed_unit in buffed_units:
+		if is_instance_valid(buffed_unit) and buffed_unit != unit:
+			buffed_unit.damage /= (1.0 + adjacent_wolf_buff)
+	buffed_units.clear()
+
 	for neighbor in neighbors:
 		if neighbor != unit and is_instance_valid(neighbor):
 			# Check if neighbor is a Wolf faction unit
 			var faction = neighbor.unit_data.get("faction", "") if neighbor.get("unit_data") else ""
 			if faction == "wolf_totem" or neighbor.unit_data.get("type_key", "").find("wolf") != -1:
-				neighbor.add_buff("damage_percent", total_buff, unit)
+				# Apply damage buff directly
+				neighbor.damage *= (1.0 + total_buff)
+				buffed_units.append(neighbor)
 				neighbor.spawn_buff_effect("🥩")
 
 func on_skill_activated():
@@ -98,7 +109,8 @@ func _perform_sacrifice():
 			var faction = u.unit_data.get("faction", "") if u.get("unit_data") else ""
 			if faction == "wolf_totem" or u.unit_data.get("type_key", "").find("wolf") != -1:
 				# Apply temporary ATK buff
-				u.add_buff("damage_percent", sacrifice_buff_percent, unit, sacrifice_duration)
+				if u.has_method("add_temporary_buff"):
+					u.add_temporary_buff("damage", sacrifice_buff_percent, sacrifice_duration)
 				u.spawn_buff_effect("🐺")
 				buffed_count += 1
 
@@ -131,6 +143,12 @@ func _on_wave_started():
 	blood_stacks = 0
 
 func on_cleanup():
+	# Remove buffs from buffed units
+	for buffed_unit in buffed_units:
+		if is_instance_valid(buffed_unit) and buffed_unit != unit:
+			buffed_unit.damage /= (1.0 + adjacent_wolf_buff)
+	buffed_units.clear()
+
 	if GameManager.wave_started.is_connected(_on_wave_started):
 		GameManager.wave_started.disconnect(_on_wave_started)
 	if unit.level >= 3 and GameManager.has_signal("unit_devoured"):
