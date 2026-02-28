@@ -80,6 +80,46 @@ cd ai_client && python3 example_minimal.py
 7. `src/Autoload/AIManager.gd` - 添加详细的发送日志，修复 `_send_json` 错误处理
 8. `src/Scripts/MainGame.gd`, `src/Autoload/GameManager.gd`, `src/Scripts/Controllers/BoardController.gd` - 修复 `call_group` 在 headless 模式下的崩溃问题
 9. `src/Autoload/AIActionExecutor.gd` - 添加 `use_skill` 和 `get_unit_info` 动作，支持技能和 buff 查询
+10. `src/Autoload/GameManager.gd` - 添加 `skill_cost_reduction` 属性修复技能使用崩溃
+
+## 最新测试结果 - 技能动作 ✅
+
+### get_unit_info
+```json
+{
+  "event": "ActionsCompleted",
+  "event_data": {
+    "unit_info": {
+      "type_key": "tiger",
+      "level": 1,
+      "hp": 500.0,
+      "max_hp": 500.0,
+      "damage": 300.0,
+      "atk_speed": 1.5,
+      "range": 250.0,
+      "crit_rate": 0.1,
+      "skill": {
+        "name": "meteor_fall",
+        "cooldown": 0.0,
+        "max_cooldown": 15.0,
+        "mana_cost": 30.0,
+        "ready": true
+      }
+    }
+  }
+}
+```
+
+### use_skill
+```json
+{
+  "event": "ActionsCompleted",
+  "event_data": {
+    "skill_used": true,
+    "skill": "meteor_fall"
+  }
+}
+```
 
 ## 新增功能 - 技能和 Buff 支持
 
