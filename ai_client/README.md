@@ -164,6 +164,39 @@ python3 ai_game_client.py [选项]
 | 设置商店单位 | `{"type": "cheat_set_shop_unit", "shop_index": 0, "unit_key": "wolf"}` | 设置商店指定槽位为单位 |
 | 设置时间流速 | `{"type": "cheat_set_time_scale", "scale": 2.0}` | 设置游戏时间流速（0.1-10.0） |
 
+### 技能指令
+
+| 动作 | 示例 | 说明 |
+|------|------|------|
+| 使用技能 | `{"type": "use_skill", "grid_pos": {"x": 0, "y": 1}}` | 触发指定位置单位的主动技能 |
+| 获取单位信息 | `{"type": "get_unit_info", "grid_pos": {"x": 0, "y": 1}}` | 获取单位的详细属性、技能和 buff 信息 |
+
+**单位信息返回示例：**
+```json
+{
+  "event": "ActionsCompleted",
+  "unit_info": {
+    "type_key": "tiger",
+    "level": 2,
+    "hp": 150,
+    "max_hp": 200,
+    "damage": 45,
+    "atk_speed": 1.2,
+    "range": 120,
+    "crit_rate": 0.15,
+    "skill": {
+      "name": "roar",
+      "cooldown": 0,
+      "max_cooldown": 15.0,
+      "mana_cost": 50,
+      "ready": true
+    },
+    "buffs": ["range", "speed"],
+    "temporary_buffs": [{"stat": "damage", "amount": 10, "duration": 5.0}]
+  }
+}
+```
+
 ### 可用图腾
 
 | 图腾 | 类型 |

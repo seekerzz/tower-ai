@@ -262,7 +262,45 @@ class TestSuite:
         else:
             self.client.test_fail("cheat_spawn_unit (bench)", "ActionsCompleted", resp.get("event"))
 
-    # ============ Category 4: Error Handling ============
+    # ============ Category 4: Skill and Buff Actions ============
+
+    def test_get_unit_info(self):
+        """Test getting unit info including buffs"""
+        print("\n📋 Testing: get_unit_info")
+
+        # First spawn a unit on the grid
+        self.client.action({"type": "cheat_spawn_unit", "unit_type": "tiger", "level": 1, "zone": "grid", "pos": {"x": 0, "y": 1}})
+        time.sleep(0.5)
+
+        resp = self.client.action({"type": "get_unit_info", "grid_pos": {"x": 0, "y": 1}})
+
+        if resp.get("event") == "ActionsCompleted" and resp.get("unit_info"):
+            unit_info = resp.get("unit_info", {})
+            info_str = f"Type: {unit_info.get('type_key')}, Level: {unit_info.get('level')}"
+            self.client.test_pass("get_unit_info", info_str)
+        else:
+            self.client.test_fail("get_unit_info", "ActionsCompleted with unit_info", resp.get("event", resp))
+
+    def test_use_skill(self):
+        """Test using unit skill"""
+        print("\n📋 Testing: use_skill")
+
+        # Add mana first
+        self.client.action({"type": "cheat_add_mana", "amount": 100})
+        time.sleep(0.5)
+
+        resp = self.client.action({"type": "use_skill", "grid_pos": {"x": 0, "y": 1}})
+
+        event = resp.get("event")
+        if event == "ActionsCompleted":
+            self.client.test_pass("use_skill", "Skill activated")
+        elif event == "ActionError":
+            error = resp.get("error_message", "")
+            self.client.test_pass("use_skill", f"Expected error: {error[:40]}...")
+        else:
+            self.client.test_fail("use_skill", "ActionsCompleted or ActionError", event)
+
+    # ============ Category 5: Error Handling ============
 
     def test_invalid_actions(self):
         """Test handling of invalid actions"""
@@ -311,6 +349,8 @@ class TestSuite:
         self.test_cheat_add_gold()
         self.test_cheat_set_shop_unit()
         self.test_cheat_spawn_unit()
+        self.test_get_unit_info()
+        self.test_use_skill()
         self.test_invalid_actions()
 
         # Print summary

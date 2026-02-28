@@ -101,6 +101,11 @@ func _execute_action(action: Dictionary) -> Dictionary:
 			return _action_cheat_set_time_scale(action)
 		"cheat_set_shop_unit":
 			return _action_cheat_set_shop_unit(action)
+		# 技能指令
+		"use_skill":
+			return _action_use_skill(action)
+		"get_unit_info":
+			return _action_get_unit_info(action)
 		_:
 			return {"success": false, "error_message": "未知动作类型: %s" % action_type}
 
@@ -482,6 +487,113 @@ func _action_cheat_set_shop_unit(action: Dictionary) -> Dictionary:
 	AILogger.action("[作弊] 设置商店槽位 %d 为单位 %s" % [shop_index, unit_key])
 
 	return {"success": true}
+
+func _action_use_skill(action: Dictionary) -> Dictionary:
+	var grid_pos = _parse_position(action.get("grid_pos", null))
+	var skill_index = action.get("skill_index", 0)
+
+	if grid_pos == null:
+		return {"success": false, "error_message": "无效的技能目标位置"}
+
+	var grid_manager = GameManager.grid_manager
+	if not grid_manager:
+		return {"success": false, "error_message": "GridManager 未初始化"}
+
+	var key = "%d,%d" % [grid_pos.x, grid_pos.y]
+	if not grid_manager.tiles.has(key):
+		return {"success": false, "error_message": "目标位置 (%d,%d) 不存在" % [grid_pos.x, grid_pos.y]}
+
+	var tile = grid_manager.tiles[key]
+	if not tile.unit:
+		return {"success": false, "error_message": "目标位置没有单位"}
+
+	var unit = tile.unit
+	if not unit.unit_data.has("skill"):
+		return {"success": false, "error_message": "单位 %s 没有技能" % unit.type_key}
+
+	if unit.skill_cooldown > 0:
+		return {"success": false, "error_message": "技能冷却中: %.1f秒" % unit.skill_cooldown}
+
+	var final_cost = unit.skill_mana_cost
+	if GameManager.skill_cost_reduction > 0:
+		final_cost *= (1.0 - GameManager.skill_cost_reduction)
+
+	if not GameManager.consume_resource("mana", final_cost):
+		return {"success": false, "error_message": "法力不足: 需要 %.0f" % final_cost}
+
+	# Activate the skill
+	unit.activate_skill()
+	AILogger.action("单位 %s 在 (%d,%d) 使用了技能" % [unit.type_key, grid_pos.x, grid_pos.y])
+
+	return {"success": true, "skill": unit.unit_data.skill, "cost": final_cost}
+
+func _action_get_unit_info(action: Dictionary) -> Dictionary:
+	var grid_pos = _parse_position(action.get("grid_pos", null))
+	var zone = action.get("zone", "grid")
+	var pos = action.get("pos", null)
+
+	var unit = null
+
+	if zone == "grid":
+		if grid_pos == null:
+			return {"success": false, "error_message": "无效的位置"}
+		var grid_manager = GameManager.grid_manager
+		if not grid_manager:
+			return {"success": false, "error_message": "GridManager 未初始化"}
+		var key = "%d,%d" % [grid_pos.x, grid_pos.y]
+		if grid_manager.tiles.has(key) and grid_manager.tiles[key].unit:
+			unit = grid_manager.tiles[key].unit
+	elif zone == "bench":
+		var bench_index = _to_int_index(pos)
+		if bench_index >= 0 and bench_index < Constants.BENCH_SIZE:
+			var session = GameManager.session_data
+			if session:
+				var unit_data = session.get_bench_unit(bench_index)
+				if unit_data:
+					return {"success": true, "unit": unit_data}
+			return {"success": false, "error_message": "备战区位置 %d 没有单位" % bench_index}
+
+	if not unit:
+		return {"success": false, "error_message": "未找到单位"}
+
+	# Build unit info
+	var unit_info = {
+		"type_key": unit.type_key,
+		"level": unit.level,
+		"hp": unit.hp,
+		"max_hp": unit.max_hp,
+		"damage": unit.damage,
+		"atk_speed": unit.atk_speed,
+		"range": unit.range_val,
+		"crit_rate": unit.crit_rate,
+	}
+
+	# Add skill info if available
+	if unit.unit_data.has("skill"):
+		unit_info["skill"] = {
+			"name": unit.unit_data.skill,
+			"cooldown": unit.skill_cooldown,
+			"max_cooldown": unit.unit_data.get("skillCd", 10.0),
+			"mana_cost": unit.skill_mana_cost,
+			"ready": unit.skill_cooldown <= 0 and GameManager.mana >= unit.skill_mana_cost
+		}
+
+	# Add buffs info
+	if unit.active_buffs.size() > 0:
+		unit_info["buffs"] = unit.active_buffs.duplicate()
+
+	if unit.temporary_buffs.size() > 0:
+		unit_info["temporary_buffs"] = []
+		for buff in unit.temporary_buffs:
+			unit_info["temporary_buffs"].append({
+				"stat": buff.get("stat", "unknown"),
+				"amount": buff.get("amount", 0),
+				"duration": buff.get("duration", 0)
+			})
+
+	AILogger.action("获取单位信息: %s 在 (%d,%d)" % [unit.type_key, unit.grid_pos.x if unit.grid_pos else -1, unit.grid_pos.y if unit.grid_pos else -1])
+
+	return {"success": true, "unit_info": unit_info}
 
 # ===== 辅助函数 =====
 
