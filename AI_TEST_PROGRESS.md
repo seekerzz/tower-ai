@@ -77,9 +77,35 @@ cd ai_client && python3 example_minimal.py
 4. `src/Autoload/GameManager.gd` - 修复 game_over 信号发送顺序，确保 AI 能收到 GameOver 事件
 5. `src/Autoload/AIActionExecutor.gd` - 添加详细的 ActionError 上下文信息，改进网格放置检查，添加 `_to_int_index()` 修复 float/int 类型问题，添加 `cheat_set_shop_unit` 作弊指令
 6. `ai_client/ai_game_client.py` - 修复 HTTP 响应处理顺序（先创建 Future 再发送请求），改进日志输出
-6. `ai_client/ai_game_client.py` - 修复 HTTP 响应处理顺序（先创建 Future 再发送请求），改进日志输出
 7. `src/Autoload/AIManager.gd` - 添加详细的发送日志，修复 `_send_json` 错误处理
 8. `src/Scripts/MainGame.gd`, `src/Autoload/GameManager.gd`, `src/Scripts/Controllers/BoardController.gd` - 修复 `call_group` 在 headless 模式下的崩溃问题
+9. `src/Autoload/AIActionExecutor.gd` - 添加 `use_skill` 和 `get_unit_info` 动作，支持技能和 buff 查询
+
+## 新增功能 - 技能和 Buff 支持
+
+### use_skill 动作
+激活指定位置单位的主动技能：
+```json
+{"type": "use_skill", "grid_pos": {"x": 0, "y": 1}}
+```
+
+检查项：
+- [x] 技能存在性检查
+- [x] 冷却时间检查
+- [x] 法力值检查
+- [x] 成功激活返回技能信息
+
+### get_unit_info 动作
+获取单位的详细信息，包括属性、技能和 buff：
+```json
+{"type": "get_unit_info", "grid_pos": {"x": 0, "y": 1}}
+```
+
+返回信息包括：
+- [x] 基础属性 (hp, damage, atk_speed, range, crit_rate)
+- [x] 技能信息 (name, cooldown, mana_cost, ready status)
+- [x] 主动 buffs 列表 (range, speed, crit, bounce, split, guardian_shield)
+- [x] 临时 buffs (stat, amount, duration)
 
 ## 下一步计划
 
