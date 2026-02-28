@@ -75,6 +75,9 @@ var base_mana_rate: float:
 		if session_data:
 			session_data.base_mana_rate = value
 
+# Skill cost reduction for AI actions
+var skill_cost_reduction: float = 0.0
+
 var gold: int:
 	get:
 		return session_data.gold if session_data else 150

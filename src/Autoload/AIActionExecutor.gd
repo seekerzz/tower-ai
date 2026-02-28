@@ -35,6 +35,7 @@ func _on_actions_received(actions: Array):
 	AILogger.action("开始执行 %d 个动作" % actions.size())
 
 	# 逐个执行动作
+	var result_data = {}
 	for i in range(actions.size()):
 		_current_action_index = i
 		var action = actions[i]
@@ -50,6 +51,15 @@ func _on_actions_received(actions: Array):
 			_is_executing = false
 			return
 
+		# 收集结果数据（如 unit_info）
+		var action_type = action.get("type", "")
+		if action_type == "get_unit_info" and result.has("unit_info"):
+			result_data["unit_info"] = result.unit_info
+		elif action_type == "use_skill":
+			result_data["skill_used"] = true
+			if result.has("skill"):
+				result_data["skill"] = result.skill
+
 		AILogger.action("动作 %d/%d 执行成功: %s" % [i + 1, actions.size(), action.get("type", "unknown")])
 
 	_is_executing = false
@@ -59,7 +69,7 @@ func _on_actions_received(actions: Array):
 	# 发送成功响应
 	if AIManager:
 		AILogger.action("正在发送 ActionsCompleted 响应...")
-		AIManager._send_state_async("ActionsCompleted", {})
+		AIManager._send_state_async("ActionsCompleted", result_data)
 		AILogger.action("ActionsCompleted 响应已发送")
 	else:
 		AILogger.error("AIManager 未初始化，无法发送响应")
@@ -515,8 +525,6 @@ func _action_use_skill(action: Dictionary) -> Dictionary:
 		return {"success": false, "error_message": "技能冷却中: %.1f秒" % unit.skill_cooldown}
 
 	var final_cost = unit.skill_mana_cost
-	if GameManager.skill_cost_reduction > 0:
-		final_cost *= (1.0 - GameManager.skill_cost_reduction)
 
 	if not GameManager.consume_resource("mana", final_cost):
 		return {"success": false, "error_message": "法力不足: 需要 %.0f" % final_cost}
@@ -560,7 +568,7 @@ func _action_get_unit_info(action: Dictionary) -> Dictionary:
 	var unit_info = {
 		"type_key": unit.type_key,
 		"level": unit.level,
-		"hp": unit.hp,
+		"hp": unit.current_hp,
 		"max_hp": unit.max_hp,
 		"damage": unit.damage,
 		"atk_speed": unit.atk_speed,
