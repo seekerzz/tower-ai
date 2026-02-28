@@ -2,15 +2,106 @@
 
 完整的通信协议参考文档。
 
-## 连接信息
+## HTTP REST API（新）
+
+### 启动方式
+
+#### Headless 模式（默认，推荐用于训练）
+```bash
+python3 ai_client/ai_game_client.py
+```
+
+#### GUI 模式（用于调试观察）
+```bash
+python3 ai_game_client.py --visual
+```
+
+### HTTP 端点
+
+#### POST /action
+
+发送游戏动作，返回游戏状态。
+
+**请求：**
+```bash
+curl -X POST http://127.0.0.1:<port>/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "actions": [
+      {"type": "buy_unit", "shop_index": 0},
+      {"type": "start_wave"}
+    ]
+  }'
+```
+
+**正常响应：**
+```json
+{
+  "event": "WaveStarted",
+  "event_data": {"wave": 1},
+  "timestamp": 1234567890,
+  "global": {...},
+  "board": {...}
+}
+```
+
+**崩溃响应：**
+```json
+{
+  "event": "SystemCrash",
+  "error_type": "SCRIPT ERROR: ...",
+  "stack_trace": "..."
+}
+```
+
+#### GET /status
+
+获取服务器状态。
+
+**响应：**
+```json
+{
+  "godot_running": true,
+  "ws_connected": true,
+  "http_port": 12345,
+  "godot_ws_port": 45678,
+  "visual_mode": false,
+  "crashed": false
+}
+```
+
+#### GET /health
+
+健康检查。
+
+**响应：**
+```json
+{"status": "ok"}
+```
+
+### 命令行参数
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--visual`, `--gui` | 启用 GUI 模式 | false (headless) |
+| `--project`, `-p` | Godot 项目路径 | /home/zhangzhan/tower |
+| `--scene`, `-s` | 启动场景 | res://src/Scenes/UI/CoreSelection.tscn |
+| `--http-port` | HTTP 服务器端口 | 0 (自动分配) |
+| `--godot-port` | Godot WebSocket 端口 | 0 (自动分配) |
+
+---
+
+## 旧版 WebSocket API
+
+### 连接信息
 
 | 项目 | 值 |
 |------|-----|
 | 协议 | WebSocket |
-| 地址 | `ws://localhost:9090` |
+| 地址 | `ws://localhost:45678` |
 | 消息格式 | JSON |
 
-## 通信流程
+### 通信流程
 
 ```
 游戏事件触发 → 游戏暂停 → 服务端发送状态 → 客户端决策 → 客户端发送动作 → 服务端执行 → 游戏恢复
