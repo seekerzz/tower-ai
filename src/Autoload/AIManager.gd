@@ -158,6 +158,10 @@ func _connect_game_signals():
 	# 核心受击
 	GameManager.damage_dealt.connect(_on_damage_dealt)
 
+	# 陷阱相关
+	GameManager.trap_placed.connect(_on_trap_placed)
+	GameManager.trap_triggered.connect(_on_trap_triggered)
+
 	AILogger.event("游戏信号已连接")
 
 # ===== 事件处理器 =====
@@ -221,17 +225,58 @@ func _on_enemy_died(enemy: Node, killer_unit):
 	pass
 
 func _on_damage_dealt(unit, amount):
-	# 核心受击检测
+	# 核心受击检测 - unit 为 null 表示核心受到伤害
 	if unit == null and amount > 0:
 		# 这是核心受到伤害
 		var core_health = GameManager.core_health
 		var max_health = GameManager.max_core_health
-		if core_health / max_health < 0.3:
-			_pause_and_send("CoreCritical", {
-				"health": core_health,
-				"max_health": max_health,
-				"damage": amount
-			})
+		var health_percent = core_health / max_health if max_health > 0 else 1.0
+
+		# 构建核心受击事件数据
+		var event_data = {
+			"health": core_health,
+			"max_health": max_health,
+			"health_percent": health_percent,
+			"damage": amount
+		}
+
+		# 根据血量百分比决定事件类型
+		if health_percent < 0.3:
+			_pause_and_send("CoreCritical", event_data)
+		else:
+			_pause_and_send("CoreDamaged", event_data)
+
+func _on_trap_placed(trap_type: String, position: Vector2, source_unit):
+	"""陷阱放置事件 - 发送给AI客户端"""
+	var unit_type = source_unit.type_key if source_unit and source_unit.has_method("get") and source_unit.get("type_key") else "unknown"
+	var unit_level = source_unit.level if source_unit and source_unit.has_method("get") and source_unit.get("level") else 1
+
+	AILogger.event("陷阱已放置: %s 在位置 %s 由 %s(L%d) 放置" % [trap_type, str(position), unit_type, unit_level])
+
+	_send_state_async("TrapPlaced", {
+		"trap_type": trap_type,
+		"position": _vec2_to_dict(position),
+		"source_unit": unit_type,
+		"source_unit_level": unit_level
+	})
+
+func _on_trap_triggered(trap_type: String, target_enemy, source_unit):
+	"""陷阱触发事件 - 发送给AI客户端"""
+	var unit_type = source_unit.type_key if source_unit and source_unit.has_method("get") and source_unit.get("type_key") else "unknown"
+	var enemy_type = target_enemy.type_key if target_enemy and target_enemy.has_method("get") and target_enemy.get("type_key") else "unknown"
+	var enemy_name = target_enemy.name if target_enemy and target_enemy.has_method("get") and target_enemy.get("name") else "unknown"
+	var enemy_position = target_enemy.global_position if target_enemy else Vector2.ZERO
+
+	AILogger.event("陷阱已触发: %s 击中目标 %s (类型:%s) 在位置 %s" % [trap_type, enemy_name, enemy_type, str(enemy_position)])
+
+	_send_state_async("TrapTriggered", {
+		"trap_type": trap_type,
+		"target_enemy": enemy_type,
+		"target_enemy_name": enemy_name,
+		"target_position": _vec2_to_dict(enemy_position),
+		"source_unit": unit_type,
+		"poison_stacks": 2  # Toad陷阱固定给予2层中毒
+	})
 
 # ===== 核心功能：暂停并发送状态 =====
 
@@ -351,10 +396,33 @@ func _build_enemies_state() -> Array:
 			"state": _enemy_state_to_string(enemy.state) if "state" in enemy else "unknown"
 		}
 
-		# Debuff 信息
+		# 从 enemy_data 获取攻击和机制信息
+		if "enemy_data" in enemy and enemy.enemy_data:
+			var data = enemy.enemy_data
+			enemy_info["damage"] = data.get("dmg", 0)
+			enemy_info["attack_speed"] = data.get("atkSpeed", 1.0)
+			enemy_info["attack_type"] = data.get("attackType", "melee")
+			enemy_info["is_boss"] = data.get("is_boss", false)
+			enemy_info["is_suicide"] = data.get("is_suicide", false)
+			enemy_info["radius"] = data.get("radius", 20.0)
+			# 远程攻击的射程
+			if data.get("attackType") == "ranged":
+				enemy_info["range"] = data.get("range", 200.0)
+
+		# 物理属性
+		if "mass" in enemy:
+			enemy_info["mass"] = enemy.mass
+		if "knockback_resistance" in enemy:
+			enemy_info["knockback_resistance"] = enemy.knockback_resistance
+
+		# Debuff 信息（包含详细层数）
 		var debuffs = _get_enemy_debuffs(enemy)
 		if debuffs.size() > 0:
 			enemy_info["debuffs"] = debuffs
+
+		# 魅惑状态
+		if "faction" in enemy and enemy.faction == "player":
+			enemy_info["is_charmed"] = true
 
 		enemies.append(enemy_info)
 
@@ -363,16 +431,20 @@ func _build_enemies_state() -> Array:
 func _get_enemy_debuffs(enemy: Node) -> Array:
 	var debuffs = []
 
-	# 检查各种状态
+	# 检查各种状态（包含层数信息）
 	if enemy.has_method("has_status"):
 		if enemy.has_status("poison"):
-			debuffs.append({"type": "poison"})
+			var poison_stacks = _get_effect_stacks(enemy, "poison")
+			debuffs.append({"type": "poison", "stacks": poison_stacks})
 		if enemy.has_status("burn"):
-			debuffs.append({"type": "burn"})
+			var burn_stacks = _get_effect_stacks(enemy, "burn")
+			debuffs.append({"type": "burn", "stacks": burn_stacks})
 		if enemy.has_status("slow"):
-			debuffs.append({"type": "slow"})
+			var slow_stacks = _get_effect_stacks(enemy, "slow")
+			debuffs.append({"type": "slow", "stacks": slow_stacks})
 		if enemy.has_status("vulnerable"):
-			debuffs.append({"type": "vulnerable"})
+			var vuln_stacks = _get_effect_stacks(enemy, "vulnerable")
+			debuffs.append({"type": "vulnerable", "stacks": vuln_stacks})
 
 	# 流血层数
 	if "bleed_stacks" in enemy and enemy.bleed_stacks > 0:
@@ -387,6 +459,15 @@ func _get_enemy_debuffs(enemy: Node) -> Array:
 		debuffs.append({"type": "blind", "duration": enemy.blind_timer})
 
 	return debuffs
+
+func _get_effect_stacks(enemy: Node, effect_type: String) -> int:
+	"""获取指定效果类型的层数"""
+	for c in enemy.get_children():
+		if c is StatusEffect and c.type_key == effect_type:
+			if "stacks" in c:
+				return c.stacks
+			return 1
+	return 1
 
 # ===== 客户端消息处理 =====
 
@@ -479,6 +560,59 @@ func _unit_to_dict(unit) -> Dictionary:
 		return {}
 	if unit is Dictionary:
 		return unit
+
+	# 处理 Unit 对象
+	if unit is Node and unit.has_method("get_script"):
+		var result = {}
+
+		# 基础信息
+		if "type_key" in unit:
+			result["type"] = unit.type_key
+		if "level" in unit:
+			result["level"] = unit.level
+
+		# 战斗属性
+		if "damage" in unit:
+			result["damage"] = unit.damage
+		if "range_val" in unit:
+			result["range"] = unit.range_val
+		if "atk_speed" in unit:
+			result["attack_speed"] = unit.atk_speed
+		if "current_hp" in unit:
+			result["hp"] = unit.current_hp
+		if "max_hp" in unit:
+			result["max_hp"] = unit.max_hp
+
+		# 特殊属性
+		if "crit_rate" in unit:
+			result["crit_rate"] = unit.crit_rate
+		if "crit_dmg" in unit:
+			result["crit_damage"] = unit.crit_dmg
+		if "bounce_count" in unit and unit.bounce_count > 0:
+			result["bounce_count"] = unit.bounce_count
+		if "split_count" in unit and unit.split_count > 0:
+			result["split_count"] = unit.split_count
+
+		# Buffs
+		if "active_buffs" in unit and unit.active_buffs.size() > 0:
+			result["buffs"] = unit.active_buffs.duplicate()
+
+		# 技能冷却
+		if "skill_cooldown" in unit and unit.skill_cooldown > 0:
+			result["skill_cooldown"] = unit.skill_cooldown
+
+		# 单位数据中的额外信息
+		if "unit_data" in unit and unit.unit_data:
+			var data = unit.unit_data
+			if data.has("attackType"):
+				result["attack_type"] = data.attackType
+			if data.has("skill"):
+				result["skill"] = data.skill
+			if data.has("proj"):
+				result["projectile_type"] = data.proj
+
+		return result
+
 	return {}
 
 func _vec2_to_dict(v: Vector2) -> Dictionary:

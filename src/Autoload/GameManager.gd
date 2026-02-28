@@ -361,6 +361,11 @@ func _on_boss_wave_started(wave_number: int, boss_count: int):
 
 func _show_upgrade_selection():
 	"""显示升级选择界面"""
+	# 如果游戏已结束，不显示升级选择
+	if session_data and session_data.core_health <= 0:
+		print("[GameManager] Game over, skipping upgrade selection")
+		return
+
 	if upgrade_selection_scene:
 		var upgrade_ui = upgrade_selection_scene.instantiate()
 		add_child(upgrade_ui)

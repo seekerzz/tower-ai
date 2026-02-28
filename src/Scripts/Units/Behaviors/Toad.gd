@@ -57,6 +57,14 @@ func _spawn_trap(pos: Vector2):
 	# Emit signal for test logging
 	GameManager.trap_placed.emit("poison", pos, unit)
 
+	# 添加详细日志：记录陷阱位置、拥有者信息
+	print("[Toad] 毒陷阱已放置 - 位置: %s, 拥有者等级: L%d, 最大陷阱数: %d, 当前陷阱数: %d" % [
+		str(pos),
+		unit.level,
+		max_traps,
+		placed_traps.size()
+	])
+
 func _on_trap_triggered(enemy, trap):
 	# Remove from list if it's there (trap queues free itself)
 	placed_traps.erase(trap)
@@ -64,8 +72,18 @@ func _on_trap_triggered(enemy, trap):
 	# Emit signal for test logging
 	GameManager.trap_triggered.emit("poison", enemy, unit)
 
+	# 添加详细日志：记录陷阱触发信息、中毒目标、中毒层数
+	var enemy_name = enemy.name if enemy.has_method("get") and enemy.get("name") else enemy.name
+	var enemy_type = enemy.type_key if enemy.has_method("get") and enemy.get("type_key") else "unknown"
+	print("[Toad] 毒陷阱触发! 陷阱位置: %s, 中毒目标: %s (类型:%s), 中毒层数: 2" % [
+		str(trap.global_position) if trap else "unknown",
+		enemy_name,
+		enemy_type
+	])
+
 	if enemy.has_method("add_poison_stacks"):
 		enemy.add_poison_stacks(2)
+		print("[Toad] 成功对 %s 添加 2 层中毒效果" % enemy_type)
 
 	if unit.level >= 3:
 		_apply_distance_damage_debuff(enemy)

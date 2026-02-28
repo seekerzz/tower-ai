@@ -37,10 +37,11 @@ func initialize(p_session_data):
 
 # ===== 商店操作 =====
 
-func buy_unit(shop_index: int) -> bool:
+func buy_unit(shop_index: int, expected_unit_key: String = "") -> bool:
 	"""
 	购买商店中的单位
 	@param shop_index: 商店槽位索引 (0-3)
+	@param expected_unit_key: 期望购买的单位key（用于验证，防止购买不一致）
 	@return: 是否购买成功
 	"""
 	if session_data == null:
@@ -54,6 +55,11 @@ func buy_unit(shop_index: int) -> bool:
 	var unit_key = session_data.get_shop_unit(shop_index)
 	if unit_key == null:
 		operation_failed.emit("buy_unit", "Shop slot empty")
+		return false
+
+	# 验证购买的单位是否与预期一致
+	if expected_unit_key != "" and expected_unit_key != unit_key:
+		operation_failed.emit("buy_unit", "Shop unit mismatch: expected %s but found %s" % [expected_unit_key, unit_key])
 		return false
 
 	var proto = Constants.UNIT_TYPES.get(unit_key)

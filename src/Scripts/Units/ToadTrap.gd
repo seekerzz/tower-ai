@@ -28,6 +28,18 @@ func _on_body_entered(body):
 	if triggered: return
 	if body.is_in_group("enemies"):
 		triggered = true
+
+		# 添加详细日志：记录陷阱触发信息
+		var owner_name = owner_toad.type_key if owner_toad and owner_toad.has_method("get") and owner_toad.get("type_key") else "unknown"
+		var body_name = body.name if body.has_method("get") and body.get("name") else body.name
+		var body_type = body.type_key if body.has_method("get") and body.get("type_key") else "unknown"
+		print("[ToadTrap] 陷阱被触发! 陷阱位置: %s, 拥有者: %s, 触发目标: %s (类型:%s)" % [
+			str(global_position),
+			owner_name,
+			body_name,
+			body_type
+		])
+
 		trap_triggered.emit(body, self)
 		_play_trigger_effect()
 		queue_free()

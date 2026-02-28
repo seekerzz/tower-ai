@@ -190,8 +190,8 @@ func _action_buy_unit(action: Dictionary) -> Dictionary:
 	if empty_slot == -1:
 		return {"success": false, "error_message": "备战区已满"}
 
-	# 执行购买
-	var result = BoardController.buy_unit(shop_index)
+	# 执行购买 - 传递预期的单位key以确保购买一致性
+	var result = BoardController.buy_unit(shop_index, unit_key)
 	if not result:
 		return {"success": false, "error_message": "BoardController.buy_unit 返回失败"}
 
