@@ -389,50 +389,28 @@ func _build_enemies_state() -> Array:
 		if not is_instance_valid(enemy):
 			continue
 
+		# 只传递敌人名字和动态信息，AI可通过查表获取静态属性
 		var enemy_info = {
-			"type": enemy.type_key if "type_key" in enemy else "unknown",
-			"hp": enemy.hp if "hp" in enemy else 0,
-			"max_hp": enemy.max_hp if "max_hp" in enemy else 0,
-			"position": _vec2_to_dict(enemy.global_position),
-			"speed": enemy.speed if "speed" in enemy else 0,
-			"state": _enemy_state_to_string(enemy.state) if "state" in enemy else "unknown"
+			"name": enemy.type_key if "type_key" in enemy else "unknown",  # 敌人名字，用于查表
+			"hp": enemy.hp if "hp" in enemy else 0,  # 当前血量（动态）
+			"position": _vec2_to_dict(enemy.global_position),  # 位置（动态）
+			"state": _enemy_state_to_string(enemy.state) if "state" in enemy else "unknown"  # 状态（动态）
 		}
 
-		# 从 enemy_data 获取攻击和机制信息
-		if "enemy_data" in enemy and enemy.enemy_data:
-			var data = enemy.enemy_data
-			enemy_info["damage"] = data.get("dmg", 0)
-			enemy_info["attack_speed"] = data.get("atkSpeed", 1.0)
-			enemy_info["attack_type"] = data.get("attackType", "melee")
-			enemy_info["is_boss"] = data.get("is_boss", false)
-			enemy_info["is_suicide"] = data.get("is_suicide", false)
-			enemy_info["radius"] = data.get("radius", 20.0)
-			# 远程攻击的射程
-			if data.get("attackType") == "ranged":
-				enemy_info["range"] = data.get("range", 200.0)
-
-		# 物理属性
-		if "mass" in enemy:
-			enemy_info["mass"] = enemy.mass
-		if "knockback_resistance" in enemy:
-			enemy_info["knockback_resistance"] = enemy.knockback_resistance
-
-		# Debuff 信息（包含详细层数）
+		# Debuff 信息（动态状态）
 		var debuffs = _get_enemy_debuffs(enemy)
 		if debuffs.size() > 0:
 			enemy_info["debuffs"] = debuffs
 
-		# 魅惑状态
+		# 魅惑状态（动态）
 		if "faction" in enemy and enemy.faction == "player":
 			enemy_info["is_charmed"] = true
 
-		# 史莱姆分裂代数信息
+		# 史莱姆分裂代数（动态状态）
 		if "behavior" in enemy and enemy.behavior:
 			var behavior = enemy.behavior
 			if behavior.has_method("set_split_info"):
-				# 这是史莱姆行为，包含分裂信息
 				enemy_info["split_generation"] = behavior.get("split_generation", 0)
-				enemy_info["is_slime"] = true
 
 		enemies.append(enemy_info)
 

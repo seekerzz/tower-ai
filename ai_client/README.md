@@ -217,10 +217,73 @@ python3 ai_game_client.py [选项]
 | `WaveEnded` | 波次结束（购买阶段） |
 | `WaveStarted` | 波次开始 |
 | `BossSpawned` | Boss 生成 |
+| `CoreDamaged` | 核心受到攻击（血量 >= 30%） |
 | `CoreCritical` | 核心血量低于 30% |
+| `TrapPlaced` | 毒陷阱已放置 |
+| `TrapTriggered` | 毒陷阱被触发 |
 | `AI_Wakeup` | resume 延时到期 |
 | `GameOver` | 游戏结束 |
 | `SystemCrash` | Godot 崩溃（Python 端检测） |
+
+## 敌人信息
+
+仅在 `is_wave_active` 为 true 时，状态消息会包含 `enemies` 数组。
+
+**设计理念：** 只传递敌人的**名字**和**动态信息**，AI 可通过查表获取敌人的静态属性。
+
+```json
+{
+  "enemies": [
+    {
+      "name": "slime",
+      "hp": 80.0,
+      "position": {"x": 120.5, "y": 200.0},
+      "state": "move",
+      "split_generation": 0,
+      "debuffs": [
+        {"type": "poison", "stacks": 3},
+        {"type": "bleed", "stacks": 5}
+      ]
+    }
+  ]
+}
+```
+
+**传递的字段：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `name` | string | **敌人名字**，用于查表获取完整属性 |
+| `hp` | float | 当前血量（动态） |
+| `position` | object | 位置坐标 {"x": float, "y": float}（动态） |
+| `state` | string | 状态：move, attack_base, stunned, support（动态） |
+| `is_charmed` | bool | 是否被魅惑（动态） |
+| `split_generation` | int | 史莱姆分裂代数（动态） |
+| `debuffs` | array | Debuff 列表，包含 type 和 stacks（动态） |
+
+**debuff 类型：**
+- `poison` - 中毒
+- `burn` - 燃烧
+- `bleed` - 流血
+- `slow` - 减速
+- `stun` - 眩晕
+- `freeze` - 冻结
+- `blind` - 失明
+- `vulnerable` - 易伤
+
+**AI 查表获取的静态属性：**
+
+通过 `name` 字段查询 `data/game_data.json` 中的 `ENEMY_TYPES`，可获取：
+- `max_hp` - 最大血量
+- `damage` - 攻击力
+- `speed` - 移动速度
+- `attack_speed` - 攻击速度
+- `attack_type` - 攻击类型（melee/ranged）
+- `range` - 远程射程
+- `is_boss` - 是否为 Boss
+- `is_suicide` - 是否自爆
+- `radius` - 碰撞半径
+- 等等...
 
 ## 测试
 

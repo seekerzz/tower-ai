@@ -173,7 +173,10 @@ curl -X POST http://127.0.0.1:<port>/action \
 | `WaveReset` | 波次重置 | 否 |
 | `GameOver` | 游戏结束 | 是 |
 | `BossSpawned` | Boss 生成 | 是 |
+| `CoreDamaged` | 核心受到攻击（血量 >= 30%） | 是 |
 | `CoreCritical` | 核心血量低于 30% | 是 |
+| `TrapPlaced` | 毒陷阱已放置 | 是 |
+| `TrapTriggered` | 毒陷阱被触发 | 是 |
 | `AI_Wakeup` | resume 计时器到期 | 是 |
 | `ActionError` | 动作执行失败 | - |
 
@@ -229,33 +232,52 @@ curl -X POST http://127.0.0.1:<port>/action \
 
 仅在 `is_wave_active` 为 true 时存在。
 
+**设计理念：** 只传递敌人的**名字**和**动态信息**，静态属性通过查表获取。
+
 ```json
 {
-  "type": "slime",
+  "name": "slime",
   "hp": 80.0,
-  "max_hp": 100.0,
   "position": {"x": 120.5, "y": 200.0},
-  "speed": 40.0,
   "state": "move",
+  "split_generation": 0,
+  "is_charmed": false,
   "debuffs": [
-    {"type": "poison"},
-    {"type": "bleed", "stacks": 5},
-    {"type": "slow"}
+    {"type": "poison", "stacks": 3},
+    {"type": "burn", "stacks": 2},
+    {"type": "bleed", "stacks": 5}
   ]
 }
 ```
 
+**传递的字段：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `name` | string | **敌人名字**，用于查表获取完整属性（如 slime, mutant_slime, wolf, crab, treant, yeti, golem, healer, summoner, ranger, tank） |
+| `hp` | float | 当前血量（动态） |
+| `position` | object | 位置坐标 {"x": float, "y": float}（动态） |
+| `state` | string | 状态：move, attack_base, stunned, support（动态） |
+| `is_charmed` | bool | 是否被魅惑（动态） |
+| `split_generation` | int | 史莱姆分裂代数（动态） |
+| `debuffs` | array | Debuff 列表（动态） |
+
 **state 枚举**: `move`, `attack_base`, `stunned`, `support`
 
-**debuff 类型**:
-- `{"type": "poison"}`
-- `{"type": "burn"}`
-- `{"type": "bleed", "stacks": int}`
-- `{"type": "slow"}`
-- `{"type": "stun", "duration": float}`
-- `{"type": "freeze", "duration": float}`
-- `{"type": "blind", "duration": float}`
-- `{"type": "vulnerable"}`
+**debuff 类型**（所有 debuff 都包含 `stacks` 层数字段）：
+- `{"type": "poison", "stacks": int}` - 中毒
+- `{"type": "burn", "stacks": int}` - 燃烧
+- `{"type": "bleed", "stacks": int}` - 流血
+- `{"type": "slow", "stacks": int}` - 减速
+- `{"type": "stun", "duration": float}` - 眩晕
+- `{"type": "freeze", "duration": float}` - 冻结
+- `{"type": "blind", "duration": float}` - 失明
+- `{"type": "vulnerable", "stacks": int}` - 易伤
+
+**AI 查表获取静态属性：**
+
+通过 `name` 字段查询 `data/game_data.json` 中的 `ENEMY_TYPES`，可获取：
+- `max_hp`, `damage`, `speed`, `attack_speed`, `attack_type`, `range`, `is_boss`, `is_suicide`, `radius` 等
 
 ---
 
