@@ -365,6 +365,8 @@ func _handle_hit(target_node):
 
 		if target_node.has_method("take_damage"):
 			target_node.take_damage(damage, source_unit, final_damage_type, self, kb_force)
+			# 中文战斗日志
+			_log_combat_hit(source_unit, target_node, damage, final_damage_type, is_critical)
 
 		# Apply Status Effects via Payload (New System)
 		apply_payload(target_node)
@@ -615,3 +617,40 @@ func trigger_eagle_echo(target_node, multiplier: float):
 
 	# Apply effects again (poison, burn, etc)
 	apply_payload(target_node)
+
+## 中文战斗日志 - 记录攻击命中
+func _log_combat_hit(source, target, dmg: float, dmg_type: String, is_crit: bool):
+	if not AILogger: return
+
+	var source_name = "未知"
+	var target_name = "未知"
+	var target_hp = 0.0
+
+	if source and is_instance_valid(source):
+		if "type_key" in source:
+			source_name = source.type_key
+		elif source.has_method("get_name"):
+			source_name = source.get_name()
+
+	if target and is_instance_valid(target):
+		if "type_key" in target:
+			target_name = target.type_key
+		elif target.has_method("get_name"):
+			target_name = target.get_name()
+		if "current_hp" in target:
+			target_hp = target.current_hp
+
+	var crit_str = "【暴击】" if is_crit else ""
+	var dmg_type_str = ""
+	match dmg_type:
+		"crit": dmg_type_str = "暴击伤害"
+		"fire": dmg_type_str = "火焰伤害"
+		"poison": dmg_type_str = "毒素伤害"
+		"lightning": dmg_type_str = "闪电伤害"
+		"physical": dmg_type_str = "物理伤害"
+		"eagle_crit": dmg_type_str = "鹰族回响"
+		_: dmg_type_str = dmg_type
+
+	AILogger.action("[战斗] %s 攻击 %s | %s%.1f伤害(%s) | 目标剩余HP: %.1f" % [
+		source_name, target_name, crit_str, dmg, dmg_type_str, target_hp
+	])

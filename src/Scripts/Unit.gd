@@ -338,6 +338,9 @@ func activate_skill():
 		var skill_name = unit_data.skill
 		GameManager.spawn_floating_text(global_position, skill_name.capitalize() + "!", Color.CYAN)
 		GameManager.skill_activated.emit(self)
+		# 中文技能日志
+		if AILogger:
+			AILogger.action("[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [type_key, level, skill_name, final_cost])
 
 		if visual_holder:
 			var tween = create_tween()
