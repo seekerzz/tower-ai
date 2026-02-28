@@ -1,7 +1,7 @@
 extends "res://src/Scripts/CoreMechanics/CoreMechanic.gd"
 
 class ViperTotemSource:
-	var damage: float = 20.0
+	var damage: float = 35.0  # 从20点提升到35点
 	var unit_data: Dictionary = { "damageType": "poison" }
 	var crit_rate: float = 0.0
 	var crit_dmg: float = 1.5
@@ -56,13 +56,13 @@ func _on_timer_timeout():
 		var start_pos = target.global_position + Vector2(randf_range(-50, 50), -600)
 
 		# Create dummy source
-		var source = ViperTotemSource.new(20.0)
+		var source = ViperTotemSource.new(35.0)  # 伤害从20提升到35
 
 		var stats = {
 			"is_meteor": true,
 			"ground_pos": target.global_position,
 			"proj_override": "ink",
-			"damage": 20.0,
+			"damage": 35.0,  # 伤害从20提升到35
 			"effects": {
 				"poison": 5.0,
 				"poison_stacks": 3

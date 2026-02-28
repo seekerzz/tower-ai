@@ -1,7 +1,7 @@
 class_name UnitFox
 extends Unit
 
-@export var charm_chance: float = 0.15
+@export var charm_chance: float = 0.20  # Lv1: 从15%提升到20%
 var charmed_enemies: Array[Enemy] = []
 var max_charms: int = 1
 
@@ -9,7 +9,7 @@ func _ready():
     super._ready()
     max_charms = 1
     if level >= 2:
-        charm_chance = 0.25
+        charm_chance = 0.30  # Lv2: 从25%提升到30%
     if level >= 3:
         max_charms = 2
 

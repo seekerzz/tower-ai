@@ -70,6 +70,102 @@ func _is_bat_totem_unit(source: Node) -> bool:
 func _show_lifesteal_effect(pos: Vector2, amount: float):
 	# Green floating text
 	GameManager.spawn_floating_text(pos, "+" + str(int(amount)), Color.GREEN, Vector2.UP)
+	# Spawn blood particles flying to core
+	_spawn_lifesteal_particles(pos, amount)
+
+func _spawn_lifesteal_particles(start_pos: Vector2, amount: float):
+	"""
+	生成吸血粒子效果
+	- 血滴粒子从敌人飞向核心
+	- 粒子数量基于吸血量
+	"""
+	if not GameManager.grid_manager:
+		return
+
+	var core_pos = GameManager.grid_manager.global_position
+	var particle_count = _calculate_particle_count(amount)
+
+	for i in range(particle_count):
+		var particle = _create_blood_particle(start_pos, core_pos, i, particle_count)
+		if particle:
+			# Add to scene
+			var scene = Engine.get_main_loop().current_scene
+			if scene:
+				scene.add_child(particle)
+
+func _calculate_particle_count(amount: float) -> int:
+	"""
+	计算粒子数量
+	- 基础: 5个粒子
+	- 每10点吸血: +2个粒子
+	- 最大: 20个粒子
+	"""
+	var base_count = 5
+	var bonus = int(amount / 10.0) * 2
+	return min(base_count + bonus, 20)
+
+func _create_blood_particle(start: Vector2, target: Vector2, index: int, total: int) -> Node2D:
+	"""
+	创建单个血滴粒子
+	"""
+	var particle = Node2D.new()
+	particle.global_position = start
+
+	# Create visual (blood drop shape using Polygon2D)
+	var visual = Polygon2D.new()
+	var size = randf_range(4, 8)
+	# Create teardrop shape
+	visual.polygon = PackedVector2Array([
+		Vector2(0, -size),
+		Vector2(size * 0.7, size * 0.3),
+		Vector2(0, size),
+		Vector2(-size * 0.7, size * 0.3)
+	])
+
+	# Color gradient: dark red -> bright red
+	var t = float(index) / max(total - 1, 1)
+	visual.color = Color(0.5, 0.0, 0.0).lerp(Color(0.9, 0.1, 0.1), t)
+	particle.add_child(visual)
+
+	# Calculate flight path with arc
+	var direction = (target - start).normalized()
+	var distance = start.distance_to(target)
+	var duration = 0.5  # 0.5 seconds flight time
+	var speed = distance / duration
+
+	# Add random arc offset
+	var arc_offset = Vector2(-direction.y, direction.x) * randf_range(-50, 50)
+	var mid_point = (start + target) / 2 + arc_offset
+
+	# Animate along arc path
+	var tween = particle.create_tween()
+	tween.tween_property(particle, "global_position", mid_point, duration * 0.5)
+	tween.tween_property(particle, "global_position", target, duration * 0.5)
+
+	# Fade out and scale down at end
+	tween.parallel().tween_property(visual, "modulate:a", 0.0, duration * 0.3).set_delay(duration * 0.7)
+	tween.parallel().tween_property(visual, "scale", Vector2.ZERO, duration * 0.2).set_delay(duration * 0.8)
+
+	# Cleanup
+	tween.tween_callback(particle.queue_free)
+
+	# Core flash effect when particle arrives
+	if index == 0:  # Only trigger once for the first particle
+		tween.tween_callback(_trigger_core_heal_flash)
+
+	return particle
+
+func _trigger_core_heal_flash():
+	"""
+	核心受治疗时的闪烁效果
+	"""
+	if GameManager.grid_manager:
+		var core = GameManager.grid_manager
+		if core.has_method("flash_heal_effect"):
+			core.flash_heal_effect()
+		else:
+			# Fallback: spawn floating text at core
+			GameManager.spawn_floating_text(core.global_position, "❤", Color.GREEN, Vector2.UP)
 
 func _calculate_risk_reward_multiplier() -> float:
 	"""

@@ -145,6 +145,10 @@ var wave_system_manager: Node = null
 
 var permanent_health_bonus: float = 0.0
 
+# Risk-Reward Warning System
+var risk_reward_warning_active: bool = false
+signal risk_reward_warning_changed(active: bool)
+
 # ===== 全局Buff系统 =====
 var _global_buffs: Dictionary = {}
 
@@ -400,6 +404,9 @@ func _process(delta):
 	if is_wave_active and core_health > 0:
 		update_resources(delta)
 
+	# Update risk-reward warning state
+	_update_risk_reward_warning()
+
 func get_stat_modifier(stat_type: String, context: Dictionary = {}) -> float:
 	if not reward_manager:
 		return 1.0
@@ -524,6 +531,22 @@ func damage_core(amount: float):
 		session_data.damage_core(amount)
 	resource_changed.emit()
 	_check_game_over()
+
+func _update_risk_reward_warning():
+	"""
+	更新风险奖励警告状态
+	当核心HP <= 35%时激活警告
+	"""
+	var core_health_percent = core_health / max_core_health
+	var should_warn = core_health_percent <= 0.35 and core_health > 0
+
+	if should_warn != risk_reward_warning_active:
+		risk_reward_warning_active = should_warn
+		risk_reward_warning_changed.emit(should_warn)
+
+		if should_warn:
+			# Entering critical state
+			print("[GameManager] Risk-Reward Warning: Core HP critical (%.1f%%)" % (core_health_percent * 100))
 
 func _check_game_over():
 	if session_data and session_data.core_health <= 0:

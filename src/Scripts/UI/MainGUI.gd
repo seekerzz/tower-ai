@@ -37,6 +37,11 @@ var shop_node: Control = null
 var combat_gold_label: Label
 var soul_label: Label
 
+# Risk-Reward Warning UI
+var risk_warning_panel: Panel
+var risk_warning_label: Label
+var risk_warning_tween: Tween
+
 func _ready():
 	# Remove FoodBar if it exists
 	var food_bar_node = $TopLeftPanel.get_node_or_null("FoodBar")
@@ -70,6 +75,9 @@ func _ready():
 	GameManager.skill_activated.connect(_on_skill_activated)
 	GameManager.ftext_spawn_requested.connect(_on_ftext_spawn_requested)
 
+	# Connect risk-reward warning signal
+	GameManager.risk_reward_warning_changed.connect(_on_risk_reward_warning_changed)
+
 	_setup_ui_styles()
 
 	if retry_button:
@@ -89,6 +97,9 @@ func _ready():
 	
 	# 2. 布局核心修复：重新组织右侧栏内容，解决重叠
 	_setup_right_sidebar_layout()
+
+	# Setup risk-reward warning UI
+	_setup_risk_reward_warning()
 
 	# Try to find Shop node dynamically
 	shop_node = get_tree().root.find_child("Shop", true, false)
@@ -445,3 +456,84 @@ func _on_retry_wave_pressed():
 
 func _on_new_game_pressed():
 	get_tree().reload_current_scene()
+
+# ===== Risk-Reward Warning System =====
+func _setup_risk_reward_warning():
+	"""
+	设置风险奖励警告UI
+	当核心HP <= 35%时显示红色警告边框
+	"""
+	# Create warning panel (full screen overlay with border)
+	risk_warning_panel = Panel.new()
+	risk_warning_panel.name = "RiskWarningPanel"
+	risk_warning_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	risk_warning_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	risk_warning_panel.visible = false
+
+	# Create red border style
+	var border_style = StyleBoxFlat.new()
+	border_style.bg_color = Color(0.75, 0.22, 0.17, 0.0)  # Transparent center
+	border_style.border_color = Color(0.91, 0.3, 0.24)  # Red #e74c3c
+	border_style.border_width_left = 20
+	border_style.border_width_right = 20
+	border_style.border_width_top = 20
+	border_style.border_width_bottom = 20
+	border_style.set_corner_radius_all(0)
+	risk_warning_panel.add_theme_stylebox_override("panel", border_style)
+
+	# Create warning label
+	risk_warning_label = Label.new()
+	risk_warning_label.name = "RiskWarningLabel"
+	risk_warning_label.text = "⚠ 风险奖励激活 - 吸血效果翻倍"
+	risk_warning_label.add_theme_font_size_override("font_size", 24)
+	risk_warning_label.add_theme_color_override("font_color", Color(0.91, 0.3, 0.24))  # Red
+	risk_warning_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	risk_warning_label.add_theme_constant_override("outline_size", 4)
+	risk_warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	risk_warning_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	risk_warning_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	risk_warning_label.position.y = 50
+
+	# Add to scene
+	add_child(risk_warning_panel)
+	risk_warning_panel.add_child(risk_warning_label)
+
+func _on_risk_reward_warning_changed(active: bool):
+	"""
+	处理风险奖励警告状态变化
+	"""
+	if not risk_warning_panel:
+		return
+
+	risk_warning_panel.visible = active
+
+	if active:
+		_start_risk_warning_pulse()
+	else:
+		_stop_risk_warning_pulse()
+
+func _start_risk_warning_pulse():
+	"""
+	启动警告边框脉冲动画
+	2秒周期：淡入淡出
+	"""
+	if risk_warning_tween and risk_warning_tween.is_valid():
+		risk_warning_tween.kill()
+
+	var border_style = risk_warning_panel.get_theme_stylebox("panel")
+	if border_style:
+		risk_warning_tween = create_tween().set_loops()
+		risk_warning_tween.tween_property(border_style, "border_color:a", 0.3, 1.0)
+		risk_warning_tween.tween_property(border_style, "border_color:a", 1.0, 1.0)
+
+func _stop_risk_warning_pulse():
+	"""
+	停止警告边框脉冲动画
+	"""
+	if risk_warning_tween and risk_warning_tween.is_valid():
+		risk_warning_tween.kill()
+		risk_warning_tween = null
+
+	var border_style = risk_warning_panel.get_theme_stylebox("panel")
+	if border_style:
+		border_style.border_color.a = 1.0

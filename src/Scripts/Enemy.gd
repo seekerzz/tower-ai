@@ -68,6 +68,17 @@ const BLEED_DISPLAY_INTERVAL: float = 0.3
 
 signal bleed_stack_changed(new_stacks: int)
 
+# Execute Warning System
+var _execute_warning_active: bool = false
+var _execute_threshold: float = 0.0
+var _execute_indicator: Label = null
+var _execute_border: ColorRect = null
+
+# Max Bleed Effect System
+var _max_bleed_glow: ColorRect = null
+var _max_bleed_particles_timer: float = 0.0
+const MAX_BLEED_PARTICLE_INTERVAL: float = 0.2
+
 func _ready():
 	add_to_group("enemies")
 	collision_layer = 2
@@ -401,6 +412,9 @@ func _process_effects(delta):
 
 	if bleed_stacks > 0:
 		modulate = Color(1.0, 0.5, 0.5) # Red tint for bleed
+		# Max bleed stacks effect
+		if bleed_stacks >= max_bleed_stacks:
+			_show_max_bleed_effect(delta)
 
 	if hit_flash_timer > 0:
 		hit_flash_timer -= delta
@@ -736,6 +750,10 @@ func die(killer_unit = null):
 	if behavior:
 		handled = behavior.on_death(killer_unit)
 
+	# Cleanup visual effects before dying
+	_clear_max_bleed_effect()
+	_hide_execute_warning()
+
 	if !handled:
 		queue_free()
 
@@ -756,6 +774,75 @@ func _play_petrified_death_effect():
 	shatter.enemy_color = enemy_data.color
 
 	get_tree().current_scene.add_child(shatter)
+
+	# 增强特效: 屏幕震动、AOE伤害显示、碎裂文字
+	_enhance_petrified_shatter_effect(global_position, damage_percent)
+
+func _enhance_petrified_shatter_effect(pos: Vector2, damage_percent: float):
+	# 屏幕震动 - 强度8像素，持续时间0.3秒
+	if GameManager.has_signal("world_impact"):
+		GameManager.world_impact.emit(Vector2(randf_range(-1, 1), randf_range(-1, 1)), 8.0)
+
+	# "碎裂!"文字提示
+	var label = Label.new()
+	label.text = "碎裂!"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(0.5, 0.55, 0.55))  # 灰色 #7f8c8d
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.position = Vector2(-30, -30)
+
+	var container = Node2D.new()
+	container.global_position = pos + Vector2(0, -50)
+	container.add_child(label)
+	container.z_index = 180
+
+	get_tree().root.add_child(container)
+
+	# 动画: 放大弹出 + 淡出
+	var tween = container.create_tween()
+	container.scale = Vector2(0.5, 0.5)
+	tween.tween_property(container, "scale", Vector2(1.3, 1.3), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(container, "scale", Vector2(1.0, 1.0), 0.1)
+	tween.tween_interval(0.4)
+	tween.tween_property(container, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(container.queue_free)
+
+	# AOE伤害范围圈显示
+	_show_aoe_damage_circle(pos)
+
+func _show_aoe_damage_circle(pos: Vector2):
+	# 创建AOE范围圈
+	var circle = Node2D.new()
+	circle.global_position = pos
+
+	# 使用Polygon2D创建圆形
+	var visual = Polygon2D.new()
+	var points = PackedVector2Array()
+	var radius = 100.0  # AOE范围
+	var segments = 32
+	for i in range(segments):
+		var angle = (float(i) / segments) * TAU
+		points.append(Vector2(cos(angle), sin(angle)) * radius)
+	visual.polygon = points
+	visual.color = Color(0.5, 0.55, 0.55, 0.3)  # 半透明灰色
+	circle.add_child(visual)
+
+	# 边框线
+	var border = Line2D.new()
+	border.points = points
+	border.width = 2.0
+	border.default_color = Color(0.5, 0.55, 0.55, 0.8)
+	circle.add_child(border)
+
+	get_tree().root.add_child(circle)
+
+	# 动画: 扩散并淡出
+	var tween = circle.create_tween()
+	tween.tween_property(circle, "scale", Vector2(1.2, 1.2), 0.4)
+	tween.parallel().tween_property(visual, "modulate:a", 0.0, 0.4)
+	tween.parallel().tween_property(border, "modulate:a", 0.0, 0.4)
+	tween.tween_callback(circle.queue_free)
 
 func find_attack_target() -> Node2D:
 	# First check taunt units
@@ -790,3 +877,142 @@ func has_status(type_key: String) -> bool:
 		if c is StatusEffect and c.type_key == type_key:
 			return true
 	return false
+
+# ===== Execute Warning System =====
+func set_execute_warning(active: bool, threshold: float = 0.0):
+	"""
+	设置斩杀预警状态
+	- active: 是否激活预警
+	- threshold: 斩杀阈值HP
+	"""
+	_execute_warning_active = active
+	_execute_threshold = threshold
+
+	if active:
+		_show_execute_warning()
+	else:
+		_hide_execute_warning()
+
+func _show_execute_warning():
+	"""显示斩杀预警UI"""
+	# Create execute indicator (skull icon)
+	if not _execute_indicator:
+		_execute_indicator = Label.new()
+		_execute_indicator.name = "ExecuteIndicator"
+		_execute_indicator.text = "☠"
+		_execute_indicator.add_theme_font_size_override("font_size", 24)
+		_execute_indicator.add_theme_color_override("font_color", Color(0.75, 0.22, 0.17))  # 深红 #c0392b
+		_execute_indicator.add_theme_color_override("font_outline_color", Color.BLACK)
+		_execute_indicator.add_theme_constant_override("outline_size", 3)
+		_execute_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_execute_indicator.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_execute_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_execute_indicator)
+
+	# Position above enemy
+	var radius = enemy_data.get("radius", 20.0) if enemy_data else 20.0
+	_execute_indicator.position = Vector2(-15, -radius - 55)
+	_execute_indicator.size = Vector2(30, 30)
+	_execute_indicator.visible = true
+
+	# Create red border glow
+	if not _execute_border:
+		_execute_border = ColorRect.new()
+		_execute_border.name = "ExecuteBorder"
+		_execute_border.color = Color(0.75, 0.22, 0.17, 0.5)  # 深红半透明
+		_execute_border.size = Vector2(60, 60)
+		_execute_border.position = Vector2(-30, -30)
+		_execute_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_execute_border)
+		_execute_border.z_index = -2
+
+	# Pulse animation for border
+	if not _execute_border.has_meta("pulsing"):
+		_execute_border.set_meta("pulsing", true)
+		var tween = create_tween().set_loops()
+		tween.tween_property(_execute_border, "color:a", 0.8, 0.5)
+		tween.tween_property(_execute_border, "color:a", 0.3, 0.5)
+
+func _hide_execute_warning():
+	"""隐藏斩杀预警UI"""
+	if _execute_indicator and is_instance_valid(_execute_indicator):
+		_execute_indicator.visible = false
+	if _execute_border and is_instance_valid(_execute_border):
+		_execute_border.queue_free()
+		_execute_border = null
+
+func play_execute_effect():
+	"""
+	播放斩杀时的溶解动画效果
+	"""
+	# Create dissolve effect (flash white then fade)
+	var original_modulate = modulate
+	modulate = Color.WHITE
+
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.3)
+	tween.parallel().tween_property(self, "scale", scale * 1.2, 0.3)
+
+	# Note: The actual queue_free() is handled by die() method
+
+# ===== Max Bleed Effect System =====
+func _show_max_bleed_effect(delta: float):
+	"""
+	显示流血满层特效
+	- 红色光环
+	- 血滴粒子持续掉落
+	"""
+	# Create red glow if not exists
+	if not _max_bleed_glow:
+		_max_bleed_glow = ColorRect.new()
+		_max_bleed_glow.name = "MaxBleedGlow"
+		_max_bleed_glow.color = Color(0.9, 0.1, 0.1, 0.4)  # Red glow
+		_max_bleed_glow.size = Vector2(70, 70)
+		_max_bleed_glow.position = Vector2(-35, -35)
+		_max_bleed_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_max_bleed_glow)
+		_max_bleed_glow.z_index = -1
+
+		# Pulse animation
+		var tween = create_tween().set_loops()
+		tween.tween_property(_max_bleed_glow, "color:a", 0.7, 0.4)
+		tween.tween_property(_max_bleed_glow, "color:a", 0.3, 0.4)
+
+	# Spawn blood drop particles periodically
+	_max_bleed_particles_timer -= delta
+	if _max_bleed_particles_timer <= 0:
+		_max_bleed_particles_timer = MAX_BLEED_PARTICLE_INTERVAL
+		_spawn_bleed_particle()
+
+func _spawn_bleed_particle():
+	"""生成单个血滴粒子"""
+	var particle = Node2D.new()
+	particle.global_position = global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+
+	var visual = Polygon2D.new()
+	var size = randf_range(3, 6)
+	visual.polygon = PackedVector2Array([
+		Vector2(0, -size),
+		Vector2(size * 0.5, 0),
+		Vector2(0, size),
+		Vector2(-size * 0.5, 0)
+	])
+	visual.color = Color(0.8, 0.0, 0.0, 0.8)
+	particle.add_child(visual)
+
+	# Add to scene
+	if get_parent():
+		get_parent().add_child(particle)
+
+	# Fall animation
+	var fall_distance = randf_range(30, 60)
+	var tween = particle.create_tween()
+	tween.tween_property(particle, "global_position:y", particle.global_position.y + fall_distance, 0.5)
+	tween.parallel().tween_property(visual, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(particle.queue_free)
+
+func _clear_max_bleed_effect():
+	"""清除流血满层特效"""
+	if _max_bleed_glow and is_instance_valid(_max_bleed_glow):
+		_max_bleed_glow.queue_free()
+		_max_bleed_glow = null

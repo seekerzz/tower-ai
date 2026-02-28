@@ -30,7 +30,8 @@ func _update_attack_speed():
     # attack_speed_multiplier = 1.0 + speed_bonus
     # I should store this multiplier or apply it.
 
-    if level >= 3 and (1.0 + speed_bonus) >= 1.75:
+    # Lv3溅射触发条件：核心HP < 50% (从25%提升到50%，更容易触发)
+    if level >= 3 and health_percent < 0.5:
         enable_splash_damage()
     else:
         disable_splash_damage()
