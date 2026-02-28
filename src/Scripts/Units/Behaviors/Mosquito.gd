@@ -11,10 +11,13 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 		unit.heal(heal_amt)
 
 	if unit.level >= 3:
-		if target.has_method("add_bleed_stacks") and "bleed_stacks" in target and target.bleed_stacks > 0:
-			target.take_damage(damage, unit, "physical")
+		# Check for bleed stacks with proper property existence check
+		if target.has_method("add_bleed_stacks") and "bleed_stacks" in target:
+			if target.bleed_stacks > 0:
+				target.take_damage(damage, unit, "physical")
 
-		if target.hp <= 0:
+		# Check for kill with proper hp property check
+		if target.has_method("die") and "hp" in target and target.hp <= 0:
 			_explode_on_kill(target.global_position, damage * 0.4)
 
 func _explode_on_kill(position: Vector2, damage: float):

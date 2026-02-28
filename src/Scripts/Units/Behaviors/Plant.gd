@@ -4,8 +4,10 @@ var production_timer: float = 0.0
 
 func on_setup():
 	production_timer = 1.0
-	if not GameManager.wave_ended.is_connected(_on_wave_end):
-		GameManager.wave_ended.connect(_on_wave_end)
+	# Safely connect signal, checking if already connected
+	if GameManager.wave_ended.is_connected(_on_wave_end):
+		GameManager.wave_ended.disconnect(_on_wave_end)
+	GameManager.wave_ended.connect(_on_wave_end)
 
 	# Re-apply permanent growth
 	var growth = unit.get_meta("permanent_hp_growth", 0.0)

@@ -228,8 +228,9 @@ func _action_sell_unit(action: Dictionary) -> Dictionary:
 	if unit_data == null:
 		return {"success": false, "error_message": "%s 位置 %s 没有单位" % [zone, str(pos)]}
 
-	# 执行出售
-	var result = BoardController.sell_unit(zone, pos)
+	# 执行出售 - 使用转换后的位置（grid_pos 为 Vector2i，bench_index 为 int）
+	var sell_pos = grid_pos if zone == "grid" else bench_index
+	var result = BoardController.sell_unit(zone, sell_pos)
 	if not result:
 		return {"success": false, "error_message": "BoardController.sell_unit 返回失败"}
 

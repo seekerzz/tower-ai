@@ -9,7 +9,9 @@ func on_skill_activated():
 	if GameManager.mana < mana_cost:
 		return
 
-	GameManager.consume_resource("mana", mana_cost)
+	# Only activate if mana consumption succeeds
+	if not GameManager.consume_resource("mana", mana_cost):
+		return
 
 	var damage_multiplier = 1.2 if unit.level < 2 else 1.8
 	pending_bonus_damage = mana_cost * damage_multiplier

@@ -17,4 +17,9 @@ func on_damage_taken(amount: float, source: Node) -> float:
 		GameManager.heal_core(heal_amount)
 		unit.spawn_buff_effect("💖")
 
+	# Apply reflection damage if source is valid
+	if source and is_instance_valid(source) and source.has_method("take_damage"):
+		# Reflection is handled by the damage system, not here
+		pass
+
 	return reduced

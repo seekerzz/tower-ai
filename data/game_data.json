@@ -2649,6 +2649,295 @@
 				}
 			},
 			"faction": "eagle_totem"
+		},
+		"ice_butterfly": {
+			"name": "冰晶蝶",
+			"icon": "🦋",
+			"size": [1, 1],
+			"range": 250,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "ranged",
+			"proj": "ice_shard",
+			"damageType": "magic",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 35,
+					"hp": 120,
+					"cost": 60,
+					"desc": "极寒：攻击给敌人叠加冰冻debuff，叠满3层冻结1秒",
+					"mechanics": {}
+				},
+				"2": {
+					"damage": 52,
+					"hp": 180,
+					"cost": 120,
+					"desc": "极寒：冻结时间延长至2秒",
+					"mechanics": {
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 78,
+					"hp": 270,
+					"cost": 240,
+					"desc": "极寒增幅：法球命中冻结敌人时伤害翻倍",
+					"mechanics": {
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "ice_butterfly",
+			"faction": "butterfly_totem"
+		},
+		"firefly": {
+			"name": "萤火虫",
+			"icon": "✨",
+			"size": [1, 1],
+			"range": 200,
+			"atkSpeed": 1.2,
+			"manaCost": 0,
+			"attackType": "ranged",
+			"proj": "light",
+			"damageType": "magic",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 100,
+					"cost": 50,
+					"desc": "闪光：攻击不造成伤害，给敌人一层致盲debuff（命中率-10%）",
+					"mechanics": {}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 150,
+					"cost": 100,
+					"desc": "闪光：致盲持续时间+2秒",
+					"mechanics": {
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 225,
+					"cost": 200,
+					"desc": "闪光回蓝：致盲敌人每次Miss回复10法力",
+					"mechanics": {
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "firefly",
+			"faction": "butterfly_totem"
+		},
+		"forest_sprite": {
+			"name": "森林精灵",
+			"icon": "🧚",
+			"size": [1, 1],
+			"range": 150,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "none",
+			"buffProvider": "forest_blessing",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 150,
+					"cost": 70,
+					"desc": "森林祝福：单位攻击5%概率给被攻击敌人增加随机一层Debuff",
+					"mechanics": {}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 225,
+					"cost": 140,
+					"desc": "森林祝福：单位攻击10%概率附加随机Debuff",
+					"mechanics": {
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 337,
+					"cost": 280,
+					"desc": "森林祝福：额外10%概率使得Debuff层数+20%",
+					"mechanics": {
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "forest_sprite",
+			"faction": "butterfly_totem"
+		},
+		"blood_ritualist": {
+			"name": "血祭术士",
+			"icon": "🩸",
+			"size": [1, 1],
+			"range": 250,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "none",
+			"skill": "blood_ritual",
+			"skillType": "active",
+			"skillCd": 20.0,
+			"damageType": "magic",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 200,
+					"cost": 80,
+					"desc": "鲜血仪式：主动技能，消耗25%核心HP，对攻击范围内敌人施加2层流血",
+					"mechanics": {}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 300,
+					"cost": 160,
+					"desc": "鲜血仪式：流血层数提升至3层",
+					"mechanics": {
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 450,
+					"cost": 320,
+					"desc": "血之狂乱：血祭后5秒内吸血效果翻倍",
+					"mechanics": {
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "blood_ritualist",
+			"faction": "bat_totem"
+		},
+		"blood_chalice": {
+			"name": "鲜血圣杯",
+			"icon": "🏆",
+			"size": [1, 1],
+			"range": 200,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "none",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 300,
+					"cost": 90,
+					"desc": "鲜血溢出：附近单位的吸血可以超过HP上限，但会缓慢流失（每0.5秒10%）",
+					"mechanics": {}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 450,
+					"cost": 180,
+					"desc": "鲜血溢出：流失速度降低（每0.5秒5%）",
+					"mechanics": {
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 675,
+					"cost": 360,
+					"desc": "血之诅咒：攻击范围内敌人每0.5秒受到核心损失HP的伤害",
+					"mechanics": {
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "blood_chalice",
+			"faction": "bat_totem"
+		},
+		"life_chain": {
+			"name": "生命链条",
+			"icon": "⛓️",
+			"size": [1, 1],
+			"range": 300,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "none",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 180,
+					"cost": 70,
+					"desc": "生命偷取：连接1个最远敌人，每秒偷取生命值",
+					"mechanics": {}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 270,
+					"cost": 140,
+					"desc": "生命偷取：连接敌人数量提升至2个",
+					"mechanics": {
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 405,
+					"cost": 280,
+					"desc": "痛苦传递：被连接敌人分摊受到伤害的30%",
+					"mechanics": {
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "life_chain",
+			"faction": "bat_totem"
+		},
+		"ascetic": {
+			"name": "苦修者",
+			"icon": "🧘",
+			"size": [1, 1],
+			"range": 150,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "none",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 250,
+					"cost": 65,
+					"desc": "苦修：选择一个单位给予苦修者Buff，将受到伤害的12%转为MP",
+					"mechanics": {}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 375,
+					"cost": 130,
+					"desc": "苦修：将受到伤害的18%转为MP",
+					"mechanics": {
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 562,
+					"cost": 260,
+					"desc": "苦修：可以选择两个单位",
+					"mechanics": {
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "ascetic",
+			"faction": "cow_totem"
 		}
 	},
 	"TRAITS": [

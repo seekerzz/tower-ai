@@ -1,12 +1,13 @@
 extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 
-var heal_interval: float = 6.0
+var heal_interval: float = 5.0
 var heal_timer: float = 0.0
 
 func on_setup():
-	heal_interval = 6.0
+	# Level 1: 5 seconds, Level 2+: 4 seconds (per GameDesign.md)
+	heal_interval = 5.0
 	if unit.level >= 2:
-		heal_interval = 5.0
+		heal_interval = 4.0
 	heal_timer = heal_interval
 
 func on_tick(delta: float):

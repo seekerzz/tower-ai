@@ -63,7 +63,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	if current_lifesteal > 0:
 		var heal_amt = damage * current_lifesteal
 		if heal_amt > 0:
-			GameManager.damage_core(-heal_amt)
+			GameManager.heal_core(heal_amt)
 			GameManager.spawn_floating_text(unit.global_position, "+%d" % int(heal_amt), Color.GREEN)
 
 func calculate_modified_damage(base_damage: float) -> float:

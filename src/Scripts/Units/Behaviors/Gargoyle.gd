@@ -5,7 +5,9 @@ var current_state: State = State.NORMAL
 var reflect_count: int = 0
 
 func on_setup():
-	GameManager.core_health_changed.connect(_check_petrify_state)
+	# Connect to SessionData signal if available, otherwise check manually
+	if GameManager.session_data and GameManager.session_data.has_signal("core_health_changed"):
+		GameManager.session_data.core_health_changed.connect(_check_petrify_state)
 	# Initial check
 	if GameManager.max_core_health > 0:
 		_check_petrify_state(GameManager.core_health, GameManager.max_core_health)
@@ -50,5 +52,6 @@ func on_damage_taken(amount: float, source: Node2D) -> float:
 	return amount
 
 func on_cleanup():
-	if GameManager.core_health_changed.is_connected(_check_petrify_state):
-		GameManager.core_health_changed.disconnect(_check_petrify_state)
+	if GameManager.session_data and GameManager.session_data.has_signal("core_health_changed"):
+		if GameManager.session_data.core_health_changed.is_connected(_check_petrify_state):
+			GameManager.session_data.core_health_changed.disconnect(_check_petrify_state)

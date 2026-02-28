@@ -17,7 +17,8 @@ func on_combat_tick(delta: float) -> bool:
 	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
 	if !target: return true
 
-	if attack_counter >= 3:
+	# Trigger special attack every 3rd attack (counter is 0, 1, 2 for attacks 1, 2, 3)
+	if attack_counter >= 2:
 		unit.cooldown = unit.atk_speed * GameManager.get_stat_modifier("attack_interval")
 		attack_counter = 0
 
