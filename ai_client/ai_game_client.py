@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Godot AI 游戏客户端 - 双向 WebSocket 代理
+Godot AI 游戏客户端 - HTTP REST API 网关
 
 用法:
     # Headless 模式（默认，无图形界面）
@@ -12,8 +12,13 @@ Godot AI 游戏客户端 - 双向 WebSocket 代理
     # 指定场景
     python3 ai_game_client.py --scene res://src/Scenes/UI/MainGUI.tscn
 
-WebSocket Proxy:
-    Agent连接到 --agent-ws-port，向游戏发送action，接收游戏的实时state和narrative。
+HTTP API:
+    POST /action
+        请求: {"actions": [{"type": "start_wave"}]}
+        响应: {"event": "WaveStarted", ...} 或 {"event": "SystemCrash", ...}
+
+    GET /status
+        响应: {"godot_running": true, "ws_connected": true, ...}
 """
 
 import asyncio
@@ -22,10 +27,8 @@ import json
 import logging
 import sys
 import signal
-import os
-from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any, Set
+from typing import Optional, Dict, Any
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -33,10 +36,10 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import websockets
-from websockets.server import serve, WebSocketServerProtocol
 
 from ai_client.utils import find_two_free_ports
 from ai_client.godot_process import GodotProcess, CrashInfo
+from ai_client.http_server import AIHTTPServer
 
 # 配置日志
 logging.basicConfig(
@@ -53,20 +56,29 @@ class ClientConfig:
     scene_path: str
     visual_mode: bool
     godot_ws_port: int
-    agent_ws_port: int
-    log_dir: str = "logs"
+    http_port: int
 
 
 class AIGameClient:
     """
-    AI 游戏客户端 - WebSocket 代理
+    AI 游戏客户端 - HTTP 网关 + WebSocket 桥接
+
+    架构:
+    1. 启动 Godot 子进程（headless 或 GUI）
+    2. 建立 WebSocket 连接到 Godot
+    3. 启动 HTTP 服务器接收外部请求
+    4. 将 HTTP 请求转发到 WebSocket
+    5. 监控 Godot 崩溃，返回 SystemCrash 事件
     """
 
     def __init__(self, config: ClientConfig):
         self.config = config
         self.godot: Optional[GodotProcess] = None
-
-        self.godot_websocket: Optional[websockets.WebSocketClientProtocol] = None
+        self.websocket: Optional[websockets.WebSocketClientProtocol] = None
+        self.http_server: Optional[AIHTTPServer] = None
+        self._shutdown_event = asyncio.Event()
+        self._pending_response: Optional[asyncio.Future] = None
+        self._last_state: Optional[Dict] = None
         self._ws_connected = False
 
         # 初始化日志文件
@@ -82,13 +94,13 @@ class AIGameClient:
             if not await self._start_godot():
                 return False
 
-            # 2. 连接到 Godot WebSocket
-            if not await self._connect_godot_websocket():
+            # 2. 连接 WebSocket
+            if not await self._connect_websocket():
                 return False
 
-            # 3. 启动 Agent WebSocket 代理服务器
-            server = await serve(self._handle_agent_connection, "127.0.0.1", self.config.agent_ws_port)
-            logger.info(f"Agent WebSocket 代理服务器已启动，监听端口: {self.config.agent_ws_port}")
+            # 3. 启动 HTTP 服务器
+            if not await self._start_http_server():
+                return False
 
             # 4. 打印使用信息
             self._print_usage()
@@ -96,8 +108,6 @@ class AIGameClient:
             # 5. 等待关闭信号
             await self._shutdown_event.wait()
 
-            server.close()
-            await server.wait_closed()
             return True
 
         except Exception as e:
@@ -136,27 +146,27 @@ class AIGameClient:
         logger.info("Godot 已就绪")
         return True
 
-    async def _connect_godot_websocket(self) -> bool:
-        """建立与 Godot 的 WebSocket 连接"""
+    async def _connect_websocket(self) -> bool:
+        """建立 WebSocket 连接"""
         uri = f"ws://127.0.0.1:{self.config.godot_ws_port}"
-        logger.info(f"连接 Godot WebSocket: {uri}")
+        logger.info(f"连接 WebSocket: {uri}")
 
         try:
-            self.godot_websocket = await websockets.connect(uri)
+            self.websocket = await websockets.connect(uri)
             self._ws_connected = True
-            logger.info("Godot WebSocket 连接成功")
+            logger.info("WebSocket 连接成功")
 
             # 启动消息接收任务
-            asyncio.create_task(self._godot_receive_loop())
+            asyncio.create_task(self._ws_receive_loop())
 
             return True
 
         except Exception as e:
-            logger.error(f"Godot WebSocket 连接失败: {e}")
+            logger.error(f"WebSocket 连接失败: {e}")
             return False
 
-    async def _godot_receive_loop(self):
-        """接收 Godot WebSocket 消息并分发"""
+    async def _ws_receive_loop(self):
+        """WebSocket 消息接收循环"""
         try:
             async for message in self.websocket:
                 try:
@@ -182,10 +192,10 @@ class AIGameClient:
                     logger.warning(f"收到无效 JSON: {message}")
 
         except websockets.exceptions.ConnectionClosed:
-            logger.info("Godot WebSocket 连接已关闭")
+            logger.info("WebSocket 连接已关闭")
             self._ws_connected = False
         except Exception as e:
-            logger.error(f"Godot WebSocket 接收错误: {e}")
+            logger.error(f"WebSocket 接收错误: {e}")
             self._ws_connected = False
 
     async def _start_http_server(self) -> bool:
@@ -279,12 +289,11 @@ class AIGameClient:
         """清理资源"""
         logger.info("正在清理...")
 
-        if self.godot_websocket:
-            await self.godot_websocket.close()
+        if self.http_server:
+            await self.http_server.stop()
 
-        # 强制关闭所有 Agent 连接
-        for agent_ws in list(self.agent_websockets):
-            await agent_ws.close()
+        if self.websocket:
+            await self.websocket.close()
 
         if self.godot:
             self.godot.kill()
@@ -295,7 +304,7 @@ class AIGameClient:
 def parse_args() -> ClientConfig:
     """解析命令行参数"""
     parser = argparse.ArgumentParser(
-        description="Godot AI 客户端 - 双向 WebSocket 代理"
+        description="Godot AI 客户端 - HTTP REST API 网关"
     )
 
     parser.add_argument(
@@ -317,10 +326,10 @@ def parse_args() -> ClientConfig:
     )
 
     parser.add_argument(
-        "--agent-ws-port",
+        "--http-port",
         type=int,
         default=0,  # 0 表示自动分配
-        help="AI Agent WebSocket 端口 (0=自动分配)"
+        help="HTTP 服务器端口 (0=自动分配)"
     )
 
     parser.add_argument(
@@ -333,12 +342,12 @@ def parse_args() -> ClientConfig:
     args = parser.parse_args()
 
     # 分配端口
-    if args.agent_ws_port == 0 or args.godot_port == 0:
+    if args.http_port == 0 or args.godot_port == 0:
         port1, port2 = find_two_free_ports()
-        agent_ws_port = args.agent_ws_port or port1
+        http_port = args.http_port or port1
         godot_port = args.godot_port or port2
     else:
-        agent_ws_port = args.agent_ws_port
+        http_port = args.http_port
         godot_port = args.godot_port
 
     return ClientConfig(
@@ -346,7 +355,7 @@ def parse_args() -> ClientConfig:
         scene_path=args.scene,
         visual_mode=args.visual,
         godot_ws_port=godot_port,
-        agent_ws_port=agent_ws_port
+        http_port=http_port
     )
 
 
