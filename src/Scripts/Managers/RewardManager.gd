@@ -116,6 +116,14 @@ const REWARDS = {
 		"desc": "2x Atk Speed when Core HP < 20%",
 		"unique": true
 	},
+	"life_core": {
+		"icon": "❤️",
+		"name": "生命核心",
+		"rarity": "common",
+		"type": "artifact",
+		"desc": "核心最大HP+200",
+		"unique": false
+	},
 	# ===== P0批次遗物（第一批核心遗物）=====
 	"soul_catcher": {
 		"icon": "🐺",
@@ -272,6 +280,11 @@ func _apply_immediate_effects(id: String):
 				gm.max_mana += 200.0
 				gm.base_mana_rate += 2.0
 				gm.resource_changed.emit()
+			"life_core":
+				gm.max_core_health += 200.0
+				gm.core_health += 200.0
+				gm.resource_changed.emit()
+				print("[RewardManager] 生命核心生效: 最大HP +200")
 			# ===== P0批次遗物即时效果 =====
 			"bovine_fortress":
 				# 核心最大HP+15%，立即生效
