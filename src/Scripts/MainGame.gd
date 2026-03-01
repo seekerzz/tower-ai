@@ -61,7 +61,7 @@ func _ready():
 	# 通知 AI 客户端场景加载完成
 	if AIManager and AIManager.is_ai_connected():
 		print("[MainGame] 场景加载完成，发送 TotemSelected 给 AI")
-		AIManager._send_state_async("TotemSelected", {"totem_id": GameManager.core_type})
+		AIManager.broadcast_text("【图腾选择完成】已选择图腾：%s，游戏开始！" % GameManager.core_type)
 
 	if GameManager.is_running_test:
 		call_deferred("_attach_test_runner")

@@ -439,13 +439,13 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 
 	return proj
 
-func trigger_burn_explosion(pos: Vector2, damage: float, source: Node2D):
+func trigger_burn_explosion(pos: Vector2, damage: float, source: Object):
 	explosion_queue.append({ "type": "burn", "pos": pos, "damage": damage, "source": source, "stacks": 1 })
 
-func trigger_poison_explosion(pos: Vector2, damage: float, stacks: int, source: Node2D):
+func trigger_poison_explosion(pos: Vector2, damage: float, stacks: int, source: Object):
 	explosion_queue.append({ "type": "poison", "pos": pos, "damage": damage, "source": source, "stacks": stacks })
 
-func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Node2D):
+func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Object):
 	var radius = 120.0
 	var enemies = get_tree().get_nodes_in_group("enemies")
 	var burn_script = load("res://src/Scripts/Effects/BurnEffect.gd")
@@ -470,7 +470,7 @@ func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Node2D):
 	if GameManager.has_signal("burn_explosion"):
 		GameManager.burn_explosion.emit(pos, damage, source, affected_targets)
 
-func _process_poison_explosion_logic(pos: Vector2, damage: float, stacks: int, source: Node2D):
+func _process_poison_explosion_logic(pos: Vector2, damage: float, stacks: int, source: Object):
 	var radius = 100.0
 	var enemies = get_tree().get_nodes_in_group("enemies")
 	var poison_script = load("res://src/Scripts/Effects/PoisonEffect.gd")

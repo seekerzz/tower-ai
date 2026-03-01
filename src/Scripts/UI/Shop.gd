@@ -43,7 +43,8 @@ func _ready():
 	if GameManager.core_type == "":
 		await GameManager.core_type_changed
 
-	refresh_shop(true)
+	# 先从 SessionData 加载商店数据（如果已有）
+	_load_shop_from_session()
 	update_ui()
 	# update_wave_info() # Removed functionality
 
@@ -192,6 +193,29 @@ func _perform_refresh():
 			GameManager.session_data.set_shop_unit(i, shop_items[i])
 
 	_update_shop_ui()
+
+func _load_shop_from_session():
+	"""从 SessionData 加载商店数据，避免覆盖已初始化的商店"""
+	if GameManager.session_data:
+		var has_existing_shop = false
+		for i in range(SHOP_SIZE):
+			var unit = GameManager.session_data.get_shop_unit(i)
+			if unit != null:
+				has_existing_shop = true
+				break
+
+		if has_existing_shop:
+			# 使用已有的商店数据
+			shop_items.clear()
+			for i in range(SHOP_SIZE):
+				shop_items.append(GameManager.session_data.get_shop_unit(i))
+			_update_shop_ui()
+		else:
+			# 没有现有数据，执行刷新
+			refresh_shop(true)
+	else:
+		# SessionData 未初始化，执行刷新
+		refresh_shop(true)
 
 func _update_shop_ui():
 	for child in shop_container.get_children():
