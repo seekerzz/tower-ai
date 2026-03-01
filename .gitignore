@@ -22,6 +22,10 @@ docs/secrets/*.json
 !docs/secrets/.env.example
 !docs/secrets/README.md
 
+# Logs
+logs/
+*.log
+
 # Python cache
 __pycache__/
 *.py[cod]
