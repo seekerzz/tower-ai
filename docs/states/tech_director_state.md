@@ -2,47 +2,6 @@
 
 ## [Inbox - 待处理提案]
 
-### 🚨 CRASH-002 - 波次启动全局崩溃修复任务
-
-**来源**: AI_Player -- 2026-03-02T00:26:00+08:00
-**优先级**: P0 (阻塞所有图腾流派测试)
-**状态**: 待修复
-
-**问题描述**:
-游戏在启动第1波战斗时发生崩溃，错误信息 `ERROR: Parameter "t" is null.`
-该崩溃影响所有图腾流派测试（牛图腾、狼图腾、蝙蝠图腾等均受影响）。
-
-**崩溃日志**:
-```
-【波次事件】第 1 波战斗正式开始！
-【系统严重报错】检测到 Godot 引擎崩溃：
-错误类型：ERROR: Parameter "t" is null.
-堆栈：
-ERROR: Parameter "t" is null.
-```
-
-**根因分析**:
-- 崩溃发生在波次启动时，可能与CombatManager.gd或敌人初始化相关
-- 错误信息"Parameter t is null"暗示某个类型参数为null
-- 需要检查波次启动流程中的节点初始化、敌人生成、定时器设置等
-
-**可能的修复位置**:
-- `src/Scripts/CombatManager.gd` - 波次启动逻辑
-- `src/Scripts/GridManager.gd` - 网格/敌人管理
-- `src/Autoload/GameManager.gd` - 游戏状态管理
-
-**人工验证点**:
-1. 选择任意图腾开局（cow_totem/wolf_totem/bat_totem等）
-2. 购买任意单位并部署到网格
-3. 启动第1波战斗
-4. 确认游戏不再崩溃，敌人正常生成
-5. 确认波次正常进行，核心受击、单位攻击等机制正常
-
-**关联任务**: TOTEM-COW-001, TOTEM-WOLF-001, TOTEM-BAT-001 等所有图腾测试（全部阻塞中）
-**生成日志**: logs/ai_session_cow_totem_20260302_002649.log
-
----
-
 ### 🚨 CRASH-WOLF-001 - 狼图腾崩溃修复任务
 
 **来源**: AI_Player -- 2026-03-02T00:25:00+08:00
@@ -147,6 +106,25 @@ func _on_totem_attack():
 
 ## [Archive - 归档]
 
+### 🚨 CRASH-002 波次启动全局崩溃修复完成
+
+**问题**: Godot 4 中 `is` 操作符在类型参数为 null 时崩溃
+- 错误信息: `ERROR: Parameter "t" is null.`
+- 影响范围: 所有使用 `is` 操作符进行类型检查的代码
+- 修复文件: 26个文件，包括：
+  - `src/Scripts/Enemy.gd` - `is StatusEffect`
+  - `src/Scripts/Units/Behaviors/ArrowFrog.gd` - `is StatusEffect`
+  - `src/Scripts/Units/Wolf/UnitFox.gd` - `is Enemy`
+  - `src/Scripts/Units/Wolf/UnitWolf.gd` - `is UnitWolf`
+  - `src/Scripts/UI/UnitDragHandler.gd` - `is UnitWolf`
+  - `src/Scripts/Units/Behaviors/BloodChalice.gd` - `is Unit`
+  - 以及其他20个文件中的类型检查
+- 修复方式: 为所有 `is` 操作符添加 `Type != null` 前置检查
+- 修复时间: 2026-03-02
+- 人工验证点: 选择任意图腾开局，部署单位，启动第1波，确认不再崩溃
+
+---
+
 ### 🚨 CRASH-WOLF-001 狼图腾崩溃修复完成
 
 **问题**: MechanicWolfTotem.gd 在波次开始时崩溃
@@ -184,9 +162,9 @@ func _on_totem_attack():
 
 ## [Meta - 元数据]
 
-- **当前状态**: 处理紧急崩溃修复
+- **当前状态**: CRASH-002 修复完成，等待验证
 - **最后唤醒**: 2026-03-02 (由项目总监唤醒)
-- **处理中任务**: CRASH-002 波次启动全局崩溃修复（最高优先级）
+- **处理中任务**: 无
 - **最新崩溃**: CRASH-002 波次启动时崩溃 (ERROR: Parameter "t" is null.)
 - **最新合并**: feature/balance_fix_wave1 已归档
 - **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项

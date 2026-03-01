@@ -25,42 +25,40 @@
 
 ---
 
-### 🚨 CRASH-002: 波次启动时游戏崩溃 (P0 - 阻断性缺陷)
+### ✅ CRASH-002: 波次启动全局崩溃修复完成 (技术总监)
 
-**报告时间**: 2026-03-02
-**报告来源**: AI Player (蝙蝠图腾测试TOTEM-BAT-001)
-**影响范围**: 所有图腾流派测试
+**修复时间**: 2026-03-02
+**修复来源**: 技术总监
+**状态**: 已修复，待验证
 
 **问题描述**:
 - 触发时机: 第1波战斗开始时
 - 错误信息: `ERROR: Parameter "t" is null.`
-- 崩溃位置: 波次启动流程，具体代码位置待定位
 - 严重程度: P0 - 阻断性缺陷，游戏无法进行
+- 影响范围: 所有图腾流派测试
 
-**测试日志**:
-- 蝙蝠图腾测试: `logs/ai_session_bat_totem_20260302_002557.log`
-- 牛图腾测试: `logs/ai_session_cow_totem_20260302_002649.log`
-- 狼图腾测试: `logs/ai_session_wolf_totem_20260302_002530.log`
-- 蝴蝶图腾测试: `logs/ai_session_butterfly_totem_20260302_002554.log`
+**根因分析**:
+Godot 4 中 `is` 操作符在类型参数为 null 时会崩溃。当脚本存在循环依赖或加载顺序问题时，
+类型引用可能为 null，导致 `x is SomeType` 表达式抛出 `Parameter "t" is null` 错误。
 
-**已验证信息**:
-- 图腾选择流程正常 ✅
-- 商店阵营过滤正常 ✅
-- 单位购买和部署正常 ✅
-- 核心血量计算正常 ✅
-- 波次启动时崩溃 ❌
+**修复内容**:
+- 修复文件: 26个文件
+- 修复方式: 为所有 `is` 操作符添加 `Type != null` 前置检查
+- 主要修复:
+  - `Enemy.gd`: `c is StatusEffect` → `StatusEffect != null and c is StatusEffect`
+  - `ArrowFrog.gd`: `child is StatusEffect` → `StatusEffect != null and child is StatusEffect`
+  - `UnitFox.gd`: `source_enemy is Enemy` → `Enemy != null and source_enemy is Enemy`
+  - `UnitWolf.gd`: `other_unit is UnitWolf` → `UnitWolf != null and other_unit is UnitWolf`
+  - 以及其他22处类型检查
 
-**建议修复方向**:
-1. 检查 `WaveSystemManager.gd` 或 `CombatManager.gd` 中的波次启动逻辑
-2. 检查敌人生成时的空引用问题
-3. 检查与`t`变量相关的代码（可能是Tween、Timer或临时变量）
+**人工验证点**:
+1. 选择任意图腾开局（cow_totem/wolf_totem/bat_totem等）
+2. 购买任意单位并部署到网格
+3. 启动第1波战斗
+4. 确认游戏不再崩溃，敌人正常生成
+5. 确认波次正常进行，核心受击、单位攻击等机制正常
 
-**阻塞任务**:
-- TOTEM-BAT-001 蝙蝠图腾流派测试
-- TOTEM-COW-001 牛图腾流派测试
-- TOTEM-WOLF-001 狼图腾流派测试
-- TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
-- 其他所有需要启动波次的测试任务
+**关联任务**: TOTEM-COW-001, TOTEM-WOLF-001, TOTEM-BAT-001, TOTEM-BUTTERFLY-001 等所有图腾测试（阻塞已解除）
 
 ---
 
@@ -162,7 +160,7 @@
 
 ## [Meta - 元数据]
 
-- **当前状态**: 监控全面测试任务链
+- **当前状态**: CRASH-002修复完成，等待验证
 - **最后唤醒**: 2026-03-02
-- **处理中任务**: 8组图腾及单位机制AI测试
-- **里程碑**: 第1波平衡性修复任务链已闭环归档
+- **处理中任务**: 8组图腾及单位机制AI测试（CRASH-002阻塞已解除）
+- **里程碑**: CRASH-002波次启动崩溃修复完成，第1波平衡性修复任务链已闭环归档
