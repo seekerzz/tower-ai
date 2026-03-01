@@ -31,7 +31,9 @@ StyleMaker="*res://src/Scripts/Utils/StyleMaker.gd"
 UIConstants="*res://src/Scripts/Constants/UIConstants.gd"
 AILogger="*res://src/Autoload/AILogger.gd"
 AIManager="*res://src/Autoload/AIManager.gd"
-AIActionExecutor="*res://src/Autoload/AIActionExecutor.gd"
+ActionDispatcher="*res://src/Autoload/ActionDispatcher.gd"
+NarrativeLogger="*res://src/Autoload/NarrativeLogger.gd"
+ScreenshotManager="*res://src/Autoload/ScreenshotManager.gd"
 
 [display]
 
