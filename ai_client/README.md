@@ -2,6 +2,17 @@
 
 外部 AI 控制 Godot 游戏的 HTTP REST API 方案。支持动态端口、Headless/GUI 双模式、崩溃检测。
 
+> ⚠️ **【强制阅读】AI Agent 必须阅读的文件**
+>
+> 在控制游戏之前，**AI 必须阅读 `docs/GameDesign.md`**，否则将因不了解以下机制而做出错误决策：
+> - 血量计算规则（单位 HP 影响核心血量）
+> - 放置规则（扩建限制、相邻规则）
+> - BUFF 传播机制（范围 1 格，需手动选择目标）
+> - 击退抗性与碰撞伤害
+> - 敌人属性查表方式
+>
+> **如未阅读该文档，请勿开始游戏。**
+
 ## 功能特性
 
 - **HTTP REST API**: 通过 HTTP 接收动作请求，返回游戏状态
@@ -302,11 +313,25 @@ python3 ai_client/ai_game_client.py --scene res://src/Scenes/Test/TestCrash.tscn
 python3 tests/test_crash_detection.py
 ```
 
+## AI 玩家必读
+
+**⚠️ 以下机制必须在阅读 `docs/GameDesign.md` 后才能理解，AI 不得在未阅读的情况下做出决策：**
+
+| 机制类别 | 关键信息 |
+|----------|----------|
+| **核心机制** | 血量计算公式（500 + 单位HP总和）、法力回复规则（战斗中10/秒，波次结束回满）、金币获取（击杀+1，波次结束20+波次×5） |
+| **放置规则** | 初始5×5中心区域可扩建，每次扩建+10金币成本，只能扩建与已解锁格子相邻的位置 |
+| **BUFF系统** | 范围1格内传播，放置后需手动选择目标单位赋予；部分BUFF可叠加（bounce/split），部分不可 |
+| **击退机制** | 不同敌人有不同击退抗性（Boss/坦克抗性10.0），击退可触发墙撞伤害和连锁碰撞 |
+| **单位强度** | 商店价格反映基础强度，升级规则：3个同名同等级单位自动合成，吞噬传承属性比例 |
+| **敌人威胁** | 通过 `name` 查表 `data/game_data.json` 获取静态属性（max_hp, damage, speed, is_boss等） |
+
 ## 文档导航
 
 | 需求 | 阅读文档 |
 |------|----------|
 | 完整协议参考 | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) |
+| 游戏机制详解 | [../docs/GameDesign.md](../docs/GameDesign.md) |
 
 ## 架构
 
