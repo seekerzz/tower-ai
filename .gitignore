@@ -38,4 +38,3 @@ venv/
 *.swp
 *.swo
 *~logs/
-*.log
