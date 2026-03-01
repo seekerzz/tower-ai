@@ -602,6 +602,12 @@ func _do_standard_ranged_attack(target):
 
 	attack_performed.emit(target)
 
+	# 记录单位攻击日志
+	if AILogger:
+		var target_name = target.type_key if target and "type_key" in target else "目标"
+		var damage = unit_data.get("damage", 0)
+		AILogger.unit_attack(type_key, target_name, damage)
+
 func play_attack_anim(attack_type: String, target_pos: Vector2, duration: float = -1.0):
 	if !visual_holder: return
 

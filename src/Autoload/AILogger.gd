@@ -8,40 +8,52 @@ const SHOW_NET: bool = true    # 网络底层连接与原始 JSON 收发
 const SHOW_EVENT: bool = true  # 状态发送与游戏暂停事件
 const SHOW_ACTION: bool = true # AI 动作解析与执行结果
 const SHOW_ERROR: bool = true  # 动作执行拦截与报错信息
+const SHOW_COMBAT: bool = true # 战斗日志：敌人出生、受击、阵亡等
+const SHOW_TOTEM: bool = true  # 图腾触发日志
+const SHOW_STATUS: bool = true # 状态效果日志
 
 # ===== 颜色配置 =====
 const COLOR_NET: String = "[color=#3498db]"    # 蓝色 - 网络
 const COLOR_EVENT: String = "[color=#2ecc71]"  # 绿色 - 事件
 const COLOR_ACTION: String = "[color=#f39c12]" # 橙色 - 动作
 const COLOR_ERROR: String = "[color=#e74c3c]"  # 红色 - 错误
+const COLOR_COMBAT: String = "[color=#9b59b6]" # 紫色 - 战斗
+const COLOR_TOTEM: String = "[color=#1abc9c]"  # 青色 - 图腾
+const COLOR_STATUS: String = "[color=#e67e22]" # 深橙 - 状态
 const COLOR_RESET: String = "[/color]"
 
 # ===== 日志级别 =====
-enum LogLevel { NET, EVENT, ACTION, ERROR }
+enum LogLevel { NET, EVENT, ACTION, ERROR, COMBAT, TOTEM, STATUS }
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	print("[AILogger] AI 日志系统已初始化")
 
+## 获取带时间戳的前缀
+func _timestamp() -> String:
+	var time = Time.get_time_dict_from_system()
+	var ms = (Time.get_ticks_msec() % 1000)
+	return "[%02d:%02d:%02d.%03d]" % [time.hour, time.minute, time.second, ms]
+
 ## 网络日志 - 连接与 JSON 收发
 func net(message: String):
 	if SHOW_NET:
-		print_rich("%s[网络] %s%s" % [COLOR_NET, message, COLOR_RESET])
+		print_rich("%s%s[网络] %s%s" % [_timestamp(), COLOR_NET, message, COLOR_RESET])
 
 ## 事件日志 - 状态发送与游戏暂停
 func event(message: String):
 	if SHOW_EVENT:
-		print_rich("%s[事件] %s%s" % [COLOR_EVENT, message, COLOR_RESET])
+		print_rich("%s%s[事件] %s%s" % [_timestamp(), COLOR_EVENT, message, COLOR_RESET])
 
 ## 动作日志 - AI 动作解析与执行
 func action(message: String):
 	if SHOW_ACTION:
-		print_rich("%s[动作] %s%s" % [COLOR_ACTION, message, COLOR_RESET])
+		print_rich("s%s[动作] %s%s" % [_timestamp(), COLOR_ACTION, message, COLOR_RESET])
 
 ## 错误日志 - 动作执行拦截与报错
 func error(message: String):
 	if SHOW_ERROR:
-		print_rich("%s[错误] %s%s" % [COLOR_ERROR, message, COLOR_RESET])
+		print_rich("%s%s[错误] %s%s" % [_timestamp(), COLOR_ERROR, message, COLOR_RESET])
 
 ## 原始 JSON 日志（网络层）
 func net_json(direction: String, json_data: Variant):
@@ -49,7 +61,7 @@ func net_json(direction: String, json_data: Variant):
 		var json_str = JSON.stringify(json_data)
 		if json_str.length() > 200:
 			json_str = json_str.substr(0, 200) + "..."
-		print_rich("%s[网络][%s] %s%s" % [COLOR_NET, direction, json_str, COLOR_RESET])
+		print_rich("%s%s[网络][%s] %s%s" % [_timestamp(), COLOR_NET, direction, json_str, COLOR_RESET])
 
 ## 连接状态日志
 func net_connection(status: String, details: String = ""):
@@ -57,4 +69,64 @@ func net_connection(status: String, details: String = ""):
 		var msg = "[连接] " + status
 		if details != "":
 			msg += " - " + details
-		print_rich("%s%s%s" % [COLOR_NET, msg, COLOR_RESET])
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_NET, msg, COLOR_RESET])
+
+# ===== 战斗日志 =====
+
+## 敌人出生日志
+func enemy_spawned(wave: int, enemy_type: String, hp: float, pos: Vector2):
+	if SHOW_COMBAT:
+		var msg = "[波次%d] 敌人 %s 出生，血量%.0f，位置(%.0f, %.0f)" % [wave, enemy_type, hp, pos.x, pos.y]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_COMBAT, msg, COLOR_RESET])
+
+## 核心受击日志
+func core_damaged(damage: float, source: String, remaining_hp: float):
+	if SHOW_COMBAT:
+		var msg = "[核心受击] 受到 %.0f 点伤害，来源: %s，剩余血量: %.0f" % [damage, source, remaining_hp]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_COMBAT, msg, COLOR_RESET])
+
+## 单位攻击日志
+func unit_attack(unit_name: String, target: String, damage: float):
+	if SHOW_COMBAT:
+		var msg = "[单位攻击] %s 攻击 %s，造成 %.0f 点伤害" % [unit_name, target, damage]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_COMBAT, msg, COLOR_RESET])
+
+## 敌方阵亡日志
+func enemy_died(enemy_type: String, killer: String):
+	if SHOW_COMBAT:
+		var msg = "[敌方阵亡] 敌人 %s 被 %s 击杀" % [enemy_type, killer]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_COMBAT, msg, COLOR_RESET])
+
+## 敌人受击日志
+func enemy_hit(enemy_type: String, damage: float, source: String, remaining_hp: float):
+	if SHOW_COMBAT:
+		var msg = "[敌人受击] %s 受到 %.0f 点伤害，来源: %s，剩余血量: %.0f" % [enemy_type, damage, source, remaining_hp]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_COMBAT, msg, COLOR_RESET])
+
+# ===== 图腾日志 =====
+
+## 图腾触发日志
+func totem_triggered(totem_name: String, targets: String, effect: String):
+	if SHOW_TOTEM:
+		var msg = "[图腾触发] %s 触发，目标: %s，效果: %s" % [totem_name, targets, effect]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_TOTEM, msg, COLOR_RESET])
+
+# ===== 状态效果日志 =====
+
+## 状态施加日志
+func status_applied(source: String, target: String, buff_name: String, duration: float):
+	if SHOW_STATUS:
+		var msg = "[状态施加] %s 对 %s 施加 %s，持续%.1f秒" % [source, target, buff_name, duration]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])
+
+## 状态伤害日志
+func status_damage(buff_name: String, target: String, damage: float):
+	if SHOW_STATUS:
+		var msg = "[状态伤害] %s 对 %s 造成 %.0f 点伤害" % [buff_name, target, damage]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])
+
+## 状态结束日志
+func status_ended(target: String, buff_name: String):
+	if SHOW_STATUS:
+		var msg = "[状态结束] %s 的 %s 效果结束" % [target, buff_name]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])

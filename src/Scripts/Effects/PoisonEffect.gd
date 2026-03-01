@@ -12,6 +12,20 @@ func setup(target: Node, source: Object, params: Dictionary):
 	super.setup(target, source, params)
 	type_key = "poison"
 	base_damage = params.get("damage", 15.0)  # 基础伤害从10提升到15
+
+	# 记录状态施加日志
+	if AILogger:
+		var source_name = "未知"
+		if source:
+			if source.has_method("get_unit_name"):
+				source_name = source.get_unit_name()
+			elif "type_key" in source:
+				source_name = source.type_key
+			elif source == GameManager:
+				source_name = "图腾"
+		var target_name = target.type_key if "type_key" in target else "目标"
+		AILogger.status_applied(source_name, target_name, "中毒", duration)
+
 	_call_deferred_setup_visuals()
 
 func _call_deferred_setup_visuals():
@@ -125,6 +139,12 @@ func _deal_damage():
 	if host and host.has_method("take_damage"):
 		var dmg = base_damage * stacks
 		host.take_damage(dmg, source_unit, "poison")
+
+		# 记录状态伤害日志
+		if AILogger:
+			var target_name = host.type_key if "type_key" in host else "目标"
+			AILogger.status_damage("中毒", target_name, dmg)
+
 		# Emit signal for test logging
 		if GameManager.has_signal("poison_damage"):
 			GameManager.poison_damage.emit(host, dmg, stacks, source_unit)
@@ -191,3 +211,8 @@ func _exit_tree():
 		_stack_indicator.queue_free()
 		_stack_indicator = null
 	_hide_max_stack_glow()
+
+	# 记录状态结束日志
+	if AILogger:
+		var target_name = host.type_key if host and "type_key" in host else "目标"
+		AILogger.status_ended(target_name, "中毒")

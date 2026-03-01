@@ -2,11 +2,22 @@
 
 ## [Inbox - 待处理提案]
 
-<!-- 游戏策划投递的提案，格式: - [ ] 待处理提案: docs/design_proposals/proposal_xxx.md -- 来源@Game_Designer -- 时间戳 -->
+<!-- 待处理提案列表 -->
+
+## [Archive - 归档]
+
+- [x] 已处理提案: docs/design_proposals/proposal_balance_fix_001.md -- 来源@Game_Designer -- 2026-03-01T18:45:00+08:00
+  - 完成：第1波难度调整（10个slime→6个，50伤害→30伤害）
+  - 完成：日志埋点系统实现（8种埋点类型）
+  - 状态：已投递AI Player跑测验证
 
 ## [Inbox - 待合并分支]
 
-<!-- AI Player 投递的跑测通过分支，格式: - [ ] 待合并: feature/xxx -- 来源@AI_Player -- 时间戳 -->
+- [ ] 待合并: feature/balance_fix_wave1 -- 来源@AI_Player -- 2026-03-01T23:35:39+08:00
+  - 跑测结果: 通过
+  - 日志路径: logs/ai_session_20260301_233539.log
+  - 验证内容: 第1波6个slime/30伤害/总伤180，所有日志埋点正常，毒蛇图腾和viper中毒buff工作正常
+  - 无代码级崩溃
 
 ## [Archive - 归档]
 

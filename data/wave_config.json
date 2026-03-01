@@ -21,19 +21,20 @@
     "1": {
       "wave_number": 1,
       "wave_type": "normal",
-      "difficulty": 1.15,
-      "enemy_count": 26,
-      "batch_count": 3,
-      "enemies_per_batch": 9,
+      "difficulty": 0.7,
+      "enemy_count": 6,
+      "batch_count": 2,
+      "enemies_per_batch": 3,
       "batch_delay": 3.5,
-      "spawn_interval": 0.1,
+      "spawn_interval": 0.5,
       "enemy_types": ["slime"],
       "is_elite": false,
       "is_boss": false,
       "rewards": {
         "gold": 25,
         "exp": 20
-      }
+      },
+      "_comment": "新手教程波次：6个slime，单伤害30，总伤害180"
     },
     "2": {
       "wave_number": 2,

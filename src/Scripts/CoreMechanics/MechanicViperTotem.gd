@@ -48,6 +48,14 @@ func _on_timer_timeout():
 	for i in range(min(3, enemies.size())):
 		targets.append(enemies[i])
 
+	# 记录图腾触发日志
+	if AILogger and targets.size() > 0:
+		var target_names = []
+		for t in targets:
+			if is_instance_valid(t) and t.has_method("get"):
+				target_names.append(t.type_key if "type_key" in t else "敌人")
+		AILogger.totem_triggered("毒蛇图腾", str(target_names.size()) + "个最远敌人", "毒液攻击+3层中毒")
+
 	for target in targets:
 		if not is_instance_valid(target):
 			continue

@@ -3217,13 +3217,14 @@
 			"spdMod": 0.7,
 			"attackType": "melee",
 			"range": 30,
-			"dmg": 50,
+			"dmg": 30,
 			"atkSpeed": 1.0,
 			"anim_config": {
 				"style": "squash",
 				"amplitude": 0.2,
 				"base_freq": 4.0
-			}
+			},
+			"_comment": "第1波平衡调整：伤害从50降至30，配合6个敌人总伤害180"
 		},
 		"mutant_slime": {
 			"name": "变异母体",

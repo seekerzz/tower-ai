@@ -541,6 +541,11 @@ func damage_core(amount: float):
 
 	if session_data:
 		session_data.damage_core(amount)
+
+	# 记录核心受击日志
+	if AILogger and amount > 0:
+		AILogger.core_damaged(amount, "敌人攻击", core_health)
+
 	resource_changed.emit()
 	_check_game_over()
 

@@ -151,6 +151,13 @@ func setup(key: String, wave: int):
 
 	_init_behavior()
 
+	# 记录敌人出生日志
+	if AILogger:
+		var current_wave = 1
+		if GameManager.wave_system_manager:
+			current_wave = GameManager.wave_system_manager.current_wave
+		AILogger.enemy_spawned(current_wave, type_key, hp, global_position)
+
 func _init_behavior():
 	if type_key == "mutant_slime":
 		behavior = load("res://src/Scripts/Enemies/Behaviors/MutantSlimeBehavior.gd").new()
@@ -703,6 +710,18 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 
 	GameManager.enemy_hit.emit(self, source_unit, amount)
 
+	# 记录敌人受击日志
+	if AILogger:
+		var source_name = "未知"
+		if source_unit:
+			if source_unit.has_method("get_unit_name"):
+				source_name = source_unit.get_unit_name()
+			elif "type_key" in source_unit:
+				source_name = source_unit.type_key
+			elif source_unit == GameManager:
+				source_name = "图腾/状态效果"
+		AILogger.enemy_hit(type_key, amount, source_name, hp)
+
 	if source_unit:
 		GameManager.damage_dealt.emit(source_unit, amount)
 
@@ -735,6 +754,20 @@ func die(killer_unit = null):
 
 	emit_signal("died")
 	GameManager.enemy_died.emit(self, killer_unit)
+
+	# 记录敌人阵亡日志
+	if AILogger:
+		var killer_name = "未知"
+		if killer_unit:
+			if killer_unit.has_method("get_unit_name"):
+				killer_name = killer_unit.get_unit_name()
+			elif "type_key" in killer_unit:
+				killer_name = killer_unit.type_key
+			elif killer_unit == GameManager:
+				killer_name = "图腾/状态效果"
+		else:
+			killer_name = "未知"
+		AILogger.enemy_died(type_key, killer_name)
 
 	GameManager.add_gold(1)
 	if GameManager.reward_manager and "scrap_recycling" in GameManager.reward_manager.acquired_artifacts:
