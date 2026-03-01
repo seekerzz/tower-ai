@@ -23,37 +23,56 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import requests
+import asyncio
+import websockets
 
 
 class AITestClient:
-    """Test client for AI game API"""
+    """Test client for AI game API over WebSocket"""
 
-    def __init__(self, http_port=10000):
-        self.base_url = f"http://127.0.0.1:{http_port}"
+    def __init__(self, ws_port=10000):
+        self.uri = f"ws://127.0.0.1:{ws_port}"
         self.test_results = []
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
 
     def status(self):
-        """Get server status"""
+        """Get server status (dummy for WS as we just try to connect)"""
         try:
-            r = requests.get(f"{self.base_url}/status", timeout=5)
-            return r.json()
+            async def try_connect():
+                async with websockets.connect(self.uri) as ws:
+                    return {"godot_running": True}
+            return self._loop.run_until_complete(try_connect())
         except Exception as e:
             return {"error": str(e)}
 
     def action(self, actions):
         """Send action(s) and return response"""
-        try:
-            r = requests.post(
-                f"{self.base_url}/action",
-                json={"actions": actions if isinstance(actions, list) else [actions]},
-                timeout=65
-            )
-            return r.json()
-        except requests.Timeout:
-            return {"event": "Error", "error_message": "HTTP Timeout"}
-        except Exception as e:
-            return {"event": "Error", "error_message": str(e)}
+        async def send_and_wait():
+            try:
+                async with websockets.connect(self.uri, ping_interval=None) as ws:
+                    # Flush any pending messages first
+                    while True:
+                        try:
+                            await asyncio.wait_for(ws.recv(), timeout=0.1)
+                        except asyncio.TimeoutError:
+                            break
+
+                    req = {"actions": actions if isinstance(actions, list) else [actions]}
+                    await ws.send(json.dumps(req))
+
+                    # Wait for response (skip Ping)
+                    while True:
+                        resp_str = await asyncio.wait_for(ws.recv(), timeout=65.0)
+                        resp = json.loads(resp_str)
+                        if resp.get("event") != "Ping" and resp.get("event") != "AI_Wakeup":
+                            return resp
+            except asyncio.TimeoutError:
+                return {"event": "Error", "error_message": "WebSocket Timeout"}
+            except Exception as e:
+                return {"event": "Error", "error_message": str(e)}
+
+        return self._loop.run_until_complete(send_and_wait())
 
     def test_pass(self, test_name, details=""):
         """Record passing test"""
@@ -91,6 +110,7 @@ class AITestClient:
                     print(f"  - {r['name']}: {r['actual']}")
 
         return failed == 0
+
 
 
 class TestSuite:
@@ -337,7 +357,7 @@ class TestSuite:
             print("  python3 ai_client/ai_game_client.py")
             return False
 
-        print(f"\n✅ Server ready - HTTP port: {status.get('http_port')}")
+        print(f"\n✅ Server ready - HTTP port: {args.port}")
 
         # Run all test categories
         self.test_select_totem()
@@ -362,12 +382,12 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="AI Game Client Test Suite")
-    parser.add_argument("--port", type=int, default=10000, help="HTTP port (default: 10000)")
+    parser.add_argument("--port", type=int, default=10000, help="Agent WS port (default: 10000)")
     parser.add_argument("--category", choices=["basic", "shop", "cheat", "error", "all"],
                         default="all", help="Test category to run")
     args = parser.parse_args()
 
-    client = AITestClient(http_port=args.port)
+    client = AITestClient(ws_port=args.port)
     suite = TestSuite(client)
 
     success = suite.run_all()
