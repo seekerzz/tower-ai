@@ -80,6 +80,8 @@ class AIGameClient:
         self._pending_response: Optional[asyncio.Future] = None
         self._last_state: Optional[Dict] = None
         self._ws_connected = False
+        self._obs_queue = asyncio.Queue()
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
 
         # 初始化日志文件
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -89,14 +91,16 @@ class AIGameClient:
 
     async def run(self):
         """主运行循环"""
+        self._loop = asyncio.get_running_loop()
         try:
             # 1. 启动 Godot
             if not await self._start_godot():
                 return False
 
             # 2. 连接 WebSocket
-            if not await self._connect_websocket():
-                return False
+            if self.godot and not self.godot.has_crashed():
+                if not await self._connect_websocket():
+                    return False
 
             # 3. 启动 HTTP 服务器
             if not await self._start_http_server():
@@ -139,9 +143,14 @@ class AIGameClient:
 
         # 等待 WebSocket 服务器启动
         if not self.godot.wait_for_ready(timeout=30):
-            logger.error("Godot 启动超时")
-            self.godot.kill()
-            return False
+            # Check if it crashed instead of timing out
+            if self.godot.has_crashed():
+                logger.error("Godot 启动时崩溃")
+                # Do not return False immediately, so HTTP server can start and serve the crash
+            else:
+                logger.error("Godot 启动超时")
+                self.godot.kill()
+                return False
 
         logger.info("Godot 已就绪")
         return True
@@ -188,8 +197,13 @@ class AIGameClient:
                         logger.debug(f"收到心跳: {data.get('timestamp', 'unknown')}")
                         continue
 
+                    # 放入文本流缓冲队列供轮询读取
+                    self._obs_queue.put_nowait(json.dumps(data, ensure_ascii=False))
+
                 except json.JSONDecodeError:
                     logger.warning(f"收到无效 JSON: {message}")
+                    # 也可以选择放入无效 JSON 文本
+                    self._obs_queue.put_nowait(message)
 
         except websockets.exceptions.ConnectionClosed:
             logger.info("WebSocket 连接已关闭")
@@ -204,7 +218,8 @@ class AIGameClient:
             host="127.0.0.1",
             port=self.config.http_port,
             action_handler=self._handle_action_request,
-            status_handler=self._handle_status_request
+            status_handler=self._handle_status_request,
+            observations_handler=self._handle_observations_request
         )
 
         if not await self.http_server.start():
@@ -261,12 +276,39 @@ class AIGameClient:
             "crashed": self.godot.has_crashed() if self.godot else False
         }
 
+    async def _handle_observations_request(self) -> Dict[str, Any]:
+        """处理 HTTP observations 请求"""
+        observations = []
+        while not self._obs_queue.empty():
+            try:
+                obs = self._obs_queue.get_nowait()
+                observations.append(obs)
+            except asyncio.QueueEmpty:
+                break
+
+        return {
+            "observations": observations
+        }
+
     def _on_godot_crash(self, crash_info: CrashInfo):
         """Godot 崩溃回调"""
         logger.error(f"Godot 崩溃: {crash_info.error_type}")
 
-        # 触发关闭
-        self._shutdown_event.set()
+        # 将错误信息格式化并推入队列
+        error_msg = (
+            f"【系统严重报错】检测到 Godot 引擎崩溃：\n"
+            f"错误类型：{crash_info.error_type}\n"
+            f"堆栈：\n{crash_info.stack_trace}"
+        )
+
+        # 因为在其它线程中调用，需要通过 call_soon_threadsafe 放入队列
+        if self._loop and not self._loop.is_closed():
+            self._loop.call_soon_threadsafe(self._obs_queue.put_nowait, error_msg)
+        else:
+            self._obs_queue.put_nowait(error_msg)
+
+        # 这里不触发关闭，让外部可以通过 HTTP 获取到崩溃信息
+        # self._shutdown_event.set()
 
     def _print_usage(self):
         """打印使用说明"""

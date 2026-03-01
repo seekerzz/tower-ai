@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 # 类型定义
 ActionHandler = Callable[[list], Awaitable[Dict[str, Any]]]
 StatusHandler = Callable[[], Awaitable[Dict[str, Any]]]
+ObservationsHandler = Callable[[], Awaitable[Dict[str, Any]]]
 
 
 class AIHTTPServer:
@@ -27,12 +28,14 @@ class AIHTTPServer:
         host: str = "127.0.0.1",
         port: int = 8080,
         action_handler: Optional[ActionHandler] = None,
-        status_handler: Optional[StatusHandler] = None
+        status_handler: Optional[StatusHandler] = None,
+        observations_handler: Optional[ObservationsHandler] = None
     ):
         self.host = host
         self.port = port
         self.action_handler = action_handler
         self.status_handler = status_handler
+        self.observations_handler = observations_handler
 
         self.app = web.Application()
         self.runner: Optional[web.AppRunner] = None
@@ -42,6 +45,7 @@ class AIHTTPServer:
         self.app.router.add_post("/action", self._handle_action)
         self.app.router.add_get("/status", self._handle_status)
         self.app.router.add_get("/health", self._handle_health)
+        self.app.router.add_get("/observations", self._handle_observations)
 
     async def start(self) -> bool:
         """启动 HTTP 服务器"""
@@ -111,3 +115,13 @@ class AIHTTPServer:
     async def _handle_health(self, request: web.Request) -> web.Response:
         """健康检查端点"""
         return web.json_response({"status": "ok"})
+
+    async def _handle_observations(self, request: web.Request) -> web.Response:
+        """处理 GET /observations 请求"""
+        if self.observations_handler:
+            observations = await self.observations_handler()
+            return web.json_response(observations)
+        else:
+            return web.json_response({
+                "observations": []
+            })
