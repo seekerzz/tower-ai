@@ -35,9 +35,9 @@ func _ready():
 	GameManager.wave_started.connect(_on_wave_started)
 	GameManager.wave_ended.connect(_on_wave_ended)
 
-	# 连接 BoardController 信号
-	BoardController.unit_moved.connect(_on_unit_moved)
-	BoardController.unit_sold.connect(_on_unit_sold)
+	# 连接 ActionDispatcher 信号
+	ActionDispatcher.unit_moved.connect(_on_unit_moved)
+	ActionDispatcher.unit_sold.connect(_on_unit_sold)
 
 	# Camera Setup
 	# Calculate min allowed zoom (maximum field of view)
@@ -265,7 +265,7 @@ func _on_bench_updated(bench_units: Dictionary):
 	# Bench UI 会自动监听此信号并更新，这里不需要额外操作
 	pass
 
-# ===== BoardController 信号处理 =====
+# ===== ActionDispatcher 信号处理 =====
 
 func _on_unit_moved(from_zone: String, from_pos: Variant,
 					to_zone: String, to_pos: Variant, unit_data: Dictionary):

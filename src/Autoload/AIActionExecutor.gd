@@ -149,7 +149,7 @@ func _action_buy_unit(action: Dictionary) -> Dictionary:
 	var shop_index = _to_int_index(shop_index_raw)
 
 	# 直接调用 BoardController，所有业务校验都在其中进行
-	var result = BoardController.buy_unit(shop_index)
+	var result = ActionDispatcher.buy_unit(shop_index)
 	return result
 
 func _action_sell_unit(action: Dictionary) -> Dictionary:
@@ -172,7 +172,7 @@ func _action_sell_unit(action: Dictionary) -> Dictionary:
 			return {"success": false, "error_message": "无效的网格位置: %s" % str(pos)}
 
 	# 直接调用 BoardController，所有业务校验都在其中进行
-	var result = BoardController.sell_unit(zone, sell_pos)
+	var result = ActionDispatcher.sell_unit(zone, sell_pos)
 	return result
 
 func _action_move_unit(action: Dictionary) -> Dictionary:
@@ -214,12 +214,12 @@ func _action_move_unit(action: Dictionary) -> Dictionary:
 	AILogger.action("[DEBUG] move_unit: from_zone=%s, from_pos=%s, to_zone=%s, to_pos=%s" % [from_zone, str(from_pos_typed), to_zone, str(to_pos_typed)])
 
 	# 直接调用 BoardController，所有业务校验都在其中进行
-	var result = BoardController.try_move_unit(from_zone, from_pos_typed, to_zone, to_pos_typed)
+	var result = ActionDispatcher.try_move_unit(from_zone, from_pos_typed, to_zone, to_pos_typed)
 	return result
 
 func _action_refresh_shop(action: Dictionary) -> Dictionary:
 	# 直接调用 BoardController，所有业务校验都在其中进行
-	var result = BoardController.refresh_shop()
+	var result = ActionDispatcher.refresh_shop()
 	return result
 
 func _action_lock_shop_slot(action: Dictionary) -> Dictionary:
@@ -262,11 +262,11 @@ func _action_unlock_shop_slot(action: Dictionary) -> Dictionary:
 
 func _action_start_wave(action: Dictionary) -> Dictionary:
 	# 直接调用 BoardController，所有业务校验都在其中进行
-	var result = BoardController.start_wave()
+	var result = ActionDispatcher.start_wave()
 	return result
 
 func _action_retry_wave(action: Dictionary) -> Dictionary:
-	BoardController.retry_wave()
+	ActionDispatcher.retry_wave()
 	return {"success": true}
 
 func _action_resume(action: Dictionary) -> Dictionary:

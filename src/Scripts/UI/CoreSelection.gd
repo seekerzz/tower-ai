@@ -190,7 +190,7 @@ func _initialize_game_session():
 	if needs_shop_init:
 		print("[CoreSelection] 初始化商店...")
 		# 刷新商店以获取初始单位
-		BoardController.refresh_shop()
+		ActionDispatcher.refresh_shop()
 
 	print("[CoreSelection] 游戏会话初始化完成")
 

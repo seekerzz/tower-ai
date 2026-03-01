@@ -35,9 +35,9 @@ func _ready():
 	if GameManager.has_signal("wave_reset"):
 		GameManager.wave_reset.connect(on_wave_reset)
 
-	# 连接 BoardController 信号
-	BoardController.shop_refreshed.connect(_on_shop_refreshed)
-	BoardController.unit_purchased.connect(_on_unit_purchased)
+	# 连接 ActionDispatcher 信号
+	ActionDispatcher.shop_refreshed.connect(_on_shop_refreshed)
+	ActionDispatcher.unit_purchased.connect(_on_unit_purchased)
 
 	# Wait for GameManager to be initialized
 	if GameManager.core_type == "":
@@ -163,11 +163,11 @@ func update_ui():
 
 func refresh_shop(force: bool = false):
 	if force:
-		# 强制刷新不走 BoardController（免费刷新）
+		# 强制刷新不走 ActionDispatcher（免费刷新）
 		_perform_refresh()
 	else:
-		# 调用 BoardController API
-		BoardController.refresh_shop()
+		# 调用 ActionDispatcher API
+		ActionDispatcher.refresh_shop()
 
 func _perform_refresh():
 	# Get player's current totem
@@ -241,8 +241,8 @@ func create_shop_card(index, unit_key):
 	shop_container.add_child(card)
 
 func buy_unit(index, unit_key, card_ref):
-	# 调用 BoardController API，传入期望的单位key进行验证
-	var success = BoardController.buy_unit(index, unit_key)
+	# 调用 ActionDispatcher API，传入期望的单位key进行验证
+	var success = ActionDispatcher.buy_unit(index, unit_key)
 	if success:
 		card_ref.modulate = Color(0.5, 0.5, 0.5)
 		card_ref.mouse_filter = MOUSE_FILTER_IGNORE
@@ -277,7 +277,7 @@ func _on_expand_button_pressed():
 	if GameManager.grid_manager:
 		GameManager.grid_manager.toggle_expansion_mode()
 
-# ===== BoardController 信号处理 =====
+# ===== ActionDispatcher 信号处理 =====
 
 func _on_shop_refreshed(new_shop_units: Array):
 	shop_items = new_shop_units

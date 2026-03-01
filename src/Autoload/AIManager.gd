@@ -19,25 +19,18 @@ var is_waiting_for_action: bool = false
 var last_event_type: String = ""
 var last_event_data: Dictionary = {}
 var is_game_over: bool = false
+var ai_speed: float = 0.5
 
 # ===== 心跳/保活 =====
 var _last_ping_time: float = 0.0
 const PING_INTERVAL: float = 10.0  # 每10秒发送一次ping
 
-## AI 暂停标志 - 用于非原生暂停（只停逻辑，UI继续）
-var ai_paused: bool = false:
-	get:
-		return ai_paused
-	set(value):
-		ai_paused = value
-		AILogger.event("AI暂停状态: " + str(value))
-
-## 检查游戏是否应该暂停（AI暂停或原生暂停）
+## 检查游戏是否应该暂停（原生暂停）
 func is_game_effectively_paused() -> bool:
-	return ai_paused or get_tree().paused
+	return get_tree().paused
 
 func _parse_command_line_args():
-	"""解析命令行参数，支持 --ai-port=<port>"""
+	"""解析命令行参数，支持 --ai-port=<port> 和 --ai-speed=<speed>"""
 	var args = OS.get_cmdline_args()
 	for arg in args:
 		if arg.begins_with("--ai-port="):
@@ -48,6 +41,11 @@ func _parse_command_line_args():
 				AILogger.net_connection("使用自定义端口", str(port))
 			else:
 				AILogger.error("无效的端口: %s，使用默认 %d" % [port_str, DEFAULT_PORT])
+		elif arg.begins_with("--ai-speed="):
+			var speed_str = arg.substr("--ai-speed=".length())
+			ai_speed = speed_str.to_float()
+			if ai_speed <= 0.0: ai_speed = 0.5
+			AILogger.net_connection("AI降速模式", "速度设为 %.2f" % ai_speed)
 
 # ===== 信号 =====
 signal state_sent(event_type: String, state: Dictionary)
@@ -194,8 +192,8 @@ func _on_wave_system_ended(wave_number: int, stats: Dictionary):
 
 	# 获取已解锁的格子
 	var unlocked_tiles = []
-	if BoardController:
-		unlocked_tiles = BoardController.get_unlocked_tiles()
+	if ActionDispatcher:
+		unlocked_tiles = ActionDispatcher.get_unlocked_tiles()
 		AILogger.event("波次结束 - 已解锁格子数量: %d" % unlocked_tiles.size())
 
 	# 构建包含波次统计的状态
@@ -291,7 +289,7 @@ func _on_trap_triggered(trap_type: String, target_enemy, source_unit):
 		"poison_stacks": 2  # Toad陷阱固定给予2层中毒
 	})
 
-# ===== 核心功能：暂停并发送状态 =====
+# ===== 核心功能：主动降速并发送状态 =====
 
 func _pause_and_send(event_type: String, event_data: Dictionary = {}):
 	if not is_client_connected:
@@ -300,9 +298,9 @@ func _pause_and_send(event_type: String, event_data: Dictionary = {}):
 	last_event_type = event_type
 	last_event_data = event_data
 
-	# 使用AI暂停（非原生暂停，UI不灰屏）
-	ai_paused = true
-	AILogger.event("游戏已暂停 [%s]" % event_type)
+	# 使用降速代替暂停
+	Engine.time_scale = ai_speed
+	AILogger.event("AI降速主动推送状态 [%s], 速度: %.2f" % [event_type, ai_speed])
 
 	# 构建并发送状态
 	var state = _build_state(event_type, event_data)
@@ -542,12 +540,12 @@ func send_action_error(error_message: String, failed_action: Dictionary):
 # ===== 游戏控制 =====
 
 func resume_game(wait_time: float = 0.0):
-	"""恢复游戏，可选延时后再次暂停"""
-	if not ai_paused:
+	"""恢复游戏速度，可选延时后再次降速"""
+	if Engine.time_scale == 1.0:
 		return
 
-	ai_paused = false
-	AILogger.event("游戏已恢复" + (" (%.1f秒后唤醒)" % wait_time if wait_time > 0 else ""))
+	Engine.time_scale = 1.0
+	AILogger.event("游戏速度已恢复 1.0" + (" (%.1f秒后重新降速)" % wait_time if wait_time > 0 else ""))
 
 	if wait_time > 0:
 		# 使用受 time_scale 影响的计时器

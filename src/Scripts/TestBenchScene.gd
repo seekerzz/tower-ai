@@ -18,7 +18,7 @@ func _ready():
 	# Set up shop and buy a unit
 	if GameManager.session_data:
 		GameManager.session_data.set_shop_unit(0, "squirrel")
-		BoardController.buy_unit(0)
+		ActionDispatcher.buy_unit(0)
 
 	var bench_unit = GameManager.session_data.get_bench_unit(0) if GameManager.session_data else null
 	if bench_unit != null and bench_unit.key == "squirrel":
@@ -39,7 +39,7 @@ func _ready():
 		get_tree().quit(1)
 
 	# Move unit from grid to bench using BoardController
-	var result = BoardController.try_move_unit("grid", Vector2i(1, 1), "bench", 1)
+	var result = ActionDispatcher.try_move_unit("grid", Vector2i(1, 1), "bench", 1)
 
 	if result.success:
 		print("PASS: Grid unit moved to bench")
@@ -61,7 +61,7 @@ func _ready():
 	# We have a unit in bench[0] ("squirrel")
 	# We want to place it at -2,-2
 
-	result = BoardController.try_move_unit("bench", 0, "grid", Vector2i(-2, -2))
+	result = ActionDispatcher.try_move_unit("bench", 0, "grid", Vector2i(-2, -2))
 
 	if result.success:
 		if GameManager.session_data.get_bench_unit(0) == null:
