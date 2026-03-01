@@ -831,7 +831,7 @@ func end_drag():
 			# Try to move unit from grid to bench using BoardController
 			var bench_index = _find_empty_bench_slot()
 			if bench_index >= 0 and grid_pos != null:
-				var result = BoardController.try_move_unit("grid", grid_pos, "bench", bench_index)
+				var result = ActionDispatcher.try_move_unit("grid", grid_pos, "bench", bench_index)
 				if result.success:
 					return
 			return_to_start()
