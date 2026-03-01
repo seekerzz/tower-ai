@@ -30,12 +30,16 @@
   - 验证电鳗闪电链和法力震荡
   - 验霸龙黑洞控制
 
-- [ ] 待分析: logs/ai_session_wolf_totem_*.log -- 策略: 狼图腾魂魄收割流 -- 来源@AI_Player
-  - 验证魂魄获取机制(杀敌+吞噬)
-  - 验证图腾攻击魂魄加成
-  - 验证羊灵克隆机制
-  - 验证狮子冲击波
-  - 验证血食光环和血魂充能
+- [x] 待分析: logs/ai_session_wolf_totem_20260302_002530.log -- 策略: 狼图腾魂魄收割流 -- 来源@AI_Player
+  - **测试状态**: ❌ 测试失败 - 发现代码级崩溃CRASH-WOLF-001
+  - **崩溃位置**: src/Scripts/CoreMechanics/MechanicWolfTotem.gd:_on_totem_attack()
+  - **崩溃原因**: 缺少波次状态检查，定时器在波次未开始时触发攻击
+  - **修复建议**: 添加 `if !GameManager.is_wave_active: return`
+  - 验证魂魄获取机制(杀敌+吞噬) - 未执行
+  - 验证图腾攻击魂魄加成 - 未执行
+  - 验证羊灵克隆机制 - 未执行
+  - 验证狮子冲击波 - 未执行
+  - 验证血食光环和血魂充能 - 未执行
 
 - [ ] 待分析: logs/ai_session_viper_totem_*.log -- 策略: 毒蛇图腾剧毒叠加流 -- 来源@AI_Player
   - 验证图腾毒液对最远3敌人

@@ -2,7 +2,53 @@
 
 ## [Inbox - 待处理提案]
 
-<!-- 待处理提案列表 -->
+### 🚨 CRASH-WOLF-001 - 狼图腾崩溃修复任务
+
+**来源**: AI_Player -- 2026-03-02T00:25:00+08:00
+**优先级**: P0 (阻塞狼图腾全面测试)
+**状态**: 待修复
+
+**问题描述**:
+狼图腾(MechanicWolfTotem.gd)在波次开始时发生崩溃，错误信息 `ERROR: Parameter "t" is null.`
+
+**根因分析**:
+`_on_totem_attack()` 函数缺少波次状态检查，当定时器在非波次期间触发时，
+`get_nearest_enemies()` 可能返回包含无效节点的数组，导致 `deal_damage()` 崩溃。
+
+**对比参考**:
+蝙蝠图腾(MechanicBatTotem.gd)的实现正确处理了此问题:
+```gdscript
+func _on_totem_attack():
+    if !GameManager.is_wave_active: return  # 狼图腾缺少此行
+    var targets = get_nearest_enemies(target_count)
+    ...
+```
+
+**修复文件**: `src/Scripts/CoreMechanics/MechanicWolfTotem.gd`
+
+**修复代码**:
+```gdscript
+func _on_totem_attack():
+    if !GameManager.is_wave_active: return
+    var targets = get_nearest_enemies(3)
+    var soul_bonus = TotemManager.get_resource(TOTEM_ID)
+    for enemy in targets:
+        if is_instance_valid(enemy):
+            var damage = base_damage + soul_bonus
+            deal_damage(enemy, damage)
+```
+
+**人工验证点**:
+1. 选择 wolf_totem 开局
+2. 购买 wolf 或 dog 单位并部署
+3. 启动第1波战斗
+4. 确认游戏不再崩溃，波次正常进行
+5. 观察狼图腾定时攻击是否正常触发
+
+**关联任务**: TOTEM-WOLF-001 狼图腾全面测试 (阻塞中)
+**生成日志**: logs/ai_session_wolf_totem_20260302_002530.log
+
+---
 
 ## [Inbox - 待合并分支]
 
@@ -88,7 +134,8 @@
 
 - **当前状态**: 处理紧急崩溃修复
 - **最后唤醒**: 2026-03-02 (由项目总监唤醒)
-- **处理中任务**: CRASH-001 Godot字符串格式化错误修复 - Jules任务已派发
+- **处理中任务**: CRASH-WOLF-001 狼图腾波次状态检查缺失修复
+- **最新崩溃**: CRASH-WOLF-001 MechanicWolfTotem.gd 缺少 GameManager.is_wave_active 检查
 - **最新合并**: feature/balance_fix_wave1 已归档
 - **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项
 - **Jules并行能力**: 最多同时派发5个独立任务
