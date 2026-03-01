@@ -269,31 +269,68 @@ func _handle_client_message(text: String):
 func _generate_natural_language_state() -> String:
 	var wave = GameManager.wave
 	var gold = GameManager.gold
+	var mana = GameManager.mana
+	var max_mana = GameManager.max_mana
 	var hp = GameManager.core_health
 	var max_hp = GameManager.max_core_health
 
-	var desc = "当前状态：第 %d 波，金币 %d，核心血量 %.1f/%.1f。 " % [wave, gold, hp, max_hp]
+	var desc = "当前状态：第 %d 波，金币 %d，法力值 %.1f/%.1f，核心血量 %.1f/%.1f。 " % [wave, gold, mana, max_mana, hp, max_hp]
 
 	if GameManager.session_data:
+		# 场上单位
 		var grid_desc = ""
 		for key in GameManager.session_data.grid_units:
 			var unit = GameManager.session_data.grid_units[key]
 			var pos = key
-			var type = unit.type_key if typeof(unit) == TYPE_OBJECT and "type_key" in unit else "未知"
-			var level = unit.level if typeof(unit) == TYPE_OBJECT and "level" in unit else 1
+			var type = unit.key if typeof(unit) == TYPE_DICTIONARY and "key" in unit else "未知"
+			if typeof(unit) == TYPE_OBJECT and "type_key" in unit:
+				type = unit.type_key
+			var level = unit.level if (typeof(unit) == TYPE_DICTIONARY or typeof(unit) == TYPE_OBJECT) and "level" in unit else 1
 			grid_desc += "%s(Lv%d)在%s，" % [type, level, pos]
 		if grid_desc != "":
-			desc += "场上单位：" + grid_desc.trim_suffix("，") + "。"
+			desc += "场上单位：" + grid_desc.trim_suffix("，") + "。 "
 		else:
-			desc += "场上没有单位。"
+			desc += "场上没有单位。 "
 
+		# 备战席单位
+		var bench_desc = ""
+		for i in GameManager.session_data.bench_units.keys():
+			var unit = GameManager.session_data.bench_units[i]
+			var type = unit.key if typeof(unit) == TYPE_DICTIONARY and "key" in unit else "未知"
+			if typeof(unit) == TYPE_OBJECT and "type_key" in unit:
+				type = unit.type_key
+			var level = unit.level if (typeof(unit) == TYPE_DICTIONARY or typeof(unit) == TYPE_OBJECT) and "level" in unit else 1
+			bench_desc += "%s(Lv%d)在槽位%d，" % [type, level, i]
+		if bench_desc != "":
+			desc += "备战席单位：" + bench_desc.trim_suffix("，") + "。 "
+		else:
+			desc += "备战席为空。 "
+
+		# 商店信息
 		var shop_desc = ""
 		for i in range(4):
 			var unit_key = GameManager.session_data.get_shop_unit(i)
 			if unit_key:
-				shop_desc += "%s，" % unit_key
+				var cost = 0
+				if Constants.UNIT_TYPES.has(unit_key) and Constants.UNIT_TYPES[unit_key].has("cost"):
+					cost = Constants.UNIT_TYPES[unit_key]["cost"]
+				elif Constants.UNIT_TYPES.has(unit_key) and Constants.UNIT_TYPES[unit_key].has("levels") and Constants.UNIT_TYPES[unit_key]["levels"].has("1") and Constants.UNIT_TYPES[unit_key]["levels"]["1"].has("cost"):
+					cost = Constants.UNIT_TYPES[unit_key]["levels"]["1"]["cost"]
+				shop_desc += "%s(%d金币)，" % [unit_key, cost]
 		if shop_desc != "":
-			desc += " 商店提供：" + shop_desc.trim_suffix("，") + "。"
+			desc += "商店提供：" + shop_desc.trim_suffix("，") + "。 "
+		else:
+			desc += "商店为空。 "
+
+	# 网格与扩建
+	var empty_grids = 0
+	if GameManager.grid_manager:
+		var active_tiles = GameManager.grid_manager.active_territory_tiles
+		for tile in active_tiles:
+			if is_instance_valid(tile) and tile.unit == null and tile.occupied_by == Vector2i.ZERO:
+				empty_grids += 1
+	var tile_cost = GameManager.tile_cost
+	desc += "空余网格数量：%d，下一次扩建网格所需金币费用：%d。" % [empty_grids, tile_cost]
 
 	return desc
 

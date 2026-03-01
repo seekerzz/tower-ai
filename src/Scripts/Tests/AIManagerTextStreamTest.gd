@@ -68,7 +68,7 @@ func _run_tests():
 	var msg = '{"type": "observe"}'
 	ai_manager._handle_client_message(msg)
 
-	var expected_part = "第 5 波，金币 150，核心血量 450.0/500.0"
+	var expected_part = "第 5 波，金币 150，法力值 500.0/1000.0，核心血量 450.0/500.0"
 	if not expected_part in mock_peer.last_sent_text:
 		print("❌ FAIL: observe action did not generate correct natural language string. Got: ", mock_peer.last_sent_text)
 	else:

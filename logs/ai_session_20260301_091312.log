@@ -1,4 +1,0 @@
-【系统严重报错】检测到 Godot 引擎崩溃：
-错误类型：SCRIPT ERROR: Division by zero
-堆栈：
-At: res://src/test.gd:42
