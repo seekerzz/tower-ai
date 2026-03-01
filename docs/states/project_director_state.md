@@ -31,6 +31,32 @@
 
 ## [Inbox - 待办]
 
+### 🚨 流程问题反馈 (来自技术总监)
+
+**问题**: Jules API 代理连接失败，阻塞CRASH-001修复任务派发
+
+**来源**: @Tech_Director -- 2026-03-02T00:20:00+08:00
+
+**错误信息**:
+```
+HTTPSConnectionPool(host='jules.googleapis.com', port=443): Max retries exceeded with url: /v1alpha/sessions
+(Caused by ProxyError('Cannot connect to proxy.', NewConnectionError('[Errno 111] Connection refused')))
+```
+
+**影响**:
+- CRASH-001修复任务无法通过Jules派发
+- 8个图腾测试任务继续阻塞
+- AI Player跑测全面停滞
+
+**建议方案**:
+1. 检查代理配置 `http_proxy=http://192.168.123.52:11810` 是否有效
+2. 尝试直接连接（不使用代理）
+3. 启用备用修复流程：由当前Agent(Claude)直接执行代码修复
+
+**优先级**: P0 - 阻塞整个测试任务链
+
+---
+
 ### 🔥 全面图腾及单位机制AI测试任务链 (2026-03-01启动)
 
 **任务背景**：第1波平衡性修复已完成，现启动全量机制验证测试，覆盖6大图腾流派及全部单位机制。
@@ -68,6 +94,7 @@
 3. [x] AI Player重新跑测验证修复效果 ✓ 已完成
 4. [x] 技术总监合并分支并归档 ✓ 已完成
 5. [进行中] 全面图腾机制AI测试任务链 ← 当前阶段
+6. [紧急] CRASH-001修复 - 启用备用执行方案（直接代码修复）
 
 ---
 

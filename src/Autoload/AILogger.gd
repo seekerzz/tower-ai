@@ -48,7 +48,7 @@ func event(message: String):
 ## 动作日志 - AI 动作解析与执行
 func action(message: String):
 	if SHOW_ACTION:
-		print_rich("s%s[动作] %s%s" % [_timestamp(), COLOR_ACTION, message, COLOR_RESET])
+		print_rich("%s%s[动作] %s%s" % [_timestamp(), COLOR_ACTION, message, COLOR_RESET])
 
 ## 错误日志 - 动作执行拦截与报错
 func error(message: String):
