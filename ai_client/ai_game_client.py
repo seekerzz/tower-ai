@@ -30,6 +30,7 @@ import signal
 from pathlib import Path
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from datetime import datetime
 
 # 添加项目根目录到路径
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -79,6 +80,12 @@ class AIGameClient:
         self._pending_response: Optional[asyncio.Future] = None
         self._last_state: Optional[Dict] = None
         self._ws_connected = False
+
+        # 初始化日志文件
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self._log_dir = Path("logs")
+        self._log_dir.mkdir(exist_ok=True)
+        self._log_file = self._log_dir / f"ai_session_{timestamp}.log"
 
     async def run(self):
         """主运行循环"""
@@ -166,21 +173,20 @@ class AIGameClient:
                     data = json.loads(message)
                     self._last_state = data
                     event_type = data.get('event', 'unknown')
+
+                    # 打印 JSON 到 stdout，供外部 AI 实时读取
+                    print(json.dumps(data, ensure_ascii=False), flush=True)
+
+                    # 将消息追加到日志文件
+                    with open(self._log_file, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(data, ensure_ascii=False) + "\n")
+
                     logger.debug(f"收到 WebSocket 消息: {event_type}")
 
                     # 处理心跳消息 - 不设置响应，只更新最后状态
                     if event_type == 'Ping':
                         logger.debug(f"收到心跳: {data.get('timestamp', 'unknown')}")
                         continue
-
-                    # 如果有等待的响应，设置结果
-                    if self._pending_response and not self._pending_response.done():
-                        self._pending_response.set_result(data)
-                        logger.info(f"响应已设置: {event_type}")
-                    else:
-                        # 没有等待的请求，只是更新状态
-                        if event_type != 'AI_Wakeup':  # 减少日志噪音
-                            logger.info(f"收到未请求的状态更新: {event_type}")
 
                 except json.JSONDecodeError:
                     logger.warning(f"收到无效 JSON: {message}")
@@ -227,30 +233,15 @@ class AIGameClient:
 
         # 发送动作到 Godot
         try:
-            # 创建 Future 等待响应（必须先创建，避免响应到达时 Future 不存在）
-            self._pending_response = asyncio.Future()
-
             message = {"actions": actions}
             await self.websocket.send(json.dumps(message))
             logger.info(f"发送动作: {len(actions)} 个")
 
-            # 等待响应（带超时）- 增加超时时间以应对波次转换期间的延迟
-            try:
-                response = await asyncio.wait_for(
-                    self._pending_response,
-                    timeout=60.0
-                )
-                return response
-
-            except asyncio.TimeoutError:
-                # 如果超时，返回最后一次收到的状态
-                if self._last_state:
-                    logger.warning(f"等待响应超时，返回最后一次状态: {self._last_state.get('event', 'unknown')}")
-                    return self._last_state
-                return {
-                    "event": "Error",
-                    "error_message": "Timeout waiting for game state"
-                }
+            # 立即返回成功，不等待游戏状态（状态由下行链路实时推送）
+            return {
+                "status": "ok",
+                "message": "Actions sent"
+            }
 
         except Exception as e:
             logger.error(f"发送动作失败: {e}")
@@ -274,14 +265,6 @@ class AIGameClient:
         """Godot 崩溃回调"""
         logger.error(f"Godot 崩溃: {crash_info.error_type}")
 
-        # 如果有等待的响应，返回崩溃信息
-        if self._pending_response and not self._pending_response.done():
-            self._pending_response.set_result({
-                "event": "SystemCrash",
-                "error_type": crash_info.error_type,
-                "stack_trace": crash_info.stack_trace
-            })
-
         # 触发关闭
         self._shutdown_event.set()
 
@@ -291,8 +274,10 @@ class AIGameClient:
         print("\n" + "=" * 60)
         print(f"Godot AI 客户端已启动 - {mode}")
         print("=" * 60)
-        print(f"HTTP 端口: {self.config.http_port}")
-        print(f"Godot WebSocket 端口: {self.config.godot_ws_port}")
+        print(f"【重要】外部 AI 交互端口配置：")
+        print(f"HTTP 控制端口 (用于发送动作): {self.config.http_port}")
+        print(f"Godot WebSocket 端口 (内部使用): {self.config.godot_ws_port}")
+        print(f"\n日志文件已创建: {self._log_file}")
         print("\n使用示例:")
         print(f'  curl -X POST http://127.0.0.1:{self.config.http_port}/action \\')
         print('       -H "Content-Type: application/json" \\')

@@ -21,6 +21,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from ai_client.utils import find_free_port
 
 
+import pytest
+
+@pytest.mark.asyncio
 async def test_crash_detection():
     """测试崩溃检测"""
     print("=" * 60)
