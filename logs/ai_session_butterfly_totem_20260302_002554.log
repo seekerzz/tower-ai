@@ -1,0 +1,161 @@
+[2026-03-02 00:25:54.809] [SYSTEM] 
+================================================================================
+[2026-03-02 00:25:54.811] [SYSTEM] 开始执行蝴蝶图腾全面测试套件
+[2026-03-02 00:25:54.812] [SYSTEM] ================================================================================
+[2026-03-02 00:25:54.813] [SYSTEM] ================================================================================
+[2026-03-02 00:25:54.814] [SYSTEM] 启动蝴蝶图腾流派全面测试 (TOTEM-BUTTERFLY-001)
+[2026-03-02 00:25:54.815] [SYSTEM] ================================================================================
+[2026-03-02 00:25:54.819] [SYSTEM] 启动命令: python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/CoreSelection.tscn --http-port 8080 --visual
+[2026-03-02 00:25:54.821] [SYSTEM] 等待AI客户端启动...
+[2026-03-02 00:25:59.828] [SYSTEM] AI客户端连接成功
+[2026-03-02 00:26:02.832] [TEST] 
+================================================================================
+[2026-03-02 00:26:02.834] [TEST] 【测试1】选择蝴蝶图腾 (butterfly_totem)
+[2026-03-02 00:26:02.835] [TEST] ================================================================================
+[2026-03-02 00:26:02.837] [DEBUG] 响应: {'status': 'ok', 'message': 'Actions sent'}
+[2026-03-02 00:26:15.271] [VALIDATION] ✅ [图腾选择] 蝴蝶图腾选择成功
+[2026-03-02 00:26:17.272] [TEST] 
+================================================================================
+[2026-03-02 00:26:17.274] [TEST] 【测试2】法球机制验证
+[2026-03-02 00:26:17.275] [TEST] 验证点: 3颗环绕法球生成、穿透、伤害20、法力回复
+[2026-03-02 00:26:17.276] [TEST] ================================================================================
+[2026-03-02 00:26:17.278] [DEBUG] 开始波次响应: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:35.307] [DEBUG] 法球相关观测: 0 条
+[2026-03-02 00:26:35.309] [VALIDATION] ❌ [法球生成] 找到 0 条法球相关观测
+[2026-03-02 00:26:35.310] [VALIDATION] ❌ [法球伤害] 法球造成伤害
+[2026-03-02 00:26:35.311] [VALIDATION] ❌ [法力回复] 法球回复法力
+[2026-03-02 00:26:37.741] [TEST] 
+================================================================================
+[2026-03-02 00:26:37.742] [TEST] 【测试3】购买蝴蝶流派单位
+[2026-03-02 00:26:37.743] [TEST] 目标单位: 火炬、蝴蝶、冰晶蝶、仙女龙、萤火虫、凤凰、电鳗、龙
+[2026-03-02 00:26:37.744] [TEST] ================================================================================
+[2026-03-02 00:26:37.746] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:38.248] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:38.751] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:39.254] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:39.757] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:45.770] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:46.273] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:46.776] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:47.279] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:47.782] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:53.794] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:54.297] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:54.800] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:55.303] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:26:55.806] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:01.818] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:02.321] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:02.824] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:03.327] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:03.830] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:10.282] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:10.785] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:11.287] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:11.790] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:12.293] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:18.306] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:18.809] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:19.311] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:19.814] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:20.317] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:26.330] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:26.832] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:27.335] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:27.839] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:28.342] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:34.354] [DEBUG] 购买槽位 0: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:34.857] [DEBUG] 购买槽位 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:35.360] [DEBUG] 购买槽位 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:35.863] [DEBUG] 购买槽位 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:36.365] [DEBUG] 刷新商店: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:27:42.377] [VALIDATION] ❌ [单位购买] 成功购买 0 个单位
+[2026-03-02 00:27:44.783] [TEST] 
+================================================================================
+[2026-03-02 00:27:44.785] [TEST] 【测试4】蝴蝶法力消耗附加伤害机制
+[2026-03-02 00:27:44.786] [TEST] 验证点: 消耗5%最大法力,附加消耗法力100%的伤害
+[2026-03-02 00:27:44.787] [TEST] ================================================================================
+[2026-03-02 00:27:56.808] [DEBUG] 法力相关观测: 0 条
+[2026-03-02 00:27:56.810] [VALIDATION] ❌ [法力消耗机制] 找到 0 条法力相关观测
+[2026-03-02 00:27:58.813] [TEST] 
+================================================================================
+[2026-03-02 00:27:58.814] [TEST] 【测试5】冰晶蝶冻结debuff和冻结延长
+[2026-03-02 00:27:58.815] [TEST] 验证点: 攻击叠加冰冻debuff，3层冻结1秒，法球命中冻结敌人伤害翻倍
+[2026-03-02 00:27:58.816] [TEST] ================================================================================
+[2026-03-02 00:28:10.836] [DEBUG] 冻结相关观测: 0 条
+[2026-03-02 00:28:10.838] [VALIDATION] ❌ [冰冻debuff] 找到 0 条冰冻相关观测
+[2026-03-02 00:28:12.841] [TEST] 
+================================================================================
+[2026-03-02 00:28:12.843] [TEST] 【测试6】仙女龙传送概率和相位崩塌
+[2026-03-02 00:28:12.844] [TEST] 验证点: 25%概率传送敌人，被传送敌人叠加两层瘟疫debuff
+[2026-03-02 00:28:12.845] [TEST] ================================================================================
+[2026-03-02 00:28:25.299] [DEBUG] 传送相关观测: 0 条
+[2026-03-02 00:28:25.301] [VALIDATION] ❌ [传送机制] 找到 0 条传送相关观测
+[2026-03-02 00:28:27.304] [TEST] 
+================================================================================
+[2026-03-02 00:28:27.305] [TEST] 【测试7】萤火虫致盲和Miss回蓝
+[2026-03-02 00:28:27.306] [TEST] 验证点: 攻击给敌人致盲debuff，致盲敌人Miss回复10法力
+[2026-03-02 00:28:27.307] [TEST] ================================================================================
+[2026-03-02 00:28:39.330] [DEBUG] 致盲相关观测: 0 条
+[2026-03-02 00:28:39.331] [VALIDATION] ❌ [致盲机制] 找到 0 条致盲相关观测
+[2026-03-02 00:28:41.334] [TEST] 
+================================================================================
+[2026-03-02 00:28:41.336] [TEST] 【测试8】凤凰火雨AOE和临时法球生成
+[2026-03-02 00:28:41.337] [TEST] 验证点: 火雨持续3秒，命中敌人回复法力，结束后生成临时法球
+[2026-03-02 00:28:41.338] [TEST] ================================================================================
+[2026-03-02 00:28:53.360] [DEBUG] 凤凰相关观测: 0 条
+[2026-03-02 00:28:53.361] [VALIDATION] ❌ [火雨AOE] 找到 0 条凤凰相关观测
+[2026-03-02 00:28:55.363] [TEST] 
+================================================================================
+[2026-03-02 00:28:55.365] [TEST] 【测试9】电鳗闪电链弹射和法力震荡
+[2026-03-02 00:28:55.366] [TEST] 验证点: 闪电链弹射4次，每次弹射回复3法力，弹射满3个额外回复
+[2026-03-02 00:28:55.367] [TEST] ================================================================================
+[2026-03-02 00:29:07.596] [DEBUG] 电鳗相关观测: 0 条
+[2026-03-02 00:29:07.597] [VALIDATION] ❌ [闪电链机制] 找到 0 条电鳗相关观测
+[2026-03-02 00:29:09.601] [TEST] 
+================================================================================
+[2026-03-02 00:29:09.602] [TEST] 【测试10】龙的黑洞控制和星辰坠落
+[2026-03-02 00:29:09.603] [TEST] 验证点: 黑洞持续4秒，结束时根据吸入敌人数量造成伤害
+[2026-03-02 00:29:09.604] [TEST] ================================================================================
+[2026-03-02 00:29:21.629] [DEBUG] 龙相关观测: 0 条
+[2026-03-02 00:29:21.631] [VALIDATION] ❌ [黑洞机制] 找到 0 条龙相关观测
+[2026-03-02 00:29:23.634] [TEST] 
+================================================================================
+[2026-03-02 00:29:23.636] [TEST] 【测试11】法力循环极限测试
+[2026-03-02 00:29:23.637] [TEST] 混沌操作: 高频率使用消耗法力的技能，测试法力循环极限
+[2026-03-02 00:29:23.638] [TEST] ================================================================================
+[2026-03-02 00:29:23.640] [DEBUG] 技能使用尝试 1: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:29:24.643] [DEBUG] 技能使用尝试 2: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:29:25.646] [DEBUG] 技能使用尝试 3: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:29:26.650] [DEBUG] 技能使用尝试 4: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:29:27.653] [DEBUG] 技能使用尝试 5: {'event': 'SystemCrash', 'error_type': 'ERROR: Parameter "t" is null.', 'stack_trace': 'ERROR: Parameter "t" is null.'}
+[2026-03-02 00:29:38.676] [DEBUG] 法力循环观测: 0 条
+[2026-03-02 00:29:38.678] [VALIDATION] ❌ [法力循环极限] 找到 0 条法力循环观测
+[2026-03-02 00:29:40.681] [REPORT] 
+================================================================================
+[2026-03-02 00:29:40.683] [REPORT] 蝴蝶图腾流派测试报告
+[2026-03-02 00:29:40.684] [REPORT] ================================================================================
+[2026-03-02 00:29:40.685] [REPORT] 
+总计: 13 项验证
+[2026-03-02 00:29:40.686] [REPORT] 通过: 1 项
+[2026-03-02 00:29:40.687] [REPORT] 失败: 12 项
+[2026-03-02 00:29:40.688] [REPORT] 
+详细结果:
+[2026-03-02 00:29:40.689] [REPORT]   ✅ 图腾选择: 蝴蝶图腾选择成功
+[2026-03-02 00:29:40.691] [REPORT]   ❌ 法球生成: 找到 0 条法球相关观测
+[2026-03-02 00:29:40.692] [REPORT]   ❌ 法球伤害: 法球造成伤害
+[2026-03-02 00:29:40.693] [REPORT]   ❌ 法力回复: 法球回复法力
+[2026-03-02 00:29:40.694] [REPORT]   ❌ 单位购买: 成功购买 0 个单位
+[2026-03-02 00:29:40.695] [REPORT]   ❌ 法力消耗机制: 找到 0 条法力相关观测
+[2026-03-02 00:29:40.696] [REPORT]   ❌ 冰冻debuff: 找到 0 条冰冻相关观测
+[2026-03-02 00:29:40.697] [REPORT]   ❌ 传送机制: 找到 0 条传送相关观测
+[2026-03-02 00:29:40.698] [REPORT]   ❌ 致盲机制: 找到 0 条致盲相关观测
+[2026-03-02 00:29:40.699] [REPORT]   ❌ 火雨AOE: 找到 0 条凤凰相关观测
+[2026-03-02 00:29:40.700] [REPORT]   ❌ 闪电链机制: 找到 0 条电鳗相关观测
+[2026-03-02 00:29:40.701] [REPORT]   ❌ 黑洞机制: 找到 0 条龙相关观测
+[2026-03-02 00:29:40.702] [REPORT]   ❌ 法力循环极限: 找到 0 条法力循环观测
+[2026-03-02 00:29:40.703] [REPORT] 
+================================================================================
+[2026-03-02 00:29:40.704] [REPORT] 日志文件: logs/ai_session_butterfly_totem_20260302_002554.log
+[2026-03-02 00:29:40.705] [REPORT] ================================================================================
+[2026-03-02 00:29:40.706] [SYSTEM] 停止AI客户端...

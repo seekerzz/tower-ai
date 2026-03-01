@@ -147,6 +147,17 @@ func _on_totem_attack():
 
 ## [Archive - 归档]
 
+### 🚨 CRASH-WOLF-001 狼图腾崩溃修复完成
+
+**问题**: MechanicWolfTotem.gd 在波次开始时崩溃
+- 文件: `src/Scripts/CoreMechanics/MechanicWolfTotem.gd`
+- 错误: `_on_totem_attack()` 缺少波次状态检查，非波次期间定时器触发时 `get_nearest_enemies()` 返回无效节点
+- 修复: 添加 `if !GameManager.is_wave_active: return` 和 `if is_instance_valid(enemy)` 检查
+- 修复时间: 2026-03-02
+- 人工验证点: 选择 wolf_totem 开局，部署单位，启动波次，确认不再崩溃
+
+---
+
 ### 🚨 CRASH-001 修复完成
 
 **问题**: AILogger.gd 字符串格式化错误导致AI测试崩溃

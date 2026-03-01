@@ -2,6 +2,29 @@
 
 ## [Inbox - 待办]
 
+### ✅ CRASH-WOLF-001: 狼图腾崩溃修复完成 (技术总监)
+
+**修复时间**: 2026-03-02
+**修复来源**: 技术总监
+**状态**: 已修复，待验证
+
+**修复内容**:
+- 文件: `src/Scripts/CoreMechanics/MechanicWolfTotem.gd`
+- 问题: `_on_totem_attack()` 函数缺少波次状态检查，定时器在非波次期间触发时导致崩溃
+- 修复: 添加 `if !GameManager.is_wave_active: return` 和敌人有效性检查 `if is_instance_valid(enemy)`
+- 参考: 参照蝙蝠图腾(MechanicBatTotem.gd)的正确实现
+
+**人工验证点**:
+1. 选择 wolf_totem 开局
+2. 购买 wolf 或 dog 单位并部署
+3. 启动第1波战斗
+4. 确认游戏不再崩溃，波次正常进行
+5. 观察狼图腾定时攻击是否正常触发
+
+**关联任务**: TOTEM-WOLF-001 狼图腾全面测试 (阻塞已解除)
+
+---
+
 ### 🚨 CRASH-002: 波次启动时游戏崩溃 (P0 - 阻断性缺陷)
 
 **报告时间**: 2026-03-02

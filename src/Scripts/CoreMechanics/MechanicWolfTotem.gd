@@ -26,8 +26,10 @@ func _on_unit_upgraded(_unit, _old_level, _new_level):
 	TotemManager.add_resource(TOTEM_ID, 10)
 
 func _on_totem_attack():
+	if !GameManager.is_wave_active: return
 	var targets = get_nearest_enemies(3)
 	var soul_bonus = TotemManager.get_resource(TOTEM_ID)
 	for enemy in targets:
-		var damage = base_damage + soul_bonus
-		deal_damage(enemy, damage)
+		if is_instance_valid(enemy):
+			var damage = base_damage + soul_bonus
+			deal_damage(enemy, damage)

@@ -1,0 +1,24 @@
+【状态同步】当前核心血量：500.0/500.0
+【图腾选择】请选择你的图腾。可用图腾包括：
+- 狼图腾 (wolf_totem): 
+- 牛图腾 (cow_totem): 
+- 蝙蝠图腾 (bat_totem): 
+- 毒蛇图腾 (viper_totem): 
+- 蝴蝶图腾 (butterfly_totem): 
+- 鹰之图腾 (eagle_totem): 
+【商店刷新】当前商店提供: rock_armor_cow(55金币)，splitter(55金币)，iron_turtle(50金币)，spider(40金币)。
+【图腾选择完成】已选择图腾：cow_totem，游戏开始！
+【状态同步】当前核心血量：500.0/500.0
+【单位购买】购买了 iron_turtle，放入了 bench 坐标 0
+【单位购买】购买了 rock_armor_cow，放入了 bench 坐标 1
+【状态同步】当前核心血量：500.0/500.0
+【单位部署】iron_turtle 被放置在了坐标 (1, 0)
+【商店刷新】当前商店提供: bee(80金币)，torch(35金币)，sunflower(20金币)，lucky_cat(100金币)。
+【状态同步】当前核心血量：1100.0/1100.0
+【单位购买】购买了 sunflower，放入了 bench 坐标 0
+【状态同步】当前核心血量：1100.0/1100.0
+【波次事件】第 1 波战斗正式开始！
+【系统严重报错】检测到 Godot 引擎崩溃：
+错误类型：ERROR: Parameter "t" is null.
+堆栈：
+ERROR: Parameter "t" is null.
