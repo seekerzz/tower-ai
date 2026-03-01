@@ -93,19 +93,12 @@ func _start_ai_mode():
 func _send_totem_selection_to_ai():
 	"""发送图腾选择状态给AI客户端"""
 	var totem_info = _get_totem_info()
+	var info_text = ""
+	for totem_id in totem_info:
+		info_text += "\n- %s (%s): %s" % [totem_info[totem_id]["name"], totem_id, totem_info[totem_id]["description"]]
 
-	var state = {
-		"event": "TotemSelection",
-		"event_data": {
-			"message": "请选择你的图腾",
-			"phase": "selection"
-		},
-		"timestamp": Time.get_unix_time_from_system(),
-		"available_totems": AVAILABLE_TOTEMS,
-		"totem_info": totem_info
-	}
-
-	AIManager._send_json(state)
+	var message = "【图腾选择】请选择你的图腾。可用图腾包括：%s" % info_text
+	AIManager.broadcast_text(message)
 	print("[CoreSelection] 图腾选项已发送，等待AI选择...")
 
 func _get_totem_info() -> Dictionary:

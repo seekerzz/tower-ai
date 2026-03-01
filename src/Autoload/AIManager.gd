@@ -242,12 +242,12 @@ func _handle_client_message(text: String):
 	var json = JSON.new()
 	var err = json.parse(text)
 	if err != OK:
-		_send_error("InvalidJSON", "无法解析 JSON: %s" % text)
+		broadcast_text("【错误】无法解析 JSON: %s" % text)
 		return
 
 	var data = json.get_data()
 	if not data is Dictionary:
-		_send_error("InvalidFormat", "消息必须是 JSON 对象")
+		broadcast_text("【错误】消息必须是 JSON 对象")
 		return
 
 	if is_game_over:
@@ -264,7 +264,7 @@ func _handle_client_message(text: String):
 		if actions is Array:
 			action_received.emit(actions)
 		else:
-			_send_error("InvalidFormat", "actions 必须是数组")
+			broadcast_text("【错误】actions 必须是数组")
 
 func _generate_natural_language_state() -> String:
 	var wave = GameManager.wave
@@ -299,44 +299,12 @@ func _generate_natural_language_state() -> String:
 
 # ===== 网络发送 =====
 
-func _send_json(data: Dictionary):
-	if not websocket_peer:
-		return
-
-	var state = websocket_peer.get_ready_state()
-	if state != WebSocketPeer.STATE_OPEN:
-		return
-
-	var json_str = JSON.stringify(data)
-	websocket_peer.send_text(json_str)
-
-func _send_error(error_type: String, message: String):
-	_send_json({
-		"event": "Error",
-		"error_type": error_type,
-		"error_message": message
-	})
-
 func _send_ping():
-	_send_json({
-		"event": "Ping",
-		"timestamp": Time.get_unix_time_from_system()
-	})
-
-func send_action_error(error_message: String, failed_action: Dictionary):
-	_send_json({
-		"event": "ActionError",
-		"error_message": error_message,
-		"failed_action": failed_action
-	})
-
+	var core_health = GameManager.core_health
+	var max_health = GameManager.max_core_health
+	broadcast_text("【状态同步】当前核心血量：%.1f/%.1f" % [core_health, max_health])
 
 # ===== 公共 API =====
-
-func force_send_state(event_type: String, event_data: Dictionary = {}):
-	# Fallback if anything still calls this for legacy state passing
-	var state_json = JSON.stringify({"event": event_type, "data": event_data})
-	broadcast_text(state_json)
 
 func is_ai_connected() -> bool:
 	return is_client_connected

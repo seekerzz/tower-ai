@@ -75,6 +75,34 @@ func _run_tests():
 		print("✅ PASS: observe action generates correct natural language string")
 		pass_count += 1
 
+	# Test 3: Test Ping sends natural language string
+	mock_peer.last_sent_text = ""
+	total_count += 1
+	ai_manager._send_ping()
+	var expected_ping = "【状态同步】当前核心血量：450.0/500.0"
+
+	if not expected_ping in mock_peer.last_sent_text:
+		print("❌ FAIL: _send_ping did not generate correct natural language string. Got: ", mock_peer.last_sent_text)
+	elif "{" in mock_peer.last_sent_text or "event" in mock_peer.last_sent_text:
+		print("❌ FAIL: _send_ping generated JSON instead of natural text. Got: ", mock_peer.last_sent_text)
+	else:
+		print("✅ PASS: _send_ping generates correct natural language string")
+		pass_count += 1
+
+	# Test 4: Test handling client message with invalid format
+	mock_peer.last_sent_text = ""
+	total_count += 1
+	var invalid_msg = '{"invalid_format":'
+	ai_manager._handle_client_message(invalid_msg)
+
+	if "{" in mock_peer.last_sent_text and "event" in mock_peer.last_sent_text:
+		print("❌ FAIL: _handle_client_message sent JSON error instead of natural text. Got: ", mock_peer.last_sent_text)
+	elif not "无法解析 JSON" in mock_peer.last_sent_text:
+		print("❌ FAIL: _handle_client_message didn't return proper error text. Got: ", mock_peer.last_sent_text)
+	else:
+		print("✅ PASS: _handle_client_message handles error with natural text")
+		pass_count += 1
+
 	print("\n=== AIManagerTextStreamTest Results ===")
 	print("Total: %d/%d passed" % [pass_count, total_count])
 
