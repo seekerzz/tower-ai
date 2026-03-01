@@ -11,7 +11,7 @@ var port: int = DEFAULT_PORT
 
 # ===== 网络组件 =====
 var tcp_server: TCPServer = null
-var websocket_peer: WebSocketPeer = null
+var websocket_peer = null # Removed strong type to allow mocking in tests
 var is_client_connected: bool = false
 
 # ===== 状态 =====
@@ -168,266 +168,73 @@ func _connect_game_signals():
 # ===== 事件处理器 =====
 
 func _on_wave_started():
-	_send_state_async("WaveStarted", {"wave": GameManager.wave})
+	# NarrativeLogger handles wave started
+	pass
 
 func _on_wave_ended():
-	_send_state_async("WaveEnded", {"wave": GameManager.wave})
+	# NarrativeLogger handles wave ended
+	pass
 
 func _on_wave_reset():
 	is_game_over = false
-	_send_state_async("WaveReset", {"wave": GameManager.wave})
+	broadcast_text("【系统提示】波次已重置。")
 
 func _on_wave_system_started(wave_number: int, wave_type: String, difficulty: float):
+	# NarrativeLogger handles wave started
 	AILogger.event("波次系统开始波次 %d，立即通知AI客户端" % wave_number)
-	_send_state_async("WaveStarted", {
-		"wave": wave_number,
-		"wave_type": wave_type,
-		"difficulty": difficulty
-	})
 
 func _on_wave_system_ended(wave_number: int, stats: Dictionary):
+	# NarrativeLogger handles wave ended
 	AILogger.event("波次系统结束波次 %d，立即通知AI客户端" % wave_number)
-
-	var unlocked_tiles = []
-	if BoardController:
-		unlocked_tiles = BoardController.get_unlocked_tiles()
-
-	var event_data = {
-		"wave": wave_number,
-		"stats": {
-			"duration": stats.get("duration", 0),
-			"enemies_defeated": stats.get("enemies_defeated", 0),
-			"enemies_spawned": stats.get("enemies_spawned", 0),
-			"gold_earned": stats.get("gold_earned", 0)
-		},
-		"unlocked_tiles": unlocked_tiles
-	}
-	_send_state_async("WaveEnded", event_data)
 
 func _on_upgrade_selection_shown():
 	AILogger.event("升级选择界面已显示，通知AI客户端")
-	_send_state_async("UpgradeSelection", {
-		"message": "Wave completed. Upgrade selection is now available."
-	})
+	broadcast_text("【系统提示】波次完成，可以进行升级选择了。")
 
 func _on_game_over():
 	is_game_over = true
 	AILogger.event("游戏结束，发送 GameOver 事件给 AI")
-	_send_state_async("GameOver", {"wave": GameManager.wave, "core_health": GameManager.core_health})
+	broadcast_text("【系统提示】游戏结束，图腾核心已被摧毁！")
 
 func _on_enemy_spawned(enemy: Node):
 	if enemy and "enemy_data" in enemy and enemy.enemy_data:
 		var data = enemy.enemy_data
 		if data and data.get("is_boss", false):
-			_send_state_async("BossSpawned", {
-				"enemy_type": enemy.type_key if "type_key" in enemy else "unknown",
-				"position": _vec2_to_dict(enemy.global_position)
-			})
+			var enemy_type = enemy.type_key if "type_key" in enemy else "未知"
+			broadcast_text("【Boss出现】强大的 %s 出现了！" % enemy_type)
 
 func _on_damage_dealt(unit, amount):
+	# NarrativeLogger handles core damage
 	if unit == null and amount > 0:
 		var core_health = GameManager.core_health
 		var max_health = GameManager.max_core_health
 		var health_percent = core_health / max_health if max_health > 0 else 1.0
 
-		var event_data = {
-			"health": core_health,
-			"max_health": max_health,
-			"health_percent": health_percent,
-			"damage": amount
-		}
-
 		if health_percent < 0.3:
-			_send_state_async("CoreCritical", event_data)
-		else:
-			_send_state_async("CoreDamaged", event_data)
+			broadcast_text("【危险警告】图腾核心血量低于30%！")
 
 func _on_trap_placed(trap_type: String, position: Vector2, source_unit):
-	var unit_type = source_unit.type_key if source_unit and source_unit.has_method("get") and source_unit.get("type_key") else "unknown"
-	var unit_level = source_unit.level if source_unit and source_unit.has_method("get") and source_unit.get("level") else 1
-
-	_send_state_async("TrapPlaced", {
-		"trap_type": trap_type,
-		"position": _vec2_to_dict(position),
-		"source_unit": unit_type,
-		"source_unit_level": unit_level
-	})
+	var unit_type = source_unit.type_key if source_unit and source_unit.has_method("get") and source_unit.get("type_key") else "未知单位"
+	broadcast_text("【陷阱放置】%s 放置了一个陷阱（类型：%s）。" % [unit_type, trap_type])
 
 func _on_trap_triggered(trap_type: String, target_enemy, source_unit):
-	var unit_type = source_unit.type_key if source_unit and source_unit.has_method("get") and source_unit.get("type_key") else "unknown"
-	var enemy_type = target_enemy.type_key if target_enemy and target_enemy.has_method("get") and target_enemy.get("type_key") else "unknown"
-	var enemy_name = target_enemy.name if target_enemy and target_enemy.has_method("get") and target_enemy.get("name") else "unknown"
-	var enemy_position = target_enemy.global_position if target_enemy else Vector2.ZERO
+	var unit_type = source_unit.type_key if source_unit and source_unit.has_method("get") and source_unit.get("type_key") else "未知单位"
+	var enemy_name = target_enemy.name if target_enemy and target_enemy.has_method("get") and target_enemy.get("name") else "未知敌人"
+	broadcast_text("【陷阱触发】%s 踩中了 %s 放置的陷阱（类型：%s）。" % [enemy_name, unit_type, trap_type])
 
-	_send_state_async("TrapTriggered", {
-		"trap_type": trap_type,
-		"target_enemy": enemy_type,
-		"target_enemy_name": enemy_name,
-		"target_position": _vec2_to_dict(enemy_position),
-		"source_unit": unit_type,
-		"poison_stacks": 2
-	})
-
-# ===== 发送状态 =====
-
-func _send_state_async(event_type: String, event_data: Dictionary = {}):
-	if not is_client_connected:
-		return
-	var state = _build_state(event_type, event_data)
-
-	last_event_type = event_type
-	last_event_data = event_data
-	state_sent.emit(event_type, state)
-
-	_send_json(state)
 
 # ===== 广播文字日志 =====
 
-func broadcast_narrative(event_data: Dictionary):
+func broadcast_text(text: String):
 	if not is_client_connected:
 		return
-	_send_json(event_data)
+	if not websocket_peer:
+		return
 
-# ===== 状态构建 =====
+	var state = websocket_peer.get_ready_state()
+	if state == WebSocketPeer.STATE_OPEN:
+		websocket_peer.send_text(text)
 
-func _build_state(event_type: String, event_data: Dictionary) -> Dictionary:
-	var state = {
-		"event": event_type,
-		"event_data": event_data,
-		"timestamp": Time.get_unix_time_from_system(),
-		"global": _build_global_state(),
-		"board": _build_board_state()
-	}
-
-	# 战斗阶段才下发敌人列表
-	if GameManager.is_wave_active:
-		state["enemies"] = _build_enemies_state()
-
-	return state
-
-func _build_global_state() -> Dictionary:
-	var session = GameManager.session_data
-	if not session:
-		return {}
-
-	return {
-		"wave": session.wave,
-		"gold": session.gold,
-		"mana": session.mana,
-		"max_mana": session.max_mana,
-		"core_health": session.core_health,
-		"max_core_health": session.max_core_health,
-		"is_wave_active": session.is_wave_active,
-		"shop_refresh_cost": session.shop_refresh_cost
-	}
-
-func _build_board_state() -> Dictionary:
-	var session = GameManager.session_data
-	if not session:
-		return {"shop": [], "bench": [], "grid": []}
-
-	# 商店状态
-	var shop = []
-	for i in range(4):
-		var unit_key = session.get_shop_unit(i)
-		shop.append({
-			"index": i,
-			"unit_key": unit_key,
-			"locked": session.is_shop_slot_locked(i)
-		})
-
-	# 备战区状态
-	var bench = []
-	for i in range(Constants.BENCH_SIZE):
-		var unit = session.get_bench_unit(i)
-		bench.append({
-			"index": i,
-			"unit": _unit_to_dict(unit)
-		})
-
-	# 网格状态
-	var grid = []
-	for key in session.grid_units:
-		var unit = session.grid_units[key]
-		var pos = _key_to_vec2i(key)
-		grid.append({
-			"position": {"x": pos.x, "y": pos.y},
-			"unit": _unit_to_dict(unit)
-		})
-
-	return {
-		"shop": shop,
-		"bench": bench,
-		"grid": grid
-	}
-
-func _build_enemies_state() -> Array:
-	var enemies = []
-	var enemy_nodes = get_tree().get_nodes_in_group("enemies")
-
-	for enemy in enemy_nodes:
-		if not is_instance_valid(enemy):
-			continue
-
-		var enemy_info = {
-			"name": enemy.type_key if "type_key" in enemy else "unknown",
-			"hp": enemy.hp if "hp" in enemy else 0,
-			"position": _vec2_to_dict(enemy.global_position),
-			"state": _enemy_state_to_string(enemy.state) if "state" in enemy else "unknown"
-		}
-
-		var debuffs = _get_enemy_debuffs(enemy)
-		if debuffs.size() > 0:
-			enemy_info["debuffs"] = debuffs
-
-		if "faction" in enemy and enemy.faction == "player":
-			enemy_info["is_charmed"] = true
-
-		if "behavior" in enemy and enemy.behavior:
-			var behavior = enemy.behavior
-			if behavior.has_method("set_split_info"):
-				enemy_info["split_generation"] = behavior.get("split_generation", 0)
-
-		enemies.append(enemy_info)
-
-	return enemies
-
-func _get_enemy_debuffs(enemy: Node) -> Array:
-	var debuffs = []
-
-	if enemy.has_method("has_status"):
-		if enemy.has_status("poison"):
-			var poison_stacks = _get_effect_stacks(enemy, "poison")
-			debuffs.append({"type": "poison", "stacks": poison_stacks})
-		if enemy.has_status("burn"):
-			var burn_stacks = _get_effect_stacks(enemy, "burn")
-			debuffs.append({"type": "burn", "stacks": burn_stacks})
-		if enemy.has_status("slow"):
-			var slow_stacks = _get_effect_stacks(enemy, "slow")
-			debuffs.append({"type": "slow", "stacks": slow_stacks})
-		if enemy.has_status("vulnerable"):
-			var vuln_stacks = _get_effect_stacks(enemy, "vulnerable")
-			debuffs.append({"type": "vulnerable", "stacks": vuln_stacks})
-
-	if "bleed_stacks" in enemy and enemy.bleed_stacks > 0:
-		debuffs.append({"type": "bleed", "stacks": enemy.bleed_stacks})
-
-	if "stun_timer" in enemy and enemy.stun_timer > 0:
-		debuffs.append({"type": "stun", "duration": enemy.stun_timer})
-	if "freeze_timer" in enemy and enemy.freeze_timer > 0:
-		debuffs.append({"type": "freeze", "duration": enemy.freeze_timer})
-	if "blind_timer" in enemy and enemy.blind_timer > 0:
-		debuffs.append({"type": "blind", "duration": enemy.blind_timer})
-
-	return debuffs
-
-func _get_effect_stacks(enemy: Node, effect_type: String) -> int:
-	for c in enemy.get_children():
-		if c is StatusEffect and c.type_key == effect_type:
-			if "stacks" in c:
-				return c.stacks
-			return 1
-	return 1
 
 # ===== 客户端消息处理 =====
 
@@ -444,7 +251,12 @@ func _handle_client_message(text: String):
 		return
 
 	if is_game_over:
-		_send_state_async("GameOver", {"wave": GameManager.wave, "core_health": 0, "message": "Game already over"})
+		broadcast_text("【游戏结束】当前波次：%d，核心血量：0。" % GameManager.wave)
+		return
+
+	if data.has("type") and data["type"] == "observe":
+		var state_text = _generate_natural_language_state()
+		broadcast_text(state_text)
 		return
 
 	if data.has("actions"):
@@ -453,6 +265,37 @@ func _handle_client_message(text: String):
 			action_received.emit(actions)
 		else:
 			_send_error("InvalidFormat", "actions 必须是数组")
+
+func _generate_natural_language_state() -> String:
+	var wave = GameManager.wave
+	var gold = GameManager.gold
+	var hp = GameManager.core_health
+	var max_hp = GameManager.max_core_health
+
+	var desc = "当前状态：第 %d 波，金币 %d，核心血量 %.1f/%.1f。 " % [wave, gold, hp, max_hp]
+
+	if GameManager.session_data:
+		var grid_desc = ""
+		for key in GameManager.session_data.grid_units:
+			var unit = GameManager.session_data.grid_units[key]
+			var pos = key
+			var type = unit.type_key if typeof(unit) == TYPE_OBJECT and "type_key" in unit else "未知"
+			var level = unit.level if typeof(unit) == TYPE_OBJECT and "level" in unit else 1
+			grid_desc += "%s(Lv%d)在%s，" % [type, level, pos]
+		if grid_desc != "":
+			desc += "场上单位：" + grid_desc.trim_suffix("，") + "。"
+		else:
+			desc += "场上没有单位。"
+
+		var shop_desc = ""
+		for i in range(4):
+			var unit_key = GameManager.session_data.get_shop_unit(i)
+			if unit_key:
+				shop_desc += "%s，" % unit_key
+		if shop_desc != "":
+			desc += " 商店提供：" + shop_desc.trim_suffix("，") + "。"
+
+	return desc
 
 # ===== 网络发送 =====
 
@@ -487,64 +330,13 @@ func send_action_error(error_message: String, failed_action: Dictionary):
 		"failed_action": failed_action
 	})
 
-# ===== 辅助函数 =====
-
-func _unit_to_dict(unit) -> Dictionary:
-	if unit == null: return {}
-	if unit is Dictionary: return unit
-	if unit is Node and unit.has_method("get_script"):
-		var result = {}
-		if "type_key" in unit: result["type"] = unit.type_key
-		if "level" in unit: result["level"] = unit.level
-		if "damage" in unit: result["damage"] = unit.damage
-		if "range_val" in unit: result["range"] = unit.range_val
-		if "atk_speed" in unit: result["attack_speed"] = unit.atk_speed
-		if "current_hp" in unit: result["hp"] = unit.current_hp
-		if "max_hp" in unit: result["max_hp"] = unit.max_hp
-		if "crit_rate" in unit: result["crit_rate"] = unit.crit_rate
-		if "crit_dmg" in unit: result["crit_damage"] = unit.crit_dmg
-		if "bounce_count" in unit and unit.bounce_count > 0: result["bounce_count"] = unit.bounce_count
-		if "split_count" in unit and unit.split_count > 0: result["split_count"] = unit.split_count
-		if "active_buffs" in unit and unit.active_buffs.size() > 0: result["buffs"] = unit.active_buffs.duplicate()
-		if "skill_cooldown" in unit and unit.skill_cooldown > 0: result["skill_cooldown"] = unit.skill_cooldown
-
-		if "unit_data" in unit and unit.unit_data:
-			var data = unit.unit_data
-			if data.has("attackType"): result["attack_type"] = data.attackType
-			if data.has("skill"): result["skill"] = data.skill
-			if data.has("proj"): result["projectile_type"] = data.proj
-		return result
-	return {}
-
-func _vec2_to_dict(v: Vector2) -> Dictionary:
-	return {"x": v.x, "y": v.y}
-
-func _vec2i_to_dict(v: Vector2i) -> Dictionary:
-	return {"x": v.x, "y": v.y}
-
-func _key_to_vec2i(key: String) -> Vector2i:
-	var parts = key.split(",")
-	if parts.size() == 2:
-		return Vector2i(int(parts[0]), int(parts[1]))
-	return Vector2i.ZERO
-
-func _dict_to_vec2i(d: Dictionary) -> Vector2i:
-	return Vector2i(d.get("x", 0), d.get("y", 0))
-
-func _enemy_state_to_string(state) -> String:
-	if state == null:
-		return "unknown"
-	match state:
-		0: return "move"
-		1: return "attack_base"
-		2: return "stunned"
-		3: return "support"
-		_: return "unknown"
 
 # ===== 公共 API =====
 
 func force_send_state(event_type: String, event_data: Dictionary = {}):
-	_send_state_async(event_type, event_data)
+	# Fallback if anything still calls this for legacy state passing
+	var state_json = JSON.stringify({"event": event_type, "data": event_data})
+	broadcast_text(state_json)
 
 func is_ai_connected() -> bool:
 	return is_client_connected

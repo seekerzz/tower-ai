@@ -1,68 +1,56 @@
 extends SceneTree
 
-var narrative_logger = null
-
 func _init():
 	print("=== Starting NarrativeLoggerTest ===")
+	call_deferred("_run_tests")
 
-	narrative_logger = load("res://src/Autoload/NarrativeLogger.gd").new()
+func _run_tests():
+	var narrative_logger = null
+	if self.root.has_node("NarrativeLogger"):
+		narrative_logger = self.root.get_node("NarrativeLogger")
+
 	if not narrative_logger:
-		printerr("Failed to load NarrativeLogger")
+		print("❌ FAIL: NarrativeLogger not found")
 		quit(1)
 		return
 
-	root.add_child(narrative_logger)
+	var ai_manager = self.root.get_node("AIManager")
 
-	await process_frame
+	# We can't easily mock AIManager without changing its autoload status,
+	# but we can check if it calls broadcast_text properly.
+	# We will dynamically replace broadcast_text with a mock method to intercept calls!
 
-	_run_tests()
+	var intercepted_text = ""
 
-func _run_tests():
-	var tests = [
-		{"name": "NarrativeLogger exists", "fn": _test_exists},
-		{"name": "Generates valid dictionary", "fn": _test_generation}
-	]
+	if ai_manager:
+		# Use Godot 4 callable to mock
+		var mock_func = func(text: String):
+			intercepted_text = text
 
-	var passed_count = 0
-	for test in tests:
-		print("Running test: ", test.name)
-		var result = test.fn.call()
-		if result:
-			print("✅ PASS: ", test.name)
-			passed_count += 1
+		# Unfortunately we can't easily patch functions in GDScript dynamically
+		# without writing complex overriding nodes.
+		# A simpler way: We know NarrativeLogger directly calls AIManager.broadcast_text.
+		# Let's mock AIManager's websocket peer to capture the text!
+
+		var MockPeer = load("res://src/Scripts/Tests/AIManagerTextStreamTest.gd").MockWebSocketPeer
+		var mock_peer = MockPeer.new()
+		ai_manager.is_client_connected = true
+		ai_manager.websocket_peer = mock_peer
+
+		# Test NarrativeLogger WaveStarted event manually
+		narrative_logger._on_wave_started()
+
+		if "【波次事件】" in mock_peer.last_sent_text:
+			print("✅ PASS: NarrativeLogger generates and broadcasts natural language text")
 		else:
-			print("❌ FAIL: ", test.name)
+			print("❌ FAIL: NarrativeLogger did not broadcast valid narrative text. Got: ", mock_peer.last_sent_text)
+			quit(1)
+			return
 
-	var test_passed = (passed_count == tests.size())
-	print("\n=== NarrativeLoggerTest Results ===")
-	print("Total: %d/%d passed" % [passed_count, tests.size()])
+		print("\n=== NarrativeLoggerTest Results ===")
+		print("Total: 1/1 passed")
+		quit(0)
+	else:
+		print("❌ FAIL: AIManager not found, cannot test NarrativeLogger integration")
+		quit(1)
 
-	quit(0 if test_passed else 1)
-
-func _test_exists() -> bool:
-	return narrative_logger != null
-
-func _test_generation() -> bool:
-	if not narrative_logger.has_method("_build_narrative_dict"):
-		printerr("_build_narrative_dict method not found")
-		return false
-
-	var result = narrative_logger._build_narrative_dict("WaveStarted", "波次开始了！", {"wave": 1})
-
-	if typeof(result) != TYPE_DICTIONARY:
-		printerr("Result is not a dictionary")
-		return false
-
-	if not result.has("event") or result["event"] != "WaveStarted":
-		printerr("Missing or incorrect 'event' key")
-		return false
-
-	if not result.has("narrative") or result["narrative"] != "波次开始了！":
-		printerr("Missing or incorrect 'narrative' key")
-		return false
-
-	if not result.has("data") or typeof(result["data"]) != TYPE_DICTIONARY:
-		printerr("Missing or incorrect 'data' key")
-		return false
-
-	return true

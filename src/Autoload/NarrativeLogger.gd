@@ -45,16 +45,7 @@ func _on_enemy_died(enemy, _killer):
 		})
 
 func _build_and_broadcast(event_type: String, narrative: String, data: Dictionary):
-	var dict = _build_narrative_dict(event_type, narrative, data)
 	print("[Narrative] " + narrative)
 
-	if AIManager and AIManager.has_method("broadcast_narrative"):
-		AIManager.broadcast_narrative(dict)
-
-func _build_narrative_dict(event_type: String, narrative: String, data: Dictionary) -> Dictionary:
-	return {
-		"event": event_type,
-		"narrative": narrative,
-		"data": data,
-		"timestamp": Time.get_unix_time_from_system()
-	}
+	if AIManager and AIManager.has_method("broadcast_text"):
+		AIManager.broadcast_text(narrative)
