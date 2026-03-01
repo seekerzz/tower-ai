@@ -97,3 +97,65 @@ async def test_http_uplink_passthrough():
 
     # Verify response is immediate and indicates success
     assert response == {"status": "ok", "message": "Actions sent"}
+
+@pytest.mark.asyncio
+async def test_observations_buffer_read_and_clear():
+    config = ClientConfig(
+        project_path="/tmp",
+        scene_path="res://test.tscn",
+        visual_mode=False,
+        godot_ws_port=10001,
+        http_port=10000
+    )
+    client = AIGameClient(config)
+
+    # Pre-populate queue
+    test_msg_1 = "Battle started"
+    test_msg_2 = "Hero dealt 50 damage"
+    await client._obs_queue.put(test_msg_1)
+    await client._obs_queue.put(test_msg_2)
+
+    # Read observations
+    obs_res = await client._handle_observations_request()
+    assert "observations" in obs_res
+    assert len(obs_res["observations"]) == 2
+    assert obs_res["observations"] == [test_msg_1, test_msg_2]
+
+    # Queue should be empty now
+    obs_res_empty = await client._handle_observations_request()
+    assert len(obs_res_empty["observations"]) == 0
+
+@pytest.mark.asyncio
+async def test_godot_crash_adds_to_observations():
+    config = ClientConfig(
+        project_path="/tmp",
+        scene_path="res://test.tscn",
+        visual_mode=False,
+        godot_ws_port=10001,
+        http_port=10000
+    )
+    client = AIGameClient(config)
+    client._loop = asyncio.get_running_loop()
+
+    from ai_client.godot_process import CrashInfo
+    crash_info = CrashInfo(
+        error_type="SCRIPT ERROR: Division by zero",
+        stack_trace="At: res://src/test.gd:42",
+        timestamp=12345.678
+    )
+
+    # Simulate crash callback
+    client._on_godot_crash(crash_info)
+
+    # Need to yield to event loop to allow call_soon_threadsafe to process
+    await asyncio.sleep(0.01)
+
+    # Read observations
+    obs_res = await client._handle_observations_request()
+    assert "observations" in obs_res
+    assert len(obs_res["observations"]) == 1
+
+    crash_text = obs_res["observations"][0]
+    assert "SystemCrash" in crash_text or "系统严重报错" in crash_text
+    assert "SCRIPT ERROR: Division by zero" in crash_text
+    assert "At: res://src/test.gd:42" in crash_text
