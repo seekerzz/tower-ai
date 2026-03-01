@@ -122,7 +122,10 @@ func _setup_test():
 	_last_mana = GameManager.mana
 	_last_core_health = GameManager.core_health
 
-	GameManager.start_wave()
+	if get_node_or_null("/root/ActionDispatcher"):
+		get_node("/root/ActionDispatcher").execute_action({"type": "start_wave"})
+	else:
+		GameManager.start_wave()
 	# GameManager.wave_ended is only emitted after UI interaction, which we skip in headless.
 	# So we monitor is_wave_active in _process instead.
 

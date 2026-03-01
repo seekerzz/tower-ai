@@ -32,6 +32,8 @@ UIConstants="*res://src/Scripts/Constants/UIConstants.gd"
 AILogger="*res://src/Autoload/AILogger.gd"
 AIManager="*res://src/Autoload/AIManager.gd"
 AIActionExecutor="*res://src/Autoload/AIActionExecutor.gd"
+ActionDispatcher="*res://src/Autoload/ActionDispatcher.gd"
+NarrativeLogger="*res://src/Autoload/NarrativeLogger.gd"
 
 [display]
 
