@@ -828,10 +828,20 @@ func end_drag():
 		var viewport_rect = get_viewport_rect()
 		var mouse_pos = get_global_mouse_position()
 		if mouse_pos.y > (viewport_rect.size.y - 200):
-			# Try to move unit from grid to bench using BoardController
 			var bench_index = _find_empty_bench_slot()
 			if bench_index >= 0 and grid_pos != null:
-				var result = BoardController.try_move_unit("grid", grid_pos, "bench", bench_index)
+				var result = {"success": false}
+				if get_node_or_null("/root/ActionDispatcher"):
+					result = get_node("/root/ActionDispatcher").execute_action({
+						"type": "move_unit",
+						"from_zone": "grid",
+						"from_pos": {"x": grid_pos.x, "y": grid_pos.y},
+						"to_zone": "bench",
+						"to_pos": bench_index
+					})
+				else:
+					result = BoardController.try_move_unit("grid", grid_pos, "bench", bench_index)
+
 				if result.success:
 					return
 			return_to_start()

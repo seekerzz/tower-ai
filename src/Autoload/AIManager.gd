@@ -8,6 +8,7 @@ const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
 # 默认端口，可通过 --ai-port=<port> 覆盖
 const DEFAULT_PORT: int = 45678
 var port: int = DEFAULT_PORT
+var ai_speed: float = 0.5
 
 # ===== 网络组件 =====
 var tcp_server: TCPServer = null
@@ -15,30 +16,26 @@ var websocket_peer: WebSocketPeer = null
 var is_client_connected: bool = false
 
 # ===== 状态 =====
-var is_waiting_for_action: bool = false
-var last_event_type: String = ""
-var last_event_data: Dictionary = {}
 var is_game_over: bool = false
 
 # ===== 心跳/保活 =====
 var _last_ping_time: float = 0.0
 const PING_INTERVAL: float = 10.0  # 每10秒发送一次ping
 
-## AI 暂停标志 - 用于非原生暂停（只停逻辑，UI继续）
-var ai_paused: bool = false:
-	get:
-		return ai_paused
-	set(value):
-		ai_paused = value
-		AILogger.event("AI暂停状态: " + str(value))
-
-## 检查游戏是否应该暂停（AI暂停或原生暂停）
+## 检查游戏是否应该暂停（原生暂停）
 func is_game_effectively_paused() -> bool:
-	return ai_paused or get_tree().paused
+	return get_tree().paused
 
 func _parse_command_line_args():
-	"""解析命令行参数，支持 --ai-port=<port>"""
+	"""解析命令行参数，支持 --ai-port=<port> 和 --ai-speed=<speed>"""
 	var args = OS.get_cmdline_args()
+	# Check if ai mode is requested
+	var is_ai_mode = false
+	for arg in args:
+		if arg == "--ai-mode":
+			is_ai_mode = true
+			break
+
 	for arg in args:
 		if arg.begins_with("--ai-port="):
 			var port_str = arg.substr("--ai-port=".length())
@@ -48,6 +45,18 @@ func _parse_command_line_args():
 				AILogger.net_connection("使用自定义端口", str(port))
 			else:
 				AILogger.error("无效的端口: %s，使用默认 %d" % [port_str, DEFAULT_PORT])
+		elif arg.begins_with("--ai-speed="):
+			var speed_str = arg.substr("--ai-speed=".length())
+			var parsed_speed = speed_str.to_float()
+			if parsed_speed > 0:
+				ai_speed = parsed_speed
+				AILogger.net_connection("使用自定义AI运行速度", str(ai_speed))
+			else:
+				AILogger.error("无效的速度: %s，使用默认 %.2f" % [speed_str, ai_speed])
+
+	# If running in AI mode, apply the time_scale parameter
+	if is_ai_mode or ai_speed != 0.5 or port != DEFAULT_PORT:
+		Engine.time_scale = ai_speed
 
 # ===== 信号 =====
 signal state_sent(event_type: String, state: Dictionary)
@@ -134,7 +143,6 @@ func _process(_delta):
 			AILogger.net_connection("客户端已断开")
 			websocket_peer = null
 			is_client_connected = false
-			is_waiting_for_action = false
 			client_disconnected.emit()
 
 # ===== 游戏信号连接 =====
@@ -165,15 +173,21 @@ func _connect_game_signals():
 	GameManager.trap_placed.connect(_on_trap_placed)
 	GameManager.trap_triggered.connect(_on_trap_triggered)
 
+	if NarrativeLogger:
+		NarrativeLogger.narrative_generated.connect(_on_narrative_generated)
+
 	AILogger.event("游戏信号已连接")
 
 # ===== 事件处理器 =====
 
+func _on_narrative_generated(event_type: String, event_data: Dictionary):
+	_send_state_async(event_type, event_data)
+
 func _on_wave_started():
-	_pause_and_send("WaveStarted", {"wave": GameManager.wave})
+	_send_state_async("WaveStarted", {"wave": GameManager.wave})
 
 func _on_wave_ended():
-	_pause_and_send("WaveEnded", {"wave": GameManager.wave})
+	_send_state_async("WaveEnded", {"wave": GameManager.wave})
 
 func _on_wave_reset():
 	is_game_over = false
@@ -182,7 +196,7 @@ func _on_wave_reset():
 func _on_wave_system_started(wave_number: int, wave_type: String, difficulty: float):
 	"""波次系统开始新波次的回调 - 立即通知AI客户端"""
 	AILogger.event("波次系统开始波次 %d，立即通知AI客户端" % wave_number)
-	_pause_and_send("WaveStarted", {
+	_send_state_async("WaveStarted", {
 		"wave": wave_number,
 		"wave_type": wave_type,
 		"difficulty": difficulty
@@ -209,7 +223,7 @@ func _on_wave_system_ended(wave_number: int, stats: Dictionary):
 		},
 		"unlocked_tiles": unlocked_tiles
 	}
-	_pause_and_send("WaveEnded", event_data)
+	_send_state_async("WaveEnded", event_data)
 
 func _on_upgrade_selection_shown():
 	"""升级选择界面显示时通知AI客户端"""
@@ -221,14 +235,14 @@ func _on_upgrade_selection_shown():
 func _on_game_over():
 	is_game_over = true
 	AILogger.event("游戏结束，发送 GameOver 事件给 AI")
-	_pause_and_send("GameOver", {"wave": GameManager.wave, "core_health": GameManager.core_health})
+	_send_state_async("GameOver", {"wave": GameManager.wave, "core_health": GameManager.core_health})
 
 func _on_enemy_spawned(enemy: Node):
-	# Boss 生成时暂停
+	# Boss 生成时发送状态
 	if enemy and "enemy_data" in enemy and enemy.enemy_data:
 		var data = enemy.enemy_data
 		if data and data.get("is_boss", false):
-			_pause_and_send("BossSpawned", {
+			_send_state_async("BossSpawned", {
 				"enemy_type": enemy.type_key if "type_key" in enemy else "unknown",
 				"position": _vec2_to_dict(enemy.global_position)
 			})
@@ -255,9 +269,9 @@ func _on_damage_dealt(unit, amount):
 
 		# 根据血量百分比决定事件类型
 		if health_percent < 0.3:
-			_pause_and_send("CoreCritical", event_data)
+			_send_state_async("CoreCritical", event_data)
 		else:
-			_pause_and_send("CoreDamaged", event_data)
+			_send_state_async("CoreDamaged", event_data)
 
 func _on_trap_placed(trap_type: String, position: Vector2, source_unit):
 	"""陷阱放置事件 - 发送给AI客户端"""
@@ -291,25 +305,7 @@ func _on_trap_triggered(trap_type: String, target_enemy, source_unit):
 		"poison_stacks": 2  # Toad陷阱固定给予2层中毒
 	})
 
-# ===== 核心功能：暂停并发送状态 =====
-
-func _pause_and_send(event_type: String, event_data: Dictionary = {}):
-	if not is_client_connected:
-		return
-
-	last_event_type = event_type
-	last_event_data = event_data
-
-	# 使用AI暂停（非原生暂停，UI不灰屏）
-	ai_paused = true
-	AILogger.event("游戏已暂停 [%s]" % event_type)
-
-	# 构建并发送状态
-	var state = _build_state(event_type, event_data)
-	_send_json(state)
-
-	is_waiting_for_action = true
-	state_sent.emit(event_type, state)
+# ===== 核心功能：发送状态 =====
 
 func _send_state_async(event_type: String, event_data: Dictionary = {}):
 	AILogger.net("准备发送状态: %s (客户端连接: %s)" % [event_type, str(is_client_connected)])
@@ -495,6 +491,12 @@ func _handle_client_message(text: String):
 		var actions = data["actions"]
 		if actions is Array:
 			action_received.emit(actions)
+
+			if get_node_or_null("/root/ActionDispatcher"):
+				var action_dispatcher = get_node("/root/ActionDispatcher")
+				for action in actions:
+					if action is Dictionary:
+						action_dispatcher.execute_action(action)
 		else:
 			_send_error("InvalidFormat", "actions 必须是数组")
 	else:
@@ -542,21 +544,8 @@ func send_action_error(error_message: String, failed_action: Dictionary):
 # ===== 游戏控制 =====
 
 func resume_game(wait_time: float = 0.0):
-	"""恢复游戏，可选延时后再次暂停"""
-	if not ai_paused:
-		return
-
-	ai_paused = false
-	AILogger.event("游戏已恢复" + (" (%.1f秒后唤醒)" % wait_time if wait_time > 0 else ""))
-
-	if wait_time > 0:
-		# 使用受 time_scale 影响的计时器
-		var timer = get_tree().create_timer(wait_time)
-		timer.timeout.connect(_on_wakeup_timer_timeout)
-
-func _on_wakeup_timer_timeout():
-	AILogger.event("AI 唤醒计时器触发")
-	_pause_and_send("AI_Wakeup", {})
+	"""恢复游戏（废弃）"""
+	pass
 
 # ===== 辅助函数 =====
 
@@ -650,10 +639,10 @@ func _enemy_state_to_string(state) -> String:
 
 func force_send_state(event_type: String, event_data: Dictionary = {}):
 	"""强制发送当前状态（用于测试）"""
-	_pause_and_send(event_type, event_data)
+	_send_state_async(event_type, event_data)
 
 func is_ai_connected() -> bool:
 	return is_client_connected
 
 func is_waiting_action() -> bool:
-	return is_waiting_for_action
+	return false

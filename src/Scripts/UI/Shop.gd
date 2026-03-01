@@ -166,8 +166,10 @@ func refresh_shop(force: bool = false):
 		# 强制刷新不走 BoardController（免费刷新）
 		_perform_refresh()
 	else:
-		# 调用 BoardController API
-		BoardController.refresh_shop()
+		if get_node_or_null("/root/ActionDispatcher"):
+			get_node("/root/ActionDispatcher").execute_action({"type": "refresh_shop"})
+		else:
+			BoardController.refresh_shop()
 
 func _perform_refresh():
 	# Get player's current totem
@@ -241,9 +243,18 @@ func create_shop_card(index, unit_key):
 	shop_container.add_child(card)
 
 func buy_unit(index, unit_key, card_ref):
-	# 调用 BoardController API，传入期望的单位key进行验证
-	var success = BoardController.buy_unit(index, unit_key)
-	if success:
+	# 调用 ActionDispatcher 以便统一产生日志
+	var result = {"success": false}
+	if get_node_or_null("/root/ActionDispatcher"):
+		result = get_node("/root/ActionDispatcher").execute_action({
+			"type": "buy_unit",
+			"shop_index": index,
+			"unit_key": unit_key
+		})
+	else:
+		result = BoardController.buy_unit(index, unit_key)
+
+	if result.success:
 		card_ref.modulate = Color(0.5, 0.5, 0.5)
 		card_ref.mouse_filter = MOUSE_FILTER_IGNORE
 		unit_bought.emit(unit_key)
@@ -268,7 +279,10 @@ func on_wave_reset():
 	start_wave_btn.disabled = false
 
 func _on_start_wave_button_pressed():
-	GameManager.start_wave()
+	if get_node_or_null("/root/ActionDispatcher"):
+		get_node("/root/ActionDispatcher").execute_action({"type": "start_wave"})
+	else:
+		GameManager.start_wave()
 
 func _on_refresh_button_pressed():
 	refresh_shop(false)
