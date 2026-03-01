@@ -178,32 +178,11 @@ class AIGameClient:
         """WebSocket 消息接收循环"""
         try:
             async for message in self.websocket:
-                try:
-                    data = json.loads(message)
-                    self._last_state = data
-                    event_type = data.get('event', 'unknown')
+                # 直接将所有收到的内容视为自然语言文本处理
+                print(message, flush=True)
 
-                    # 打印 JSON 到 stdout，供外部 AI 实时读取
-                    print(json.dumps(data, ensure_ascii=False), flush=True)
-
-                    # 将消息追加到日志文件
-                    with open(self._log_file, "a", encoding="utf-8") as f:
-                        f.write(json.dumps(data, ensure_ascii=False) + "\n")
-
-                    logger.debug(f"收到 WebSocket 消息: {event_type}")
-
-                    # 处理心跳消息 - 不设置响应，只更新最后状态
-                    if event_type == 'Ping':
-                        logger.debug(f"收到心跳: {data.get('timestamp', 'unknown')}")
-                        continue
-
-                    # 放入文本流缓冲队列供轮询读取
-                    self._obs_queue.put_nowait(json.dumps(data, ensure_ascii=False))
-
-                except json.JSONDecodeError:
-                    logger.warning(f"收到无效 JSON: {message}")
-                    # 也可以选择放入无效 JSON 文本
-                    self._obs_queue.put_nowait(message)
+                # 放入文本流缓冲队列供轮询读取
+                self._obs_queue.put_nowait(message)
 
         except websockets.exceptions.ConnectionClosed:
             logger.info("WebSocket 连接已关闭")
@@ -285,6 +264,15 @@ class AIGameClient:
                 observations.append(obs)
             except asyncio.QueueEmpty:
                 break
+
+        # 写入日志文件，保证日志文件里只有纯净的自然语言记录
+        if observations:
+            try:
+                with open(self._log_file, "a", encoding="utf-8") as f:
+                    for obs in observations:
+                        f.write(str(obs) + "\n")
+            except Exception as e:
+                logger.error(f"写入日志文件失败: {e}")
 
         return {
             "observations": observations

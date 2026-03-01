@@ -45,7 +45,7 @@ async def test_log_persistence(tmp_path):
     client._log_file = log_dir / "ai_session_test.log"
     os.makedirs(log_dir, exist_ok=True)
 
-    test_msg = '{"event": "TestEvent", "narrative": "Something happened"}'
+    test_msg = '这是一段纯中文战报，且不是JSON格式'
 
     # Mock self.websocket using __aiter__ mock that returns an async generator
     async def mock_aiter():
@@ -66,11 +66,15 @@ async def test_log_persistence(tmp_path):
     except websockets.exceptions.ConnectionClosed:
         pass
 
-    # Verify log file was created and contains the message
-    assert client._log_file.exists(), "Log file was not created"
-    content = client._log_file.read_text()
-    assert "Something happened" in content
-    assert "TestEvent" in content
+    # Verify message was put in the queue
+    assert not client._obs_queue.empty()
+    queued_msg = await client._obs_queue.get()
+    assert queued_msg == test_msg
+
+    # Verify log file was NOT created or is empty here, as writing moved to observations
+    if client._log_file.exists():
+        content = client._log_file.read_text()
+        assert content == "", "Log file should be empty during ws receive loop"
 
 @pytest.mark.asyncio
 async def test_http_uplink_passthrough():
@@ -99,7 +103,7 @@ async def test_http_uplink_passthrough():
     assert response == {"status": "ok", "message": "Actions sent"}
 
 @pytest.mark.asyncio
-async def test_observations_buffer_read_and_clear():
+async def test_observations_buffer_read_and_clear(tmp_path):
     config = ClientConfig(
         project_path="/tmp",
         scene_path="res://test.tscn",
@@ -108,6 +112,12 @@ async def test_observations_buffer_read_and_clear():
         http_port=10000
     )
     client = AIGameClient(config)
+
+    # Mock setup for logs
+    log_dir = tmp_path / "logs"
+    client._log_dir = log_dir
+    client._log_file = log_dir / "ai_session_test.log"
+    os.makedirs(log_dir, exist_ok=True)
 
     # Pre-populate queue
     test_msg_1 = "Battle started"
@@ -120,6 +130,12 @@ async def test_observations_buffer_read_and_clear():
     assert "observations" in obs_res
     assert len(obs_res["observations"]) == 2
     assert obs_res["observations"] == [test_msg_1, test_msg_2]
+
+    # Verify log file has the written lines
+    assert client._log_file.exists(), "Log file should be created during observations request"
+    content = client._log_file.read_text()
+    assert test_msg_1 in content
+    assert test_msg_2 in content
 
     # Queue should be empty now
     obs_res_empty = await client._handle_observations_request()

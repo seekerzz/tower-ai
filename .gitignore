@@ -37,4 +37,4 @@ venv/
 .idea/
 *.swp
 *.swo
-*~
+*~logs/
