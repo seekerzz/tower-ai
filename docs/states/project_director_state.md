@@ -2,63 +2,23 @@
 
 ## [Inbox - 待办]
 
-### ✅ CRASH-WOLF-001: 狼图腾崩溃修复完成 (技术总监)
+### 🔥 重新启动全面图腾机制AI测试任务链
 
-**修复时间**: 2026-03-02
-**修复来源**: 技术总监
-**状态**: 已修复，待验证
+**状态**: CRASH-002 和 CRASH-WOLF-001 修复完成，阻塞解除，测试任务重新启动
 
-**修复内容**:
-- 文件: `src/Scripts/CoreMechanics/MechanicWolfTotem.gd`
-- 问题: `_on_totem_attack()` 函数缺少波次状态检查，定时器在非波次期间触发时导致崩溃
-- 修复: 添加 `if !GameManager.is_wave_active: return` 和敌人有效性检查 `if is_instance_valid(enemy)`
-- 参考: 参照蝙蝠图腾(MechanicBatTotem.gd)的正确实现
+**待执行任务**:
+1. [ ] TOTEM-COW-001 牛图腾流派全面测试（重新验证）
+2. [ ] TOTEM-BAT-001 蝙蝠图腾流派全面测试（重新验证）
+3. [ ] TOTEM-WOLF-001 狼图腾流派全面测试（重新验证）
+4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派全面测试（新建）
+5. [ ] TOTEM-VIPER-001 毒蛇图腾流派全面测试（新建）
+6. [ ] TOTEM-EAGLE-001 鹰图腾流派全面测试（新建）
+7. [ ] UNITS-COMMON-001 通用单位全面测试（新建）
+8. [ ] SYSTEM-MECH-001 系统机制专项测试（新建）
 
-**人工验证点**:
-1. 选择 wolf_totem 开局
-2. 购买 wolf 或 dog 单位并部署
-3. 启动第1波战斗
-4. 确认游戏不再崩溃，波次正常进行
-5. 观察狼图腾定时攻击是否正常触发
-
-**关联任务**: TOTEM-WOLF-001 狼图腾全面测试 (阻塞已解除)
-
----
-
-### ✅ CRASH-002: 波次启动全局崩溃修复完成 (技术总监)
-
-**修复时间**: 2026-03-02
-**修复来源**: 技术总监
-**状态**: 已修复，待验证
-
-**问题描述**:
-- 触发时机: 第1波战斗开始时
-- 错误信息: `ERROR: Parameter "t" is null.`
-- 严重程度: P0 - 阻断性缺陷，游戏无法进行
-- 影响范围: 所有图腾流派测试
-
-**根因分析**:
-Godot 4 中 `is` 操作符在类型参数为 null 时会崩溃。当脚本存在循环依赖或加载顺序问题时，
-类型引用可能为 null，导致 `x is SomeType` 表达式抛出 `Parameter "t" is null` 错误。
-
-**修复内容**:
-- 修复文件: 26个文件
-- 修复方式: 为所有 `is` 操作符添加 `Type != null` 前置检查
-- 主要修复:
-  - `Enemy.gd`: `c is StatusEffect` → `StatusEffect != null and c is StatusEffect`
-  - `ArrowFrog.gd`: `child is StatusEffect` → `StatusEffect != null and child is StatusEffect`
-  - `UnitFox.gd`: `source_enemy is Enemy` → `Enemy != null and source_enemy is Enemy`
-  - `UnitWolf.gd`: `other_unit is UnitWolf` → `UnitWolf != null and other_unit is UnitWolf`
-  - 以及其他22处类型检查
-
-**人工验证点**:
-1. 选择任意图腾开局（cow_totem/wolf_totem/bat_totem等）
-2. 购买任意单位并部署到网格
-3. 启动第1波战斗
-4. 确认游戏不再崩溃，敌人正常生成
-5. 确认波次正常进行，核心受击、单位攻击等机制正常
-
-**关联任务**: TOTEM-COW-001, TOTEM-WOLF-001, TOTEM-BAT-001, TOTEM-BUTTERFLY-001 等所有图腾测试（阻塞已解除）
+**下游Agent**:
+- AI Player: 待唤醒执行测试队列
+- Game Designer: 待分析测试日志
 
 ---
 
@@ -160,7 +120,10 @@ Godot 4 中 `is` 操作符在类型参数为 null 时会崩溃。当脚本存在
 
 ## [Meta - 元数据]
 
-- **当前状态**: CRASH-002修复完成，等待验证
+- **当前状态**: CRASH-002和CRASH-WOLF-001修复完成，重新启动全面图腾测试
 - **最后唤醒**: 2026-03-02
-- **处理中任务**: 8组图腾及单位机制AI测试（CRASH-002阻塞已解除）
-- **里程碑**: CRASH-002波次启动崩溃修复完成，第1波平衡性修复任务链已闭环归档
+- **处理中任务**: 8组图腾及单位机制AI测试（阻塞已解除，等待AI Player执行）
+- **里程碑**:
+  - CRASH-002波次启动崩溃修复完成
+  - CRASH-WOLF-001狼图腾崩溃修复完成
+  - 第1波平衡性修复任务链已闭环归档
