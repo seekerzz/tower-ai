@@ -28,7 +28,8 @@ func _play_crit_echo_effect(projectile, target):
 	if not is_instance_valid(target):
 		return
 
-	var pos = target.global_position if target is Node2D else Vector2.ZERO
+	# 安全类型检查：避免 Node2D 类为 null 时崩溃
+	var pos = target.global_position if (Node2D != null and target is Node2D) else Vector2.ZERO
 	var parent = target.get_parent() if target else null
 	if not parent:
 		return

@@ -108,5 +108,6 @@ func _on_units_merged(consumed_unit):
 	# 单位合并时增加狼图腾魂魄
 	TotemManager.add_resource("wolf", 10)
 
-	if unit_ref is UnitWolf and consumed_unit is UnitWolf:
+	# 安全类型检查：避免 UnitWolf 类为 null 时崩溃
+	if UnitWolf != null and unit_ref is UnitWolf and consumed_unit is UnitWolf:
 		unit_ref.on_merged_with(consumed_unit)

@@ -77,7 +77,8 @@ func _on_shop_refreshed(shop_units: Array):
 
 func _on_unit_purchased(unit_key: String, target_zone: String, target_pos: Variant):
 	var pos_str = str(target_pos)
-	if target_zone == "grid" and target_pos is Vector2i:
+	# 安全类型检查：避免 Vector2i 类为 null 时崩溃
+	if target_zone == "grid" and Vector2i != null and target_pos is Vector2i:
 		pos_str = "(%d, %d)" % [target_pos.x, target_pos.y]
 	var narrative = "【单位购买】购买了 %s，放入了 %s 坐标 %s" % [unit_key, target_zone, pos_str]
 	_build_and_broadcast("UnitPurchased", narrative, {"unit_key": unit_key, "zone": target_zone, "pos": target_pos})
@@ -85,7 +86,8 @@ func _on_unit_purchased(unit_key: String, target_zone: String, target_pos: Varia
 func _on_unit_moved(from_zone: String, from_pos: Variant, to_zone: String, to_pos: Variant, unit_data: Dictionary):
 	var type_key = unit_data.get("key", "未知")
 	var to_pos_str = str(to_pos)
-	if to_zone == "grid" and to_pos is Vector2i:
+	# 安全类型检查：避免 Vector2i 类为 null 时崩溃
+	if to_zone == "grid" and Vector2i != null and to_pos is Vector2i:
 		to_pos_str = "(%d, %d)" % [to_pos.x, to_pos.y]
 
 	if from_zone == "shop":
@@ -103,7 +105,8 @@ func _on_unit_moved(from_zone: String, from_pos: Variant, to_zone: String, to_po
 
 func _on_unit_sold(zone: String, pos: Variant, gold_refund: int):
 	var pos_str = str(pos)
-	if zone == "grid" and pos is Vector2i:
+	# 安全类型检查：避免 Vector2i 类为 null 时崩溃
+	if zone == "grid" and Vector2i != null and pos is Vector2i:
 		pos_str = "(%d, %d)" % [pos.x, pos.y]
 	var narrative = "【单位出售】位于 %s %s 的单位被出售，获得 %d 金币" % [zone, pos_str, gold_refund]
 	_build_and_broadcast("UnitSold", narrative, {"zone": zone, "pos": pos, "gold_refund": gold_refund})

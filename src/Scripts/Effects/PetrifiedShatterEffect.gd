@@ -114,7 +114,8 @@ func _on_fragment_hit_enemy(enemy: Node, _fragment: RigidBody2D):
 	if not enemy.has_method("take_damage"):
 		return
 
-	if not (enemy is Node2D):
+	# 安全类型检查：避免 Node2D 类为 null 时崩溃
+	if Node2D == null or not (enemy is Node2D):
 		return
 
 	var enemy_id = enemy.get_instance_id()

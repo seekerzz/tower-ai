@@ -282,11 +282,12 @@ func _get_unit_at(zone: String, pos: Variant):
 			return session_data.get_bench_unit(bench_idx)
 		ZONE_GRID:
 			var grid_pos: Vector2i
-			if pos is Vector2i:
+			# 安全类型检查：避免内置类型为 null 时崩溃
+			if Vector2i != null and pos is Vector2i:
 				grid_pos = pos
-			elif pos is Dictionary:
+			elif Dictionary != null and pos is Dictionary:
 				grid_pos = Vector2i(pos.get("x", 0), pos.get("y", 0))
-			elif pos is Array and pos.size() == 2:
+			elif Array != null and pos is Array and pos.size() == 2:
 				grid_pos = Vector2i(pos[0], pos[1])
 			else:
 				operation_failed.emit("try_move_unit", "Invalid grid position type: %d" % typeof(pos))
@@ -302,11 +303,12 @@ func _remove_unit_from_zone(zone: String, pos: Variant):
 				session_data.set_bench_unit(bench_idx, null)
 		ZONE_GRID:
 			var grid_pos: Vector2i
-			if pos is Vector2i:
+			# 安全类型检查：避免内置类型为 null 时崩溃
+			if Vector2i != null and pos is Vector2i:
 				grid_pos = pos
-			elif pos is Dictionary:
+			elif Dictionary != null and pos is Dictionary:
 				grid_pos = Vector2i(pos.get("x", 0), pos.get("y", 0))
-			elif pos is Array and pos.size() == 2:
+			elif Array != null and pos is Array and pos.size() == 2:
 				grid_pos = Vector2i(pos[0], pos[1])
 			else:
 				return
@@ -314,11 +316,12 @@ func _remove_unit_from_zone(zone: String, pos: Variant):
 
 func _remove_from_grid(grid_pos: Variant):
 	var pos: Vector2i
-	if grid_pos is Vector2i:
+	# 安全类型检查：避免内置类型为 null 时崩溃
+	if Vector2i != null and grid_pos is Vector2i:
 		pos = grid_pos
-	elif grid_pos is Dictionary:
+	elif Dictionary != null and grid_pos is Dictionary:
 		pos = Vector2i(grid_pos.get("x", 0), grid_pos.get("y", 0))
-	elif grid_pos is Array and grid_pos.size() == 2:
+	elif Array != null and grid_pos is Array and grid_pos.size() == 2:
 		pos = Vector2i(grid_pos[0], grid_pos[1])
 	else:
 		return
@@ -429,7 +432,8 @@ func sell_unit(zone: String, pos: Variant) -> Dictionary:
 		return {"success": false, "error_message": msg}
 
 	var unit_data = _get_unit_at(zone, pos)
-	if unit_data == null or not unit_data is Dictionary:
+	# 安全类型检查：避免 Dictionary 类为 null 时崩溃
+	if unit_data == null or Dictionary == null or not unit_data is Dictionary:
 		var msg = "No unit at position: zone=%s, pos=%s" % [zone, str(pos)]
 		operation_failed.emit("sell_unit", msg)
 		return {"success": false, "error_message": msg}

@@ -450,7 +450,10 @@ func handle_collisions(delta):
 		var momentum = knockback_velocity.length() * mass
 
 		if knockback_velocity.length() > 50.0:
-			if collider is StaticBody2D or (collider is TileMap) or (collider.get_class() == "StaticBody2D"):
+			# 安全类型检查：避免内置类型为 null 时崩溃
+			var is_static_body = StaticBody2D != null and collider is StaticBody2D
+			var is_tile_map = TileMap != null and collider is TileMap
+			if is_static_body or is_tile_map or (collider.get_class() == "StaticBody2D"):
 				var impact = momentum
 				knockback_velocity = Vector2.ZERO
 				velocity = Vector2.ZERO
@@ -467,7 +470,8 @@ func handle_collisions(delta):
 
 				apply_physics_stagger(1.5)
 
-			elif collider is CharacterBody2D and collider.is_in_group("enemies"):
+			# 安全类型检查：避免 CharacterBody2D 类为 null 时崩溃
+			elif CharacterBody2D != null and collider is CharacterBody2D and collider.is_in_group("enemies"):
 				var target = collider
 				if target.has_method("apply_physics_stagger"):
 					var t_mass = 1.0
@@ -907,7 +911,8 @@ func _show_taunt_indicator(active: bool):
 
 func has_status(type_key: String) -> bool:
 	for c in get_children():
-		if c is StatusEffect and c.type_key == type_key:
+		# 安全类型检查：避免 StatusEffect 类为 null 时崩溃
+		if c != null and StatusEffect != null and c is StatusEffect and c.type_key == type_key:
 			return true
 	return false
 

@@ -120,7 +120,8 @@ func test_step_3():
 	# CombatManager adds Label as child
 	var warning_found = false
 	for child in combat_manager.get_children():
-		if child is Label and child.text == "⚠️":
+		# 安全类型检查：避免 Label 类为 null 时崩溃
+		if Label != null and child is Label and child.text == "⚠️":
 			warning_found = true
 			break
 

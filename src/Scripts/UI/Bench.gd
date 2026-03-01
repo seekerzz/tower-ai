@@ -15,7 +15,8 @@ func _ready():
 		slots_container.add_theme_constant_override("h_separation", 10)
 		slots_container.add_theme_constant_override("v_separation", 10)
 		var parent = slots_container.get_parent()
-		if parent is PanelContainer:
+		# 安全类型检查：避免 PanelContainer 类为 null 时崩溃
+		if PanelContainer != null and parent is PanelContainer:
 			var style = StyleBoxEmpty.new()
 			parent.add_theme_stylebox_override("panel", style)
 

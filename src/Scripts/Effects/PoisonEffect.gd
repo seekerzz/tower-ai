@@ -172,7 +172,8 @@ func _update_visuals():
 
 	# We only apply if we are the dominant effect or just apply it.
 	# If we want to be safe, we can skip if host.modulate is blue (Frozen).
-	if "modulate" in host and host.modulate is Color:
+	# 安全类型检查：避免 Color 类为 null 时崩溃
+	if "modulate" in host and host.modulate != null and host.modulate is Color:
 		if host.modulate.b > host.modulate.r + 0.2: # Rough check for blue tint
 			pass
 		else:

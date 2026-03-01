@@ -145,7 +145,8 @@ func on_merged_with(other_unit: Unit):
     2. 机制继承: 合并两只狼的所有特殊机制
     3. 属性重算: 基于当前等级的基础属性 + 总加成
     """
-    if not (other_unit is UnitWolf):
+    # 安全类型检查：避免 UnitWolf 类为 null 时崩溃
+    if UnitWolf == null or not (other_unit is UnitWolf):
         return
 
     var other_wolf = other_unit as UnitWolf

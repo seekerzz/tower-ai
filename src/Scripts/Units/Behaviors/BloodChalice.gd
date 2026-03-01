@@ -18,7 +18,8 @@ func on_tick(delta: float):
 
 func _on_lifesteal(source: Node, amount: float):
 	# source is the Unit that caused lifesteal
-	if not (source is Unit): return
+	# 安全类型检查：避免 Unit 类为 null 时崩溃
+	if Unit == null or not (source is Unit): return
 
 	var potential_hp = source.current_hp + amount
 	if potential_hp > source.max_hp:

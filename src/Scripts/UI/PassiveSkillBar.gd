@@ -220,7 +220,8 @@ func _process(_delta):
 	if panel_container and container:
 		var target_height = 0.0
 		for child in container.get_children():
-			if child is Container:
+			# 安全类型检查：避免 Container 类为 null 时崩溃
+			if Container != null and child is Container:
 				target_height += child.get_combined_minimum_size().y
 
 		var sep = container.get_theme_constant("separation")

@@ -126,7 +126,8 @@ func _fix_sidebar_anchors():
 		right_sidebar.anchor_bottom = 1.0
 		right_sidebar.offset_top = 0.0
 		# 确保本身是 VBox 且底部对齐
-		if right_sidebar is BoxContainer:
+		# 安全类型检查：避免 BoxContainer 类为 null 时崩溃
+		if BoxContainer != null and right_sidebar is BoxContainer:
 			right_sidebar.alignment = BoxContainer.ALIGNMENT_END
 
 # --- 关键修复：重构右侧栏内容 ---
@@ -200,7 +201,8 @@ func _setup_combat_gold_label():
 
 	if top_left_panel:
 		top_left_panel.add_child(combat_gold_label)
-		if not top_left_panel is Container:
+		# 安全类型检查：避免 Container 类为 null 时崩溃
+		if Container == null or not top_left_panel is Container:
 			combat_gold_label.layout_mode = 1
 			combat_gold_label.anchors_preset = Control.PRESET_BOTTOM_LEFT
 			combat_gold_label.position.y = top_left_panel.size.y + 10
@@ -215,7 +217,8 @@ func _setup_soul_label():
 
 	if top_left_panel:
 		top_left_panel.add_child(soul_label)
-		if not top_left_panel is Container:
+		# 安全类型检查：避免 Container 类为 null 时崩溃
+		if Container == null or not top_left_panel is Container:
 			soul_label.layout_mode = 1
 			soul_label.anchors_preset = Control.PRESET_BOTTOM_LEFT
 			# Place below combat gold label (which is at size.y + 10)

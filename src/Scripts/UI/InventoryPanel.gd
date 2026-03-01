@@ -16,13 +16,15 @@ func _ready():
 		slots_container.add_theme_constant_override("v_separation", 10)
 
 		# Set Columns
-		if slots_container is GridContainer:
+		# 安全类型检查：避免 GridContainer 类为 null 时崩溃
+		if GridContainer != null and slots_container is GridContainer:
 			slots_container.columns = 3
 
 		var parent = slots_container.get_parent()
 
 		# Dynamic ScrollContainer Check
-		if not parent is ScrollContainer:
+		# 安全类型检查：避免 ScrollContainer 类为 null 时崩溃
+		if ScrollContainer == null or not parent is ScrollContainer:
 			print("[InventoryPanel] Creating dynamic ScrollContainer.")
 			var scroll = ScrollContainer.new()
 			scroll.name = "InvScrollContainer"
@@ -47,7 +49,8 @@ func _ready():
 			# Ensure Scroll fills parent
 			scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
 
-		if parent is PanelContainer:
+		# 安全类型检查：避免 PanelContainer 类为 null 时崩溃
+		if PanelContainer != null and parent is PanelContainer:
 			var style = StyleBoxEmpty.new()
 			parent.add_theme_stylebox_override("panel", style)
 	else:
@@ -102,7 +105,8 @@ func update_inventory(data: Array):
 		var slot = slots[i]
 		# 清理旧图标（保留背景 Panel）
 		for child in slot.get_children():
-			if child is Panel: continue
+			# 安全类型检查：避免 Panel 类为 null 时崩溃
+			if Panel != null and child is Panel: continue
 			child.queue_free()
 
 		if i < data.size() and data[i] != null:

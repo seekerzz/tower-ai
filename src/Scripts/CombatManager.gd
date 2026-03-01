@@ -502,7 +502,8 @@ func check_kill_bonuses(killer_unit, victim = null):
 			GameManager.add_gold(1)
 			GameManager.spawn_floating_text(killer_unit.global_position, "+1 Gold", Color.YELLOW)
 
-	if killer_unit and killer_unit is Node and "behavior" in killer_unit and killer_unit.behavior and killer_unit.behavior.has_method("on_kill"):
+	# 安全类型检查：避免 Node 类为 null 时崩溃
+	if killer_unit and Node != null and killer_unit is Node and "behavior" in killer_unit and killer_unit.behavior and killer_unit.behavior.has_method("on_kill"):
 		killer_unit.behavior.on_kill(victim)
 
 

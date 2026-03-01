@@ -16,7 +16,8 @@ func setup(target: Node, source: Object, params: Dictionary):
 	if params.has("duration"):
 		self.duration = params.duration
 
-	if target is Node2D:
+	# 安全类型检查：避免 Node2D 类为 null 时崩溃
+	if target != null and Node2D != null and target is Node2D:
 		original_color = target.modulate
 		target.modulate = petrify_color
 		target.set_meta("is_petrified", true)
@@ -32,7 +33,8 @@ func setup(target: Node, source: Object, params: Dictionary):
 
 func _exit_tree():
 	var target = get_parent()
-	if is_instance_valid(target) and (target is Node2D):
+	# 安全类型检查：避免 Node2D 类为 null 时崩溃
+	if is_instance_valid(target) and Node2D != null and (target is Node2D):
 		target.modulate = original_color
 		target.remove_meta("is_petrified")
 		target.remove_meta("petrify_source")

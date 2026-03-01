@@ -24,7 +24,8 @@ func setup(unit):
 		if unit.has("type_key"):
 			icon_tex = AssetLoaderScript.get_unit_icon(unit.type_key)
 
-	elif unit is Object:
+	# 安全类型检查：避免 Object 类为 null 时崩溃
+	elif Object != null and unit is Object:
 		# If unit_data is present (standard Unit class)
 		if "unit_data" in unit:
 			if unit.unit_data.has("color"): unit_color = unit.unit_data.color

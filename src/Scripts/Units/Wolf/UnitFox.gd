@@ -14,7 +14,8 @@ func _ready():
         max_charms = 2
 
 func take_damage(amount: float, source_enemy = null):
-    if source_enemy and is_instance_valid(source_enemy) and source_enemy is Enemy:
+    # 安全类型检查：避免 Enemy 类为 null 时崩溃
+    if source_enemy and is_instance_valid(source_enemy) and Enemy != null and source_enemy is Enemy:
         _on_attacked_by_enemy(source_enemy)
 
     super.take_damage(amount, source_enemy)

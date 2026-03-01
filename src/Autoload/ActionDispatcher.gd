@@ -21,7 +21,8 @@ func _on_actions_received(actions: Array):
 	AILogger.action("ActionDispatcher 开始分发 %d 个动作" % actions.size())
 
 	for action in actions:
-		if not action is Dictionary:
+		# 安全类型检查：避免 Dictionary 类为 null 时崩溃
+		if Dictionary == null or not action is Dictionary:
 			AILogger.error("动作格式错误: %s" % str(action))
 			continue
 
@@ -127,12 +128,14 @@ func _action_use_skill(action: Dictionary) -> Dictionary:
 # ===== Helpers =====
 
 func _parse_position(pos) -> Variant:
-	if pos is Vector2i: return pos
-	if pos is Dictionary: return Vector2i(pos.get("x", 0), pos.get("y", 0))
-	if pos is Array and pos.size() == 2: return Vector2i(pos[0], pos[1])
+	# 安全类型检查：避免内置类型为 null 时崩溃
+	if Vector2i != null and pos is Vector2i: return pos
+	if Dictionary != null and pos is Dictionary: return Vector2i(pos.get("x", 0), pos.get("y", 0))
+	if Array != null and pos is Array and pos.size() == 2: return Vector2i(pos[0], pos[1])
 	return null
 
 func _to_int_index(value) -> int:
-	if value is int: return value
-	if value is float: return int(value)
+	# 安全类型检查：避免内置类型为 null 时崩溃
+	if int != null and value is int: return value
+	if float != null and value is float: return int(value)
 	return -1

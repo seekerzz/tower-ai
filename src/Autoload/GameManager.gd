@@ -319,9 +319,10 @@ func _initialize_mechanic():
 func _set_ignore_mouse_recursive(node: Node):
 	node.set_process_input(false)
 	node.set_process_unhandled_input(false)
-	if node is CollisionObject2D:
+	# 安全类型检查：避免内置类型为 null 时崩溃
+	if CollisionObject2D != null and node is CollisionObject2D:
 		node.input_pickable = false
-	if node is Control:
+	if Control != null and node is Control:
 		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	for child in node.get_children():

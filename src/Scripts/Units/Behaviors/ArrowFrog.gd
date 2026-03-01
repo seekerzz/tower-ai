@@ -15,8 +15,8 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	# 1. 获取当前攻击目标的 Debuff总层数
 	var debuff_stacks = 0
 	for child in target.get_children():
-		# 使用 is 判断类型，这里StatusEffect是预加载的脚本资源
-		if child is StatusEffect:
+		# 安全类型检查：避免 StatusEffect 类为 null 时崩溃
+		if child != null and StatusEffect != null and child is StatusEffect:
 			debuff_stacks += child.stacks
 
 	# 2. 判断斩杀

@@ -148,7 +148,8 @@ func _on_enemy_spawned(enemy):
 func _on_enemy_hit(enemy, source, amount):
 	var source_id = "unknown"
 	if source:
-		if source is Node:
+		# 安全类型检查：避免 Node 类为 null 时崩溃
+		if Node != null and source is Node:
 			source_id = source.name
 		if "type_key" in source:
 			source_id = source.type_key

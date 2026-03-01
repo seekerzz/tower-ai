@@ -14,7 +14,8 @@ func _ready():
 		container.add_theme_constant_override("h_separation", 10)
 		container.add_theme_constant_override("v_separation", 10)
 		var parent = container.get_parent()
-		if parent is PanelContainer:
+		# 安全类型检查：避免 PanelContainer 类为 null 时崩溃
+		if PanelContainer != null and parent is PanelContainer:
 			var style = StyleBoxEmpty.new()
 			parent.add_theme_stylebox_override("panel", style)
 
@@ -197,7 +198,8 @@ func _process(_delta):
 
 		# Mana Logic & Styling
 		var style = card.get_theme_stylebox("panel")
-		if style is StyleBoxFlat:
+		# 安全类型检查：避免 StyleBoxFlat 类为 null 时崩溃
+		if StyleBoxFlat != null and style is StyleBoxFlat:
 			# Check Mana
 			if GameManager.mana < unit.skill_mana_cost:
 				if unit.skill_cooldown <= 0:
