@@ -732,10 +732,20 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
 
 ## [Inbox - 待处理提案]
 
+- [ ] 待处理提案: docs/design_proposals/proposal_wave_refactor_issues_analysis.md -- 来源@Game_Designer -- 2026-03-02
+  - 问题：WAVE-REFACTOR-001重构后发现的3个新问题
+  - 关联日志：3份牛图腾测试日志（155153/155657/171744）
+  - 优先级：P0（阻塞所有图腾测试）
+  - 问题列表：
+    1. Shop.gd信号参数不匹配 - `Method expected 0 argument(s), but called with 3.`
+    2. Parameter "t" is null - CRASH-002在重构后仍然出现
+    3. CombatManager属性访问错误 - `Invalid access to property 'total_enemies_for_wave'`
+  - 建议：修复重构后的代码不一致问题，进行回归测试
+
 - [ ] 待处理提案: docs/design_proposals/proposal_log_improvement_001.md -- 来源@Game_Designer -- 2026-03-02
   - 问题：图腾机制日志埋点严重不足，无法通过黑盒观察验证机制
   - 关联日志：牛图腾/蝙蝠图腾/狼图腾测试日志（均因崩溃未能完整测试）
-  - 优先级：P1（因CRASH-002重新出现，降级处理，先修复崩溃）
+  - 优先级：P1（因WAVE-REFACTOR-001问题，降级处理）
   - 建议：在修复崩溃的同时增加日志埋点，详见提案文档
 
 ---

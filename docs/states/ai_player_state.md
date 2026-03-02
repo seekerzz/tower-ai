@@ -427,15 +427,15 @@
 
 ## [Meta - 元数据]
 
-- **当前状态**: 🤖 休眠 - 等待技术总监进一步修复
-- **最后唤醒**: 2026-03-02 (项目总监派发 CRASH-002-VERIFY 任务)
-- **完成归档**: CRASH-002-VERIFY 验证完成，发现新错误类型
-- **待执行任务数**: 7 (全部阻塞于 CRASH-002)
-- **最新发现**: CRASH-002 验证失败，发现新错误: `Method expected 0 argument(s), but called with 3`
-- **崩溃时间**: 15:39:12 (第1波战斗正式开始时)
-- **阻塞任务**: 所有图腾流派测试被 CRASH-002 阻塞
-- **投递状态**: ✅ 诊断日志已投递
-- **唤醒条件**: 等待技术总监 @Technical_Director 派发新的修复验证任务
+- **当前状态**: 🤖 休眠 - 等待技术总监修复COMBATMANAGER-FIX-001
+- **最后唤醒**: 2026-03-02 (执行TOTEM-COW-001测试)
+- **完成归档**: TOTEM-COW-001执行完成，发现新错误COMBATMANAGER-FIX-001
+- **待执行任务数**: 7 (全部阻塞于 COMBATMANAGER-FIX-001)
+- **最新发现**: WAVE-REFACTOR-001后遗留问题: `Invalid access to property 'total_enemies_for_wave'`
+- **崩溃时间**: 17:17:55 (第1波战斗正式开始时)
+- **阻塞任务**: 所有图腾流派测试被 COMBATMANAGER-FIX-001 阻塞
+- **投递状态**: ✅ 崩溃日志已投递技术总监
+- **唤醒条件**: 等待技术总监 @Technical_Director 修复COMBATMANAGER-FIX-001
 
 ### 2026-03-01
 - [x] 跑测任务: 验证第1波平衡性调整和日志埋点 -- 策略: 毒蛇图腾开局 -- 来源@Tech_Director -- 2026-03-01T20:00:00+08:00
@@ -448,6 +448,22 @@
   - 无代码级崩溃 ✅
 
 ## [Archive - 归档]
+
+### 2026-03-02 (TOTEM-COW-001执行 - 发现COMBATMANAGER-FIX-001)
+- [x] 跑测任务: 牛图腾流派全面测试 (TOTEM-COW-001) -- 来源@ProjectDirector
+  - 测试分支: master
+  - 选择图腾: cow_totem
+  - 测试策略: 防御反击流 - 优先购买防御型单位，验证受伤充能和图腾反击机制
+  - 执行结果: ❌ 发现新代码级崩溃COMBATMANAGER-FIX-001
+  - 生成日志: `logs/ai_session_cow_totem_20260302_171744.log`
+  - 崩溃详情: `Invalid access to property or key 'total_enemies_for_wave'`
+  - 崩溃位置: `src/Scripts/CoreMechanics/CombatManager.gd`
+  - 崩溃时间: 17:17:55 (第1波战斗正式开始时)
+  - 已验证机制: 牛图腾选择✅、商店阵营过滤✅、单位购买部署✅、核心血量计算✅
+  - 待验证机制: 受伤充能、全屏反击、嘲讽联动、伤害转MP、减伤回血、治疗核心
+  - 崩溃原因: WAVE-REFACTOR-001重构后，`total_enemies_for_wave`属性引用未更新
+  - 崩溃日志已投递: ✅ 技术总监
+  - 当前状态: 休眠等待技术总监修复COMBATMANAGER-FIX-001
 
 ### 2026-03-02 (诊断测试)
 - [x] 跑测任务: CRASH-002 诊断测试 (CRASH-002-DIAGNOSTIC) -- 来源@ProjectDirector

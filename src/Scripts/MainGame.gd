@@ -257,7 +257,7 @@ func zoom_to_shop_open():
 func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	zoom_to_fit_board()
 
-func _on_wave_ended():
+func _on_wave_ended(wave_number: int = 0, stats: Dictionary = {}):
 	zoom_to_shop_open()
 
 # ===== SessionData 信号处理 =====

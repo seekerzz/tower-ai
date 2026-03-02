@@ -2,26 +2,23 @@
 
 ## [Inbox - 待分析日志]
 
-### 🔄 等待新架构修复后的验证测试
+### 🔄 WAVE-REFACTOR-001 重构后问题分析完成
 
-**当前状态**: 技术总监已完成 WAVE-REFACTOR-001 波次状态与信号链条深度重构
+**当前状态**: 已完成三轮测试日志分析，发现3个新问题
 **时间**: 2026-03-02
 **优先级**: P0
 
-**重构内容**:
-- ✅ SessionData作为唯一数据源
-- ✅ WaveSystemManager作为唯一控制器
-- ✅ GameManager净化完成（移除波次控制逻辑）
-- ✅ 全局引用修复完成（20+文件）
-
 **新发现问题**:
-- 🚨 SIGNAL-FIX-001: CombatManager信号参数不匹配（重构后新问题）
-- 错误: `Method expected 0 argument(s), but called with 3.`
+1. 🚨 **Shop.gd信号参数不匹配**: `Method expected 0 argument(s), but called with 3.`
+2. 🚨 **Parameter "t" is null**: CRASH-002在重构后仍然出现
+3. 🚨 **CombatManager属性访问错误**: `Invalid access to property 'total_enemies_for_wave'`
+
+**分析报告**: `docs/design_proposals/proposal_wave_refactor_issues_analysis.md`
 
 **待验证机制** (被阻塞):
 - 受伤充能、全屏反击、嘲讽联动、伤害转MP、减伤回血、治疗核心
 
-**备注**: 等待技术总监修复SIGNAL-FIX-001后，AI Player恢复图腾机制测试
+**备注**: 等待技术总监修复WAVE-REFACTOR-001重构后问题
 
 ---
 
@@ -52,7 +49,7 @@
   - 备注: 分析报告已投递技术总监，等待CRASH-002修复后重测
 
 - [ ] 待分析: logs/ai_session_butterfly_totem_*.log -- 策略: 蝴蝶图腾法力循环流 -- 来源@AI_Player
-  - ⚠️ **被CRASH-002阻塞** - 等待技术总监修复
+  - ⚠️ **被WAVE-REFACTOR-001重构后问题阻塞** - 等待技术总监修复
   - 验证环绕法球生成和穿透
   - 验证法球伤害和法力回复
   - 验证蝴蝶法力消耗附加伤害

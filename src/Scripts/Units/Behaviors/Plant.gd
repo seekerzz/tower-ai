@@ -30,7 +30,7 @@ func on_tick(delta: float):
 
 		production_timer = 1.0
 
-func _on_wave_end():
+func _on_wave_end(wave_number: int = 0, stats: Dictionary = {}):
 	var growth = 0.05 if unit.level < 2 else 0.08
 	var current = unit.get_meta("permanent_hp_growth", 0.0)
 	unit.set_meta("permanent_hp_growth", current + growth)

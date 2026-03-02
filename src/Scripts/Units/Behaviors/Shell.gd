@@ -36,7 +36,7 @@ func on_damage_taken(amount: float, source: Node2D) -> float:
 		unit.spawn_buff_effect("🐚")
 	return amount
 
-func _on_wave_ended():
+func _on_wave_ended(wave_number: int = 0, stats: Dictionary = {}):
 	if has_generated_pearl:
 		return
 

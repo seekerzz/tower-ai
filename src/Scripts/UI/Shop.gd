@@ -279,7 +279,7 @@ func on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: f
 	start_wave_btn.text = "⚔️"
 	collapse_shop()
 
-func on_wave_ended():
+func on_wave_ended(wave_number: int = 0, stats: Dictionary = {}):
 	refresh_btn.disabled = false
 	expand_btn.disabled = false
 	start_wave_btn.disabled = false
