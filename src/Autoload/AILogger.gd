@@ -11,6 +11,8 @@ const SHOW_ERROR: bool = true  # 动作执行拦截与报错信息
 const SHOW_COMBAT: bool = true # 战斗日志：敌人出生、受击、阵亡等
 const SHOW_TOTEM: bool = true  # 图腾触发日志
 const SHOW_STATUS: bool = true # 状态效果日志
+const SHOW_RESOURCE: bool = true # 资源变化日志（魂魄、充能、法力等）
+const SHOW_BUFF: bool = true   # Buff施加和传播日志
 
 # ===== 颜色配置 =====
 const COLOR_NET: String = "[color=#3498db]"    # 蓝色 - 网络
@@ -20,6 +22,8 @@ const COLOR_ERROR: String = "[color=#e74c3c]"  # 红色 - 错误
 const COLOR_COMBAT: String = "[color=#9b59b6]" # 紫色 - 战斗
 const COLOR_TOTEM: String = "[color=#1abc9c]"  # 青色 - 图腾
 const COLOR_STATUS: String = "[color=#e67e22]" # 深橙 - 状态
+const COLOR_RESOURCE: String = "[color=#9b59b6]" # 紫色 - 资源
+const COLOR_BUFF: String = "[color=#f1c40f]"   # 黄色 - Buff
 const COLOR_RESET: String = "[/color]"
 
 # ===== 日志级别 =====
@@ -129,4 +133,58 @@ func status_damage(buff_name: String, target: String, damage: float):
 func status_ended(target: String, buff_name: String):
 	if SHOW_STATUS:
 		var msg = "[状态结束] %s 的 %s 效果结束" % [target, buff_name]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])
+
+# ===== 资源变化日志 =====
+
+## 图腾资源变化日志
+func totem_resource(totem_name: String, resource_type: String, delta: int, current: int):
+	if SHOW_RESOURCE:
+		var change_str = "+%d" % delta if delta > 0 else "%d" % delta
+		var msg = "[图腾资源] %s %s变化: %s, 当前%s: %d" % [totem_name, resource_type, change_str, resource_type, current]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_RESOURCE, msg, COLOR_RESET])
+
+## 法力变化日志
+func mana_changed(delta: float, current: float, max_mana: float, source: String = ""):
+	if SHOW_RESOURCE:
+		var change_str = "+%.0f" % delta if delta > 0 else "%.0f" % delta
+		var source_str = " (%s)" % source if source else ""
+		var msg = "[法力变化] %s%s, 当前: %.0f/%.0f" % [change_str, source_str, current, max_mana]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_RESOURCE, msg, COLOR_RESET])
+
+## 核心治疗日志
+func core_heal(amount: float, current_hp: float, max_hp: float, source: String = ""):
+	if SHOW_COMBAT:
+		var source_str = " (%s)" % source if source else ""
+		var msg = "[核心治疗] 回复 %.0f HP%s, 当前: %.0f/%.0f" % [amount, source_str, current_hp, max_hp]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_COMBAT, msg, COLOR_RESET])
+
+# ===== Buff日志 =====
+
+## Buff施加日志
+func buff_applied(target: String, buff_type: String, source: String, amount: float = 0.0):
+	if SHOW_BUFF:
+		var amount_str = " %.0f%%" % (amount * 100) if amount > 0 else ""
+		var msg = "[Buff施加] %s 获得 %s%s (来源: %s)" % [target, buff_type, amount_str, source]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_BUFF, msg, COLOR_RESET])
+
+## Buff叠加日志
+func buff_stacked(target: String, buff_type: String, stacks: int, max_stacks: int = 0):
+	if SHOW_BUFF:
+		var max_str = "/%d" % max_stacks if max_stacks > 0 else ""
+		var msg = "[Buff叠加] %s %s层数: %d%s" % [target, buff_type, stacks, max_str]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_BUFF, msg, COLOR_RESET])
+
+## 流血效果日志
+func bleed_effect(target: String, damage: float, stacks: int, source: String = ""):
+	if SHOW_STATUS:
+		var source_str = " (%s)" % source if source else ""
+		var msg = "[流血效果] %s受到 %.0f 伤害, 层数: %d%s" % [target, damage, stacks, source_str]
+		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])
+
+## 中毒效果日志
+func poison_effect(target: String, damage: float, stacks: int, source: String = ""):
+	if SHOW_STATUS:
+		var source_str = " (%s)" % source if source else ""
+		var msg = "[中毒效果] %s受到 %.0f 伤害, 层数: %d%s" % [target, damage, stacks, source_str]
 		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])
