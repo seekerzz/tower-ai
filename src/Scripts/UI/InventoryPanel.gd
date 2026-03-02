@@ -24,7 +24,7 @@ func _ready():
 
 		# Dynamic ScrollContainer Check
 		# 安全类型检查：避免 ScrollContainer 类为 null 时崩溃
-		if ScrollContainer == null or not parent is ScrollContainer:
+		if ScrollContainer != null and not (parent is ScrollContainer):
 			print("[InventoryPanel] Creating dynamic ScrollContainer.")
 			var scroll = ScrollContainer.new()
 			scroll.name = "InvScrollContainer"

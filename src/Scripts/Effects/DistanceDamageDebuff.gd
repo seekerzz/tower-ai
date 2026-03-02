@@ -33,8 +33,8 @@ func stack(params: Dictionary):
 	# Refresh duration
 	if params.has("duration"):
 		for c in get_children():
-			# 安全类型检查
-			if c != null and c is Timer and c.one_shot:
+			# 安全类型检查：避免 Timer 类为 null 时崩溃
+			if c != null and Timer != null and c is Timer and c.one_shot:
 				c.start(params.duration)
 				return
 

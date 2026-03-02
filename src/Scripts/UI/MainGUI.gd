@@ -202,7 +202,7 @@ func _setup_combat_gold_label():
 	if top_left_panel:
 		top_left_panel.add_child(combat_gold_label)
 		# 安全类型检查：避免 Container 类为 null 时崩溃
-		if Container == null or not top_left_panel is Container:
+		if Container != null and not (top_left_panel is Container):
 			combat_gold_label.layout_mode = 1
 			combat_gold_label.anchors_preset = Control.PRESET_BOTTOM_LEFT
 			combat_gold_label.position.y = top_left_panel.size.y + 10
@@ -218,7 +218,7 @@ func _setup_soul_label():
 	if top_left_panel:
 		top_left_panel.add_child(soul_label)
 		# 安全类型检查：避免 Container 类为 null 时崩溃
-		if Container == null or not top_left_panel is Container:
+		if Container != null and not (top_left_panel is Container):
 			soul_label.layout_mode = 1
 			soul_label.anchors_preset = Control.PRESET_BOTTOM_LEFT
 			# Place below combat gold label (which is at size.y + 10)
