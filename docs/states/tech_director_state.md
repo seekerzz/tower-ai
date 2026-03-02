@@ -2,56 +2,39 @@
 
 ## [Inbox - 紧急修复任务]
 
-### ✅ CRASH-002 修复完成 - 等待跑测验证
+### 🚨 CRASH-002 修复失败 - 需要深入调查
 
-**来源**: AI Player 牛图腾流派测试 (TOTEM-COW-001)
-**时间**: 2026-03-02
+**来源**: AI Player 牛图腾流派测试 (TOTEM-COW-001-RETEST)
+**时间**: 2026-03-02 08:24:35
 **优先级**: P0 (阻塞所有测试)
+**状态**: ❌ 修复未成功，崩溃仍然发生
 
 **问题描述**:
 - **错误信息**: `ERROR: Parameter "t" is null.`
 - **触发时机**: 第1波战斗开始时
 - **日志文件**: `logs/ai_session_cow_totem_20260302_082425.log`
+- **崩溃时间戳**: 08:24:35.841
 
-**AI Player已修复部分**:
-- ✅ 修复了语法错误：`Vector2i != null` 等无效类型检查（Godot不允许内置类型作为变量名）
-- 涉及的文件：
-  - `src/Scripts/Controllers/BoardController.gd`
-  - `src/Autoload/AIManager.gd`
-  - `src/Autoload/ActionDispatcher.gd`
-  - `src/Autoload/NarrativeLogger.gd`
-  - `src/Scripts/UI/Shop.gd`
+**已尝试修复（未成功）**:
+1. ✅ AI Player修复语法错误：`Vector2i != null` 等无效类型检查
+2. ✅ 技术总监扫描26+文件添加 `Type != null` 前置保护
+3. ✅ Commit 8ca4ea6: Enemy.gd 添加 StatusEffect 预加载
+4. ❌ **结果**: 崩溃仍然在第1波启动时发生
 
-**技术总监修复部分**:
-- ✅ 全面扫描所有使用 `is` 操作符的代码
-- ✅ 验证所有自定义类类型检查已添加 `Type != null` 前置保护
-- 扫描的文件：
-  - `src/Scripts/Enemy.gd` - `StatusEffect != null and c is StatusEffect` ✓
-  - `src/Scripts/Units/Behaviors/ArrowFrog.gd` - `StatusEffect != null and child is StatusEffect` ✓
-  - `src/Scripts/Units/Wolf/UnitFox.gd` - `Enemy != null and source_enemy is Enemy` ✓
-  - `src/Scripts/Units/Wolf/UnitWolf.gd` - `UnitWolf != null and other_unit is UnitWolf` ✓
-  - `src/Scripts/UI/UnitDragHandler.gd` - `UnitWolf != null and unit_ref is UnitWolf` ✓
-  - `src/Scripts/Units/Behaviors/BloodChalice.gd` - `Unit != null and source is Unit` ✓
-  - `src/Autoload/GameManager.gd` - `CollisionObject2D != null and node is CollisionObject2D` ✓
-  - `src/Scripts/CombatManager.gd` - `Node != null and killer_unit is Node` ✓
-  - 以及20+个其他文件的类型检查
+**可能原因分析**:
+1. 有其他文件使用 `is` 操作符进行检查，但未在扫描范围内
+2. 问题可能不在 `is` 操作符，而是其他类型的空指针引用
+3. 可能需要 Godot 运行时调试才能定位确切问题
 
-**修复结论**:
-- 所有使用自定义类的 `is` 操作符都已添加空值检查
-- 内置类型（Vector2i, Dictionary, Array等）的检查是安全的，不需要额外保护
-- **关键发现**: Enemy.gd 使用全局类名 `StatusEffect`，但全局类名可能在运行时未正确注册
-
-**最终修复** (Commit 8ca4ea6):
-- 文件: `src/Scripts/Enemy.gd`
-- 修复: 添加 StatusEffect 预加载
-  ```gdscript
-  const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
-  ```
-- 原因: 使用预加载的常量代替全局类名，避免运行时类名注册问题
+**修复建议**:
+- 进行更全面的代码扫描，查找所有可能导致空指针的地方
+- 使用 Godot 编辑器进行真实运行调试
+- 检查波次启动相关的代码路径（WaveManager, Spawn逻辑等）
+- 逐行排查第1波启动时的代码执行路径
 
 **下一步**:
-- 投递跑测任务给 AI Player 进行验证
-- 如仍出现崩溃，需要更深入的游戏运行时调试
+- 技术总监需要进行深入代码审查和调试
+- 必要时向项目总监汇报，考虑是否需要人类老板介入
 
 ---
 
