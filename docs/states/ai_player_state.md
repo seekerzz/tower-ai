@@ -7,9 +7,14 @@
 **🔥 紧急跑测任务: CRASH-002 修复验证 (TOTEM-COW-001-RETEST)**
 - **来源**: 技术总监 @Technical_Director
 - **优先级**: P0 (阻塞所有测试)
-- **测试分支**: master
+- **测试分支**: master (Commit 8ca4ea6)
 - **选择图腾**: cow_totem
 - **测试目标**: 验证 CRASH-002 修复是否成功
+
+**修复详情**:
+- 问题: Enemy.gd 使用全局类名 StatusEffect 进行 is 操作符检查
+- 修复: 添加 StatusEffect 预加载，使用预加载常量代替全局类名
+- 文件: `src/Scripts/Enemy.gd`
 
 **测试步骤**:
 1. 选择 cow_totem 开局

@@ -39,7 +39,15 @@
 **修复结论**:
 - 所有使用自定义类的 `is` 操作符都已添加空值检查
 - 内置类型（Vector2i, Dictionary, Array等）的检查是安全的，不需要额外保护
-- 代码审查完成，未发现遗漏的空值检查
+- **关键发现**: Enemy.gd 使用全局类名 `StatusEffect`，但全局类名可能在运行时未正确注册
+
+**最终修复** (Commit 8ca4ea6):
+- 文件: `src/Scripts/Enemy.gd`
+- 修复: 添加 StatusEffect 预加载
+  ```gdscript
+  const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
+  ```
+- 原因: 使用预加载的常量代替全局类名，避免运行时类名注册问题
 
 **下一步**:
 - 投递跑测任务给 AI Player 进行验证
