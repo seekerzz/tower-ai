@@ -20,8 +20,8 @@
 1. [x] TOTEM-COW-001 牛图腾流派测试 - ✅ 已完成，波次1-4正常
 2. [x] TOTEM-BAT-001 蝙蝠图腾流派测试 - ✅ 已完成，CRASH-002仍存在
 3. [x] TOTEM-WOLF-001 狼图腾流派测试 - ✅ 已完成，CRASH-002仍存在
-4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试 - 🔄 执行中
-5. [ ] TOTEM-VIPER-001 毒蛇图腾流派测试 - 🔄 执行中
+4. [x] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试 - ✅ 已完成，CRASH-002仍存在
+5. [ ] TOTEM-VIPER-001 毒蛇图腾流派测试 - 🔄 待执行
 6. [ ] TOTEM-EAGLE-001 鹰图腾流派测试
 7. [ ] UNITS-COMMON-001 通用单位测试
 
@@ -73,12 +73,23 @@
 - 生成日志: `logs/ai_session_wolf_totem_20260302_173637.log`
 - **下游任务**: 游戏策划分析日志，检查狼图腾机制日志埋点
 
+**TOTEM-BUTTERFLY-001执行结果** (2026-03-02 17:43):
+- ✅ 蝴蝶图腾选择正常
+- ✅ 商店阵营过滤正常（显示spider等蝴蝶阵营单位）
+- ✅ 单位购买部署正常（spider部署到1,0）
+- ✅ 波次1-4正常启动和结束
+- ❌ **CRASH-002仍然存在**: `Parameter "t" is null` (第1波启动时)
+- ⚠️ 蝴蝶图腾机制未验证（法球、法力回复等日志不可见）
+- 生成日志: `logs/ai_session_butterfly_totem_20260302_174227.log`
+- **下游任务**: 游戏策划分析日志，检查蝴蝶图腾机制日志埋点
+
 **待派发任务队列**:
-- TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
+- TOTEM-VIPER-001 毒蛇图腾流派测试
 - TOTEM-VIPER-001 毒蛇图腾流派测试
 - TOTEM-EAGLE-001 鹰图腾流派测试
 
 **历史记录**:
+- TOTEM-BUTTERFLY-001 (17:43): 蝴蝶图腾测试完成，CRASH-002仍存在，机制未验证
 - TOTEM-WOLF-001 (17:37): 狼图腾测试完成，CRASH-002仍存在，机制未验证
 - TOTEM-BAT-001 (17:33): 蝙蝠图腾测试完成，CRASH-002仍存在，机制未验证
 - TOTEM-COW-001-VERIFY (17:24): COMBATMANAGER-FIX-001已修复，但原始CRASH-002仍然存在
