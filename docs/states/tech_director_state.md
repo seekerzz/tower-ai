@@ -10,13 +10,18 @@
 **优先级**: P0 (阻塞所有测试)
 **状态**: ✅ 修复已实施并提交
 
-**修复提交**: Commit 2d6c0e6
+**修复提交**: Commit 2f93927
 
 **修复内容**:
 1. ✅ 移除 `TauntBehavior.gd` 的 `class_name TauntBehavior`
 2. ✅ 修复 `YakGuardian.gd` 类型声明为 `var taunt_behavior = null`
+3. ✅ 增强 `BaseTotemMechanic.get_nearest_enemies()` 防御性编程（添加敌人列表有效性过滤）
+4. ✅ 修复 `CombatManager.find_nearest_enemy()` 空值检查
+5. ✅ 修复 `DefaultBehavior._find_nearest_hostile()` 空值检查
 
-**根本原因**: `class_name` + 脚本路径继承混合使用导致 Godot 类注册时序问题
+**根本原因**:
+1. `class_name` + 脚本路径继承混合使用导致 Godot 类注册时序问题
+2. 敌人列表访问时缺乏空值检查，可能访问到已释放的节点
 
 **下一步**: 等待 AI Player 执行 TOTEM-COW-001-RETEST-3 验证测试
 
