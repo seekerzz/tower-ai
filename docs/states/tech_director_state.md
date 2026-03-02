@@ -48,13 +48,13 @@
 
 ---
 
-### 🚨 紧急修复: CombatManager属性访问错误 (任务#8)
+### ✅ 紧急修复: CombatManager属性访问错误 (任务#8)
 
 **任务ID**: COMBATMANAGER-FIX-001
 **来源**: AI Player跑测发现 / 项目总监派发
 **时间**: 2026-03-02 17:17
 **优先级**: P0 (阻塞所有测试)
-**状态**: 🚨 **待修复 - 立即执行**
+**状态**: ✅ **已修复并提交**
 
 **问题描述**:
 AI Player执行TOTEM-COW-001测试时发现新的代码错误：
@@ -63,21 +63,21 @@ SCRIPT ERROR: Invalid access to property or key 'total_enemies_for_wave' on a ba
 ```
 
 **技术详情**:
-- 错误文件: `src/Scripts/CoreMechanics/CombatManager.gd`
-- 错误原因: WAVE-REFACTOR-001重构后，`total_enemies_for_wave`属性引用未更新
+- 错误文件: `src/Scenes/HUD/EnemyProgressBar.gd`
+- 错误原因: WAVE-REFACTOR-001重构后，`total_enemies_for_wave`和`enemies_to_spawn`属性引用未更新
 - 触发时机: 第1波战斗启动时
 - 相关日志: `logs/ai_session_cow_totem_20260302_171744.log`
 
-**修复方案**:
-1. 检查 `CombatManager.gd` 中所有对 `total_enemies_for_wave` 的引用
-2. 确认该属性现在应该从哪里获取（可能是 `GameManager.session_data` 或 `WaveSystemManager`）
-3. 更新所有相关引用以匹配WAVE-REFACTOR-001后的新架构
+**修复内容**:
+- 修复文件: `src/Scenes/HUD/EnemyProgressBar.gd`
+- 修复方式: 将 `GameManager.combat_manager` 改为 `GameManager.wave_system_manager`
+- 修复提交: `6352297`
 
 **验证要求**:
 - 运行 `python3 ai_client/crash002_diagnostic.py` 确认无报错
 - 启动第1波战斗，确认不再出现属性访问错误
 
-**下一步**: 修复后通知项目总监和AI Player恢复图腾测试任务链
+**下一步**: 通知项目总监和AI Player恢复图腾测试任务链
 
 ---
 

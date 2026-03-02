@@ -60,7 +60,7 @@
   - 验霸龙黑洞控制
 
 - [ ] 待分析: logs/ai_session_viper_totem_*.log -- 策略: 毒蛇图腾剧毒叠加流 -- 来源@AI_Player
-  - ⚠️ **被CRASH-002阻塞** - 等待技术总监修复
+  - ⚠️ **被WAVE-REFACTOR-001重构后问题阻塞** - 等待技术总监修复
   - 验证图腾毒液对最远3敌人
   - 验证中毒层数叠加(最大50层)
   - 验证箭毒蛙斩杀机制
@@ -68,7 +68,7 @@
   - 验证老鼠瘟疫传播
 
 - [ ] 待分析: logs/ai_session_eagle_totem_*.log -- 策略: 鹰图腾暴击回响流 -- 来源@AI_Player
-  - ⚠️ **被CRASH-002阻塞** - 等待技术总监修复
+  - ⚠️ **被WAVE-REFACTOR-001重构后问题阻塞** - 等待技术总监修复
   - 验证暴击30%触发回响
   - 验证回响等额伤害和特效
   - 验证角雕三连爪击
@@ -76,7 +76,7 @@
   - 验证猫头鹰暴击率加成
 
 - [ ] 待分析: logs/ai_session_common_units_*.log -- 策略: 通用单位Buff叠加流 -- 来源@AI_Player
-  - ⚠️ **被CRASH-002阻塞** - 等待技术总监修复
+  - ⚠️ **被WAVE-REFACTOR-001重构后问题阻塞** - 等待技术总监修复
   - 验证向日葵产蓝
   - 验证战鼓攻速Buff传播
   - 验证反射魔镜弹射Buff
@@ -84,7 +84,7 @@
   - 验证金蟾产金和商店折扣
 
 - [ ] 待分析: logs/ai_session_system_mech_*.log -- 策略: 系统机制极限操作流 -- 来源@AI_Player
-  - ⚠️ **被CRASH-002阻塞** - 等待技术总监修复
+  - ⚠️ **被WAVE-REFACTOR-001重构后问题阻塞** - 等待技术总监修复
   - 验证商店刷新和阵营过滤
   - 验证格子扩建规则
   - 验证核心血量计算
@@ -145,7 +145,7 @@
 - **最后唤醒**: 2026-03-02
 - **处理中任务**: 无
 - **待分析日志数**: 等待中
-- **已知机制问题**: WAVE-REFACTOR-001架构重构已完成，等待SIGNAL-FIX-001修复
-- **最新产出**: docs/design_proposals/proposal_crash002_retest3_analysis.md
-- **阻塞状态**: 所有图腾机制测试被SIGNAL-FIX-001阻塞（WAVE-REFACTOR-001重构后的信号参数问题）
-- **备注**: 已提交深度分析报告，等待技术总监架构级修复
+- **已知机制问题**: WAVE-REFACTOR-001重构后发现3个新问题（Shop.gd信号/Parameter "t" is null/CombatManager属性）
+- **最新产出**: docs/design_proposals/proposal_wave_refactor_issues_analysis.md
+- **阻塞状态**: 所有图腾机制测试被WAVE-REFACTOR-001重构后问题阻塞
+- **备注**: 已提交WAVE-REFACTOR-001问题分析报告，等待技术总监修复
