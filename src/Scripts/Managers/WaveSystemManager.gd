@@ -278,6 +278,11 @@ func start_wave(wave: int = -1) -> bool:
 	current_wave_type = get_wave_type(current_wave)
 	is_wave_active = true
 
+	# 同步到 SessionData (Source of Truth)
+	if GameManager.session_data:
+		GameManager.session_data.wave = current_wave
+		GameManager.session_data.is_wave_active = true
+
 	# 重置统计
 	_reset_wave_stats()
 	wave_stats.start_time = Time.get_ticks_msec() / 1000.0
@@ -494,6 +499,11 @@ func _end_wave():
 		return
 
 	is_wave_active = false
+
+	# 同步到 SessionData (Source of Truth)
+	if GameManager.session_data:
+		GameManager.session_data.is_wave_active = false
+
 	wave_stats.end_time = Time.get_ticks_msec() / 1000.0
 
 	var duration = wave_stats.end_time - wave_stats.start_time
@@ -580,6 +590,11 @@ func reset():
 	defeated_enemies_count = 0
 	_reset_wave_stats()
 
+	# 同步到 SessionData (Source of Truth)
+	if GameManager.session_data:
+		GameManager.session_data.wave = 1
+		GameManager.session_data.is_wave_active = false
+
 func _reset_wave_stats():
 	"""重置波次统计"""
 	wave_stats = {
@@ -597,6 +612,9 @@ func _reset_wave_stats():
 func skip_to_wave(wave: int):
 	"""跳转到指定波次（调试用）"""
 	current_wave = wave
+	# 同步到 SessionData (Source of Truth)
+	if GameManager.session_data:
+		GameManager.session_data.wave = wave
 	print("[WaveSystemManager] Skipped to wave %d" % wave)
 
 func spawn_test_enemy(type_key: String = "slime"):
