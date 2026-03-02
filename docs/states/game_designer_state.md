@@ -2,29 +2,50 @@
 
 ## [Inbox - 待分析日志]
 
-### 🔄 WAVE-REFACTOR-001 重构后问题分析完成
+### ⏸️ 等待修复后的新一轮测试
 
-**当前状态**: 已完成三轮测试日志分析，发现3个新问题
+**当前状态**: 技术总监已修复2/3问题，等待验证测试
 **时间**: 2026-03-02
 **优先级**: P0
 
-**新发现问题**:
-1. 🚨 **Shop.gd信号参数不匹配**: `Method expected 0 argument(s), but called with 3.`
-2. 🚨 **Parameter "t" is null**: CRASH-002在重构后仍然出现
-3. 🚨 **CombatManager属性访问错误**: `Invalid access to property 'total_enemies_for_wave'`
+**WAVE-REFACTOR-001重构后问题状态**:
+| 问题 | 状态 | 修复提交 |
+|------|------|----------|
+| Shop.gd信号参数不匹配 | ✅ 已修复 | SIGNAL-FIX-001 |
+| CombatManager属性访问错误 | ✅ 已修复 | COMBATMANAGER-FIX-001 (6352297) |
+| Parameter "t" is null | 🔄 待修复 | - |
 
 **分析报告**: `docs/design_proposals/proposal_wave_refactor_issues_analysis.md`
 
 **待验证机制** (被阻塞):
 - 受伤充能、全屏反击、嘲讽联动、伤害转MP、减伤回血、治疗核心
 
-**备注**: 等待技术总监修复WAVE-REFACTOR-001重构后问题
+**备注**: 等待技术总监修复剩余问题后，AI Player恢复TOTEM-COW-001测试
 
 ---
 
 ### 📋 全面图腾机制测试 - 待分析日志队列
 
 **待分析日志队列**（按优先级排序）：
+
+- [x] ~~待分析: logs/ai_session_cow_totem_20260302_171744.log -- 策略: 牛图腾WAVE-REFACTOR-001后测试 -- 来源@AI_Player~~
+  - 状态: ✅ 黑盒分析完成，报告已投递技术总监
+  - 已验证: 牛图腾选择✅、商店阵营过滤✅、单位购买部署✅、核心血量计算✅
+  - 新发现问题: CombatManager属性访问错误 `total_enemies_for_wave`
+  - 分析报告: docs/design_proposals/proposal_wave_refactor_issues_analysis.md
+  - 修复状态: 技术总监已修复COMBATMANAGER-FIX-001
+
+- [x] ~~待分析: logs/ai_session_cow_totem_20260302_155657.log -- 策略: 牛图腾WAVE-REFACTOR-001后测试 -- 来源@AI_Player~~
+  - 状态: ✅ 黑盒分析完成
+  - 已验证: 牛图腾选择✅、商店阵营过滤✅、单位购买部署✅、核心血量计算✅
+  - 新发现问题: Parameter "t" is null 仍然出现
+  - 分析报告: docs/design_proposals/proposal_wave_refactor_issues_analysis.md
+
+- [x] ~~待分析: logs/ai_session_cow_totem_20260302_155153.log -- 策略: 牛图腾WAVE-REFACTOR-001后测试 -- 来源@AI_Player~~
+  - 状态: ✅ 黑盒分析完成
+  - 已验证: 牛图腾选择✅、商店阵营过滤✅、核心血量计算✅
+  - 新发现问题: Shop.gd信号参数不匹配 `Method expected 0 argument(s), but called with 3.`
+  - 修复状态: 技术总监已修复SIGNAL-FIX-001
 
 - [x] ~~待分析: logs/ai_session_cow_totem_20260302_094638.log -- 策略: 牛图腾防御反击流第三轮验证 -- 来源@AI_Player~~
   - 状态: ✅ 黑盒分析完成，报告已投递技术总监

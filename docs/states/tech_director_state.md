@@ -81,21 +81,32 @@ SCRIPT ERROR: Invalid access to property or key 'total_enemies_for_wave' on a ba
 
 ---
 
-### ✅ 紧急修复: CombatManager信号参数不匹配 (任务#7)
+### ✅ 紧急修复: wave_ended信号参数不匹配 (任务#7)
 
 **任务ID**: SIGNAL-FIX-001
-**来源**: AI Player跑测发现
+**来源**: 技术总监代码审查发现
 **时间**: 2026-03-02
 **优先级**: P0 (阻塞所有测试)
-**状态**: ✅ 已修复 - Shop.gd信号问题
+**状态**: ✅ **已修复并提交**
 
 **问题描述**:
-AI Player执行CRASH-002验证时发现信号参数不匹配错误。
+WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法签名不匹配。
+`wave_ended`信号定义: `wave_ended(wave_number: int, stats: Dictionary)`
+但多个处理方法没有参数或参数不匹配。
 
 **修复内容**:
-- 修复文件: `src/Scripts/UI/Shop.gd`
-- 修复方法: `_on_wave_started()` 方法签名更新
-- 修复提交: 已包含在WAVE-REFACTOR-001后续修复中
+| 文件 | 方法 | 修复 |
+|------|------|------|
+| `src/Scripts/MainGame.gd` | `_on_wave_ended()` | 添加默认参数 `(wave_number: int = 0, stats: Dictionary = {})` |
+| `src/Scripts/UI/Shop.gd` | `on_wave_ended()` | 添加默认参数 `(wave_number: int = 0, stats: Dictionary = {})` |
+| `src/Scripts/Units/Behaviors/Shell.gd` | `_on_wave_ended()` | 添加默认参数 `(wave_number: int = 0, stats: Dictionary = {})` |
+| `src/Scripts/Units/Behaviors/Plant.gd` | `_on_wave_end()` | 添加默认参数 `(wave_number: int = 0, stats: Dictionary = {})` |
+
+**修复提交**: `42a19c3`
+
+**验证要求**:
+- 启动游戏并运行波次，确认无信号参数不匹配错误
+- 检查Godot输出窗口确认无相关报错
 
 **状态**: ✅ 已修复并合并到master
 
