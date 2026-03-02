@@ -2,6 +2,45 @@
 
 ## [Inbox - 紧急重构任务]
 
+### ✅ LOG-IMPROVEMENT-001: 日志埋点增强与商店阵营过滤修复 - 已完成
+
+**任务ID**: LOG-IMPROVEMENT-001
+**来源**: 游戏策划7份分析报告 / 项目总监指派
+**时间**: 2026-03-02
+**优先级**: P0 (阻塞机制验证)
+**状态**: ✅ **已完成并提交**
+
+**修复内容**:
+
+| 文件 | 修改内容 | 状态 |
+|------|----------|------|
+| `AILogger.gd` | 新增资源变化日志、Buff日志、流血/中毒效果日志 | ✅ |
+| `MechanicCowTotem.gd` | 添加受伤充能日志、全屏反击触发日志 | ✅ |
+| `MechanicBatTotem.gd` | 添加图腾攻击触发日志、流血施加日志 | ✅ |
+| `MechanicWolfTotem.gd` | 添加魂魄收集日志、单位升级日志、图腾攻击日志 | ✅ |
+| `MechanicButterflyTotem.gd` | 添加法球生成日志、法力回复日志 | ✅ |
+| `MechanicEagleTotem.gd` | 添加暴击回响触发日志 | ✅ |
+| `MechanicViperTotem.gd` | 已有毒液攻击日志，确认正常 | ✅ |
+| `Shop.gd` | 修复阵营过滤，阵营单位出现概率70% | ✅ |
+
+**新增日志类型**:
+- `totem_resource()` - 图腾资源变化（魂魄、充能）
+- `mana_changed()` - 法力变化
+- `core_heal()` - 核心治疗
+- `buff_applied()` - Buff施加
+- `buff_stacked()` - Buff叠加
+- `bleed_effect()` - 流血效果
+- `poison_effect()` - 中毒效果
+
+**商店阵营过滤修复**:
+- 阵营单位出现概率: 70%
+- 通用单位出现概率: 30%
+- 解决毒蛇/鹰图腾显示非阵营单位问题
+
+**下一步**: 通知AI Player执行回归测试验证日志输出
+
+---
+
 ### ✅ WAVE-REFACTOR-001: 波次状态与信号链条深度重构 - 已完成
 
 **任务ID**: WAVE-REFACTOR-001
