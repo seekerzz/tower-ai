@@ -3,9 +3,6 @@ extends Node
 signal resource_changed
 signal core_type_changed
 signal totem_confirmed(totem_id: String)  ## AI 选择图腾后发射的全局信号
-signal wave_started
-signal wave_ended
-signal wave_reset
 signal game_over
 signal unit_purchased(unit_data)
 signal unit_sold(amount)
@@ -96,21 +93,6 @@ var gold: int:
 		if session_data:
 			session_data.gold = value
 
-# ===== 波次状态（通过 SessionData 管理）=====
-var wave: int:
-	get:
-		return session_data.wave if session_data else 1
-	set(value):
-		if session_data:
-			session_data.wave = value
-
-var is_wave_active: bool:
-	get:
-		return session_data.is_wave_active if session_data else false
-	set(value):
-		if session_data:
-			session_data.is_wave_active = value
-
 # ===== 核心血量系统（通过 SessionData 管理）=====
 var core_health: float:
 	get:
@@ -191,7 +173,6 @@ func _ready():
 
 	# Connect signals for Core mechanics
 	damage_dealt.connect(_on_damage_dealt)
-	wave_started.connect(_on_wave_started)
 	# Connect enemy_died signal for soul_catcher
 	enemy_died.connect(_on_enemy_died)
 
@@ -333,23 +314,13 @@ func _on_damage_dealt(unit, amount):
 	if current_mechanic:
 		current_mechanic.on_damage_dealt_by_unit(unit, amount)
 
-func _on_wave_started():
-	if current_mechanic:
-		current_mechanic.on_wave_started()
-
 func _on_wave_system_started(wave_number: int, wave_type: String, difficulty: float):
 	"""波次系统开始新波次的回调"""
-	is_wave_active = true
 	indomitable_triggered = false
-	# 同步波次编号
-	wave = wave_number
-	# 发射原有wave_started信号保持兼容性
-	wave_started.emit()
 	print("[GameManager] Wave %d started (Type: %s, Difficulty: %.2f)" % [wave_number, wave_type, difficulty])
 
 func _on_wave_system_ended(wave_number: int, stats: Dictionary):
 	"""波次系统结束波次的回调"""
-	is_wave_active = false
 	print("[GameManager] Wave %d ended (Duration: %.2fs, Defeated: %d/%d)" % [
 		wave_number,
 		stats.get("duration", 0),
@@ -414,7 +385,8 @@ func _process(delta):
 			indomitable_timer = 0
 			spawn_floating_text(grid_manager.global_position if grid_manager else Vector2.ZERO, "Mortality Restored", Color.RED)
 
-	if is_wave_active and core_health > 0:
+	var wave_active = session_data.is_wave_active if session_data else false
+	if wave_active and core_health > 0:
 		update_resources(delta)
 
 	# Update risk-reward warning state
@@ -454,38 +426,16 @@ func update_resources(delta):
 		session_data.update_mana(delta)
 	resource_changed.emit()
 
-func start_wave():
-	"""开始新波次 - 委托给WaveSystemManager"""
-	if is_wave_active:
-		return
-
-	if wave_system_manager:
-		wave_system_manager.start_wave(wave)
-	else:
-		# 回退到旧逻辑
-		if is_wave_active: return
-		is_wave_active = true
-		indomitable_triggered = false
-		wave_started.emit()
-
-func end_wave():
-	"""结束当前波次 - 委托给WaveSystemManager"""
-	if wave_system_manager and wave_system_manager.is_wave_active:
-		wave_system_manager.force_end_wave()
-	else:
-		# 回退到旧逻辑
-		is_wave_active = false
-		_show_upgrade_selection()
-
 func _finish_wave_process():
-	wave += 1
+	# 波次进度由 WaveSystemManager 管理
 	# 每波结束固定获得金币：20 + 波次×5
-	gold += 20 + (wave * 5)
+	var current_wave = session_data.wave if session_data else 1
+	session_data.wave = current_wave + 1
+	gold += 20 + (current_wave * 5)
 
 	# 每波结束恢复法力至满值（血量不自动恢复）
 	mana = max_mana
 
-	wave_ended.emit()
 	resource_changed.emit()
 
 func _on_upgrade_selected(upgrade_data):
@@ -572,7 +522,8 @@ func _check_game_over():
 			session_data.core_health = 0
 			session_data.is_wave_active = false
 		# Emit game_over signal BEFORE force_end_wave to ensure AI receives it
-		print("[GameManager] Game Over triggered at wave %d" % wave)
+		var current_wave = session_data.wave if session_data else 1
+		print("[GameManager] Game Over triggered at wave %d" % current_wave)
 		game_over.emit()
 		if wave_system_manager:
 			wave_system_manager.force_end_wave()
@@ -599,13 +550,7 @@ func retry_wave():
 	# 重置波次系统
 	if wave_system_manager:
 		wave_system_manager.reset()
-		wave_system_manager.current_wave = wave
-
-	# Notify systems that wave is reset (so they can re-enable UI etc)
-	wave_reset.emit()
-
-	# Update UI
-	resource_changed.emit()
+		wave_system_manager.current_wave = session_data.wave if session_data else 1
 
 func recalculate_max_health():
 	"""
