@@ -292,6 +292,21 @@ python3 ai_client/crash002_diagnostic.py 8080
 
 ## [Archive - 归档]
 
+### 2026-03-02 (诊断测试)
+- [x] 跑测任务: CRASH-002 诊断测试 (CRASH-002-DIAGNOSTIC) -- 来源@ProjectDirector
+  - 测试分支: master
+  - **任务A**: 无单位部署 + 牛图腾
+    - 验证结果: ❌ 崩溃仍然发生
+    - 结论: 崩溃与单位部署无关，非嘲讽机制问题
+  - **任务B**: 蝴蝶图腾 + 部署单位
+    - 验证结果: ❌ 崩溃同样发生
+    - 结论: 崩溃与图腾类型无关，所有图腾均受影响
+  - **关键发现**: 崩溃发生在波次启动时的全局机制中
+  - **推测**: 可能涉及敌人生成/初始化、波次状态管理、全局战斗系统或敌人AI/寻路
+  - 生成日志: logs/ai_session_diagnostic_20260302_0936.log
+
+---
+
 ### 2026-03-02 (第二轮修复验证)
 - [x] 跑测任务: CRASH-002 第二轮修复验证 (TOTEM-COW-001-RETEST-2) -- 来源@Technical_Director
   - 测试分支: master (Commit 2baaa01)
