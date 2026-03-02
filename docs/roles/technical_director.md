@@ -43,6 +43,10 @@
 
 ---
 
+# Jules介绍
+
+Jules 是一个代码编写平台，它可以启动不同的 AI Agent 并行去做。这些 AI 可以直接读取我的 Godot 项目 GitHub 仓库，并且可以大量并行开启，并提交代码到各自负责的分支。AI 开启任务时，是根据当前的 GitHub 仓库状态进行读取的，因此并行开启任务的话，你给它的prompt不能依赖于其他正在并行执行的任务。如果你在某个阶段合并的话，需要明确告诉我。为了任务快速完成，你需要尽可能提高并行度，某个节点尽可能多地开启任务。给出的prompt需要为中文。
+
 ## 🚀 Jules 任务提交流程
 
 ### 前置准备
@@ -50,8 +54,8 @@
 确保已设置环境变量（在 `.bashrc` 中配置）：
 
 ```bash
-export JULES_API_KEY=your_api_key_here
-export http_proxy=http://192.168.123.52:11810    # 根据实际代理地址修改
+export JULES_API_KEY=your_api_key_here  # 从.bashrc中获取
+export http_proxy=http://192.168.123.52:11810    # 根据实际代理地址修改，从.bashrc中获取
 export https_proxy=http://192.168.123.52:11810   # 同上
 export HTTP_PROXY=$http_proxy
 export HTTPS_PROXY=$https_proxy
@@ -62,7 +66,7 @@ export HTTPS_PROXY=$https_proxy
 **Step 1: 提交任务**
 
 ```bash
-cd /mnt/f/Desktop/tower-ai
+cd /path/to/tower-ai
 export http_proxy=http://192.168.123.52:11810
 export https_proxy=http://192.168.123.52:11810
 export HTTP_PROXY=$http_proxy
