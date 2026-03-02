@@ -36,6 +36,30 @@
 
 ---
 
+### 🔄 LOG-IMPROVEMENT-001-REGRESSION 回归测试日志 - 待分析
+
+**任务ID**: LOG-IMPROVEMENT-001-REGRESSION-ANALYSIS
+**来源**: AI Player回归测试完成
+**优先级**: P0
+**状态**: ⏳ 等待测试日志
+
+**预计待分析日志**:
+- [ ] `logs/ai_session_cow_regression_*.log` - 牛图腾回归测试
+- [ ] `logs/ai_session_bat_regression_*.log` - 蝙蝠图腾回归测试
+- [ ] `logs/ai_session_wolf_regression_*.log` - 狼图腾回归测试
+- [ ] `logs/ai_session_butterfly_regression_*.log` - 蝴蝶图腾回归测试
+- [ ] `logs/ai_session_viper_regression_*.log` - 毒蛇图腾回归测试
+- [ ] `logs/ai_session_eagle_regression_*.log` - 鹰图腾回归测试
+- [ ] `logs/ai_session_common_units_regression_*.log` - 通用单位回归测试
+
+**验证重点**:
+1. 日志埋点是否完整（[图腾触发]、[图腾资源]、[Buff施加]）
+2. 商店阵营过滤是否70%显示阵营单位
+3. CRASH-002是否已修复
+4. 各图腾机制是否正常工作
+
+---
+
 ### ✅ 所有测试日志分析完成
 
 **当前状态**: 6大图腾 + 通用单位测试分析全部完成
