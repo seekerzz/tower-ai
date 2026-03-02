@@ -29,25 +29,55 @@
 
 ---
 
+#### 关键发现（基于AI Player诊断更新）
+
+**AI Player诊断结论**: 崩溃与单位部署无关、与图腾类型无关 → **非Taunt问题**
+
+**修正后的调查范围**:
+
+| 文件路径 | 检查内容 | 状态 |
+|---------|---------|------|
+| `src/Scripts/Managers/WaveSystemManager.gd` | 波次启动逻辑 | ✅ 正常 |
+| `src/Autoload/GameManager.gd` | is_wave_active setter | ✅ 正常 |
+| `src/Scripts/Data/SessionData.gd` | wave_state_changed信号 | ✅ 正常 |
+| `src/Scripts/CombatManager.gd` | 敌人生成逻辑 | ⚠️ 发现潜在问题 |
+| `src/Scripts/CoreMechanics/BaseTotemMechanic.gd` | 图腾攻击逻辑 | ⚠️ 发现潜在问题 |
+| `src/Scripts/Enemies/Behaviors/DefaultBehavior.gd` | 敌人AI逻辑 | ⚠️ 发现潜在问题 |
+
+---
+
 #### 关键发现
 
-**发现1: YakGuardian.gd 类型声明问题**
+**发现1: BaseTotemMechanic.get_nearest_enemies() 空值检查缺失**
 
 ```gdscript
-# 当前代码 (第3行)
-var taunt_behavior: RefCounted
-
-# 问题: 应该声明为 TauntBehavior 类型，但 TauntBehavior 是 class_name
-# 如果 TauntBehavior 类加载失败，这可能导致运行时问题
+# src/Scripts/CoreMechanics/BaseTotemMechanic.gd 第16-18行
+enemies.sort_custom(func(a, b):
+    return a.global_position.distance_squared_to(core_pos) < b.global_position.distance_squared_to(core_pos)
+)
 ```
+**问题**: 没有检查 `a` 和 `b` 的有效性，如果敌人列表包含已被释放的节点，访问 `global_position` 会崩溃。
 
-**发现2: TauntBehavior 类结构潜在风险**
+**发现2: CombatManager.find_nearest_enemy() 空值检查缺失**
 
 ```gdscript
-# TauntBehavior.gd
-class_name TauntBehavior  # <-- 使用 class_name
-extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
+# src/Scripts/CombatManager.gd 第262-266行
+for enemy in get_tree().get_nodes_in_group("enemies"):
+    var dist = pos.distance_to(enemy.global_position)  # <-- 没有is_instance_valid检查
 ```
+
+**发现3: DefaultBehavior._find_nearest_hostile() 空值检查缺失**
+
+```gdscript
+# src/Scripts/Enemies/Behaviors/DefaultBehavior.gd 第220-227行
+for other in get_tree().get_nodes_in_group("enemies"):
+    var dist = enemy.global_position.distance_to(other.global_position)  # <-- 没有is_instance_valid检查
+```
+
+**发现4: 所有 `is` 操作符已修复**
+- 全面扫描了所有GDScript文件
+- 26+个文件中的`is`操作符都已添加`Type != null`前置检查
+- 但崩溃仍然发生，说明**根本原因不是`is`操作符**
 
 `TauntBehavior` 使用 `class_name` 同时继承自脚本路径，这种混合用法在 Godot 中可能导致类注册问题。
 
@@ -127,11 +157,83 @@ func on_setup():
 
 ---
 
+#### 崩溃触发链分析（基于AI Player诊断更新）
+
+```
+第1波开始
+    ↓
+WaveSystemManager.start_wave() → is_wave_active = true
+    ↓
+GameManager._on_wave_system_started() → wave_started.emit()
+    ↓
+CombatManager._on_wave_started() → start_wave_logic()
+    ↓
+CombatManager._run_batch_sequence() → _spawn_enemy_at_pos()
+    ↓
+敌人出生，加入"enemies"组
+    ↓
+Enemy._physics_process()开始执行（因为is_wave_active=true）
+    ↓
+DefaultBehavior.physics_process() → _find_nearest_hostile()
+    ↓
+get_tree().get_nodes_in_group("enemies") 返回敌人列表
+    ↓
+访问 enemy.global_position / other.global_position
+    ↓
+[如果列表中包含无效节点，崩溃发生]
+```
+
+**关键洞察**:
+- 敌人出生和加入组是原子操作
+- 但敌人在`_ready()`中可能还没有完全初始化
+- 如果其他代码（如图腾攻击）在敌人完全初始化前访问列表，可能获取到无效节点
+
+---
+
+#### 根本原因假设（更新）
+
+**假设1: 敌人列表竞争条件**
+- 敌人被创建并加入"enemies"组
+- 但在`_ready()`完成前，其他代码访问了该敌人
+- 访问`global_position`时节点无效
+
+**假设2: 波次状态切换时序问题**
+- `is_wave_active = true`被设置
+- 敌人`_physics_process`开始执行
+- 但某些初始化代码还未完成
+
+**假设3: Godot组系统问题**
+- `get_tree().get_nodes_in_group("enemies")`可能返回正在释放的节点
+- 需要`is_instance_valid()`检查
+
+---
+
+#### 建议的修复方案（更新）
+
+**方案A: 添加is_instance_valid检查（P0）**
+
+修改以下文件：
+1. `BaseTotemMechanic.get_nearest_enemies()` - 添加敌人有效性检查
+2. `CombatManager.find_nearest_enemy()` - 添加敌人有效性检查
+3. `DefaultBehavior._find_nearest_hostile()` - 添加敌人有效性检查
+
+**方案B: 延迟敌人AI启动（P1）**
+- 在Enemy._physics_process()中添加额外初始化检查
+- 或使用`call_deferred`延迟行为启动
+
+**方案C: 波次状态原子性（P2）**
+- 确保`is_wave_active = true`时所有初始化已完成
+- 或使用信号机制确保时序正确
+
+---
+
 #### 结论
 
-经过全面调查，所有显式的 `is` 操作符使用都已被修复。崩溃可能与 `TauntBehavior` 类的 `class_name` 注册时序有关。
+经过全面调查，**所有`is`操作符已修复**，但崩溃仍然发生。
 
-**建议**: 实施方案A（移除 class_name）进行测试验证。
+**新的根本原因假设**: 敌人列表访问时的空值/无效节点问题。
+
+**建议**: 实施方案A，为所有访问敌人列表的代码添加`is_instance_valid()`检查。
 
 ---
 
@@ -468,7 +570,7 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
 
 ## [Meta - 元数据]
 
-- **当前状态**: 🔍 CRASH-002 深入调查完成，发现 TauntBehavior class_name 潜在问题
+- **当前状态**: 🔍 CRASH-002 深入调查完成，发现敌人列表空值检查缺失问题
 - **最后唤醒**: 2026-03-02 (由项目总监唤醒)
 - **处理中任务**: CRASH-002 运行时崩溃修复 - 第二轮修复已提交
 - **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时) - 第二轮修复待验证
