@@ -6,6 +6,15 @@ func get_nearest_enemies(count: int) -> Array:
     if enemies.is_empty():
         return []
 
+    # 过滤掉无效节点
+    var valid_enemies = []
+    for enemy in enemies:
+        if is_instance_valid(enemy):
+            valid_enemies.append(enemy)
+
+    if valid_enemies.is_empty():
+        return []
+
     # Sort by distance to core (GameManager.grid_manager.global_position usually or Vector2.ZERO if core is at 0,0)
     var core_pos = Vector2.ZERO
     if GameManager.grid_manager and is_instance_valid(GameManager.grid_manager):
@@ -13,11 +22,13 @@ func get_nearest_enemies(count: int) -> Array:
          # Convert grid (0,0) to global.
          core_pos = GameManager.grid_manager.to_global(GameManager.grid_manager.grid_to_local(Vector2i(0,0)))
 
-    enemies.sort_custom(func(a, b):
+    valid_enemies.sort_custom(func(a, b):
+        if not is_instance_valid(a) or not is_instance_valid(b):
+            return false
         return a.global_position.distance_squared_to(core_pos) < b.global_position.distance_squared_to(core_pos)
     )
 
-    return enemies.slice(0, count)
+    return valid_enemies.slice(0, count)
 
 func deal_damage(enemy, amount: float):
     if is_instance_valid(enemy):

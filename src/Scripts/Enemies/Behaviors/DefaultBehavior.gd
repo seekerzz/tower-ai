@@ -218,6 +218,8 @@ func _find_nearest_hostile() -> Node2D:
 	var nearest = null
 	var min_dist = 9999.0
 	for other in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(other):
+			continue
 		if other == enemy: continue
 		if other.get("faction") == "player": continue # Don't attack other charmed enemies
 

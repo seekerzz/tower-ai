@@ -38,15 +38,50 @@
 
 ---
 
-### 🚨 当前状态: 待机 - 等待技术总监修复完成
+### 🔥 TOTEM-COW-001-RETEST-3 验证测试任务 (来自项目总监)
 
-**状态**: 🤖 AI 模拟玩家处于待机状态，准备执行 TOTEM-COW-001-RETEST-3
+**任务ID**: TOTEM-COW-001-RETEST-3
+**类型**: 修复验证跑测
+**优先级**: P0
+**来源**: 项目总监 @ProjectDirector
+**修复提交**: Commit 2d6c0e6
 
-**等待内容**: 技术总监 CRASH-002 修复
-- 移除 `TauntBehavior.gd` 的 `class_name`（类注册问题）
-- 修复 `YakGuardian.gd` 类型声明
-- 添加防御性编程（null检查、is_instance_valid）
-- 可能延迟图腾攻击定时器启动
+**修复内容**:
+- ✅ 移除 `TauntBehavior.gd` 的 `class_name TauntBehavior`
+- ✅ 修复 `YakGuardian.gd` 类型声明为 `var taunt_behavior = null`
+
+**验证目标**:
+- 确认 CRASH-002 修复成功
+- 验证牛图腾核心机制正常工作
+
+**执行步骤**:
+```bash
+# 1. 拉取最新代码
+git pull origin master
+
+# 2. 启动 AI Client (Headless模式)
+cd /home/zhangzhan/tower-ai
+python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/CoreSelection.tscn --http-port 8080
+
+# 3. 在另一个终端运行验证测试
+cd /home/zhangzhan/tower-ai
+python3 ai_client/totem_cow_retest3.py 8080
+```
+
+**验证重点**:
+1. 第1波是否正常启动，无崩溃
+2. 牛图腾受伤充能机制
+3. 全屏反击机制
+4. 嘲讽联动机制（YakGuardian）
+
+**输出要求**:
+- 生成日志: `logs/ai_session_cow_totem_retest3_*.log`
+- 更新本状态机
+- 向项目总监汇报验证结果
+
+---
+
+### 🚨 当前状态: 待命 - 准备执行 TOTEM-COW-001-RETEST-3
 
 **准备任务**: TOTEM-COW-001-RETEST-3 验证测试
 - **验证脚本**: `ai_client/totem_cow_retest3.py`

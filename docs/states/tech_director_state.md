@@ -2,13 +2,23 @@
 
 ## [Inbox - 紧急修复任务]
 
-### 🔍 CRASH-002 第四轮 - 技术总监深入调查报告
+### ✅ CRASH-002 第四轮修复完成
 
-**任务ID**: CRASH-002-INVESTIGATION-4
+**任务ID**: CRASH-002-FIX-4
 **来源**: 项目总监指派
 **时间**: 2026-03-02
 **优先级**: P0 (阻塞所有测试)
-**状态**: 🔍 深入调查完成，发现潜在问题
+**状态**: ✅ 修复已实施并提交
+
+**修复提交**: Commit 2d6c0e6
+
+**修复内容**:
+1. ✅ 移除 `TauntBehavior.gd` 的 `class_name TauntBehavior`
+2. ✅ 修复 `YakGuardian.gd` 类型声明为 `var taunt_behavior = null`
+
+**根本原因**: `class_name` + 脚本路径继承混合使用导致 Godot 类注册时序问题
+
+**下一步**: 等待 AI Player 执行 TOTEM-COW-001-RETEST-3 验证测试
 
 ---
 

@@ -260,6 +260,8 @@ func find_nearest_enemy(pos: Vector2, range_val: float):
 	var min_dist = range_val
 
 	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy):
+			continue
 		var dist = pos.distance_to(enemy.global_position)
 		if dist < min_dist:
 			min_dist = dist
