@@ -13,18 +13,20 @@ func _ready():
 		print("[ScreenshotManager] Headless mode detected, disabling screenshot automation.")
 		return
 
-	GameManager.wave_started.connect(_on_wave_started)
-	GameManager.wave_ended.connect(_on_wave_ended)
+	# 连接到 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(_on_wave_started)
+		GameManager.wave_system_manager.wave_ended.connect(_on_wave_ended)
 	GameManager.damage_dealt.connect(_on_damage_dealt)
 
-func _on_wave_started():
+func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	_capture_and_save("WaveStarted")
 
 	# Start a timer influenced by Engine.time_scale (process mode is INHERIT by default for timers, meaning it uses time_scale)
 	var timer = get_tree().create_timer(5.0)
 	timer.timeout.connect(func(): _capture_and_save("Wave5Secs"))
 
-func _on_wave_ended():
+func _on_wave_ended(wave_number: int = 0, stats: Dictionary = {}):
 	_capture_and_save("WaveEnded")
 
 func _on_damage_dealt(unit, amount: float):

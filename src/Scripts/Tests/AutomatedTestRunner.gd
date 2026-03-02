@@ -25,7 +25,8 @@ func _ready():
 	print("[TestRunner] Starting test: ", config.get("id", "Unknown"))
 
 	if config.has("start_wave_index"):
-		GameManager.wave = config["start_wave_index"]
+		if GameManager.session_data:
+			GameManager.session_data.wave = config["start_wave_index"]
 
 	if config.has("core_type"):
 		GameManager.core_type = config["core_type"]
@@ -73,8 +74,10 @@ func _setup_test():
 			_execute_setup_action(action)
 
 	GameManager.game_over.connect(_on_game_over)
-	GameManager.wave_started.connect(_on_wave_started)
-	GameManager.wave_ended.connect(_on_wave_ended)
+	# 连接 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(_on_wave_started)
+		GameManager.wave_system_manager.wave_ended.connect(_on_wave_ended)
 	GameManager.enemy_spawned.connect(_on_enemy_spawned)
 	GameManager.enemy_hit.connect(_on_enemy_hit)
 	GameManager.enemy_died.connect(_on_enemy_died)
@@ -122,7 +125,8 @@ func _setup_test():
 	_last_mana = GameManager.mana
 	_last_core_health = GameManager.core_health
 
-	GameManager.start_wave()
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.start_wave()
 	# GameManager.wave_ended is only emitted after UI interaction, which we skip in headless.
 	# So we monitor is_wave_active in _process instead.
 
@@ -537,12 +541,13 @@ func _on_lifesteal_occurred(source, amount):
 	})
 
 # ===== Shop Phase Logging =====
-func _on_wave_ended():
-	print("[Shop] Wave ", GameManager.wave, " ended, entering shop phase")
+func _on_wave_ended(wave_number: int = 0, stats: Dictionary = {}):
+	var current_wave = wave_number if wave_number > 0 else (GameManager.session_data.wave if GameManager.session_data else 1)
+	print("[Shop] Wave ", current_wave, " ended, entering shop phase")
 	print("[Shop] Gold: ", GameManager.gold, ", Mana: ", GameManager.mana, "/", GameManager.max_mana)
 	_frame_events.append({
 		"type": "wave_ended",
-		"wave": GameManager.wave,
+		"wave": current_wave,
 		"gold": GameManager.gold,
 		"mana": GameManager.mana
 	})
@@ -673,7 +678,8 @@ func _process(delta):
 		_teardown("Duration Reached")
 
 	if config.get("end_condition") == "wave_end_or_fail":
-		if _wave_has_started and not GameManager.is_wave_active:
+		var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+		if _wave_has_started and not is_wave_active:
 			_teardown("Wave Combat Ended")
 
 	# Fallback safety if wave logic fails or infinite loop
@@ -1006,10 +1012,11 @@ func _log_status():
 	if shop_units.is_empty():
 		shop_units = _get_default_shop_units()
 
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	shop_info = {
 		"available_units": shop_units,
 		"refresh_cost": 2,
-		"is_active": not GameManager.is_wave_active
+		"is_active": not is_wave_active
 	}
 
 	# 获取狼图腾魂魄状态
@@ -1018,11 +1025,13 @@ func _log_status():
 		"max_souls": TotemManager.get_max_resource("wolf")
 	}
 
+	var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+	var wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	var entry = {
 		"frame": Engine.get_process_frames(),
 		"time": elapsed_time,
-		"wave": GameManager.wave,
-		"is_wave_active": GameManager.is_wave_active,
+		"wave": current_wave,
+		"is_wave_active": wave_active,
 		"gold": GameManager.gold,
 		"mana": GameManager.mana,
 		"core_health": GameManager.core_health,

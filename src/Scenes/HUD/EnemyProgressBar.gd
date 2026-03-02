@@ -6,7 +6,8 @@ extends MarginContainer
 @onready var wave_info_label = $HBoxContainer/WaveInfoLabel
 
 func _process(delta):
-	if GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if is_wave_active:
 		visible = true
 		if GameManager.combat_manager:
 			var total = GameManager.combat_manager.total_enemies_for_wave
@@ -34,6 +35,7 @@ func _process(delta):
 
 			# Update Wave Info Label
 			if wave_info_label:
-				wave_info_label.text = "Wave %d" % GameManager.wave
+				var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+				wave_info_label.text = "Wave %d" % current_wave
 	else:
 		visible = false

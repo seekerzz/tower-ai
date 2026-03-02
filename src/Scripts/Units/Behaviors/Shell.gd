@@ -23,9 +23,11 @@ func on_setup():
 			pearl_value = 100
 
 	# Connect to wave ended signal
-	if GameManager.wave_ended.is_connected(_on_wave_ended):
-		GameManager.wave_ended.disconnect(_on_wave_ended)
-	GameManager.wave_ended.connect(_on_wave_ended)
+	# 连接到 WaveSystemManager 的 wave_ended 信号
+	if GameManager.wave_system_manager:
+		if GameManager.wave_system_manager.wave_ended.is_connected(_on_wave_ended):
+			GameManager.wave_system_manager.wave_ended.disconnect(_on_wave_ended)
+		GameManager.wave_system_manager.wave_ended.connect(_on_wave_ended)
 
 func on_damage_taken(amount: float, source: Node2D) -> float:
 	# Track hits taken (only count actual damage)
@@ -79,5 +81,5 @@ func _apply_damage_reduction_aura():
 				neighbor.add_temporary_buff("damage_reduction", 0.05, 999999.0)  # Long duration for persistent effect
 
 func on_cleanup():
-	if GameManager.wave_ended.is_connected(_on_wave_ended):
-		GameManager.wave_ended.disconnect(_on_wave_ended)
+	if GameManager.wave_system_manager and GameManager.wave_system_manager.wave_ended.is_connected(_on_wave_ended):
+		GameManager.wave_system_manager.wave_ended.disconnect(_on_wave_ended)

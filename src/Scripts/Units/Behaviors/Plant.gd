@@ -5,9 +5,11 @@ var production_timer: float = 0.0
 func on_setup():
 	production_timer = 1.0
 	# Safely connect signal, checking if already connected
-	if GameManager.wave_ended.is_connected(_on_wave_end):
-		GameManager.wave_ended.disconnect(_on_wave_end)
-	GameManager.wave_ended.connect(_on_wave_end)
+	# 连接到 WaveSystemManager 的 wave_ended 信号
+	if GameManager.wave_system_manager:
+		if GameManager.wave_system_manager.wave_ended.is_connected(_on_wave_end):
+			GameManager.wave_system_manager.wave_ended.disconnect(_on_wave_end)
+		GameManager.wave_system_manager.wave_ended.connect(_on_wave_end)
 
 	# Re-apply permanent growth - directly modify max_hp
 	var growth = unit.get_meta("permanent_hp_growth", 0.0)
@@ -49,5 +51,5 @@ func _apply_nearby_hp_buff():
 		u.spawn_buff_effect("💚")
 
 func on_cleanup():
-	if GameManager.wave_ended.is_connected(_on_wave_end):
-		GameManager.wave_ended.disconnect(_on_wave_end)
+	if GameManager.wave_system_manager and GameManager.wave_system_manager.wave_ended.is_connected(_on_wave_end):
+		GameManager.wave_system_manager.wave_ended.disconnect(_on_wave_end)

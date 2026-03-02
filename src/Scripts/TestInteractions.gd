@@ -9,8 +9,9 @@ var test_wall
 var test_passed = true
 
 func _ready():
-	# Manually start wave so CombatManager works
-	GameManager.is_wave_active = true
+	# Manually start wave so CombatManager works - 直接设置 session_data
+	if GameManager.session_data:
+		GameManager.session_data.is_wave_active = true
 
 	# Setup grid
 	grid_manager.create_initial_grid()

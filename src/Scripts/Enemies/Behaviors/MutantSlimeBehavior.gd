@@ -31,7 +31,8 @@ func _perform_split():
 
 	for i in range(2):
 		var child = load("res://src/Scenes/Game/Enemy.tscn").instantiate()
-		child.setup(enemy.type_key, GameManager.wave)
+		var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+		child.setup(enemy.type_key, current_wave)
 
 		# Transfer properties to child behavior
 		if child.behavior and child.behavior.has_method("set_split_info"):

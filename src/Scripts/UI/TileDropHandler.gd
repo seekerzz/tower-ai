@@ -22,7 +22,8 @@ func _can_drop_data(at_position, data):
 
 		return true
 
-	if GameManager.is_wave_active: return false
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if is_wave_active: return false
 
 	if data.source == "grid" or data.source == "bench":
 		return true

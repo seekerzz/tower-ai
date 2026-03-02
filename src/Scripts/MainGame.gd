@@ -32,8 +32,10 @@ func _ready():
 	GameManager.ui_manager = main_gui
 	GameManager.main_game = self
 
-	GameManager.wave_started.connect(_on_wave_started)
-	GameManager.wave_ended.connect(_on_wave_ended)
+	# 连接 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(_on_wave_started)
+		GameManager.wave_system_manager.wave_ended.connect(_on_wave_ended)
 
 	# 连接 BoardController 信号
 	BoardController.unit_moved.connect(_on_unit_moved)
@@ -279,7 +281,8 @@ func _on_unit_sold(zone: String, pos: Variant, gold_refund: int):
 	pass
 
 func skip_wave():
-	if not GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if not is_wave_active:
 		return
 
 	# Clear all enemies
@@ -300,4 +303,5 @@ func skip_wave():
 		combat_manager.enemies_to_spawn = 0
 
 	# End wave
-	GameManager.end_wave()
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.force_end_wave()

@@ -510,5 +510,4 @@ func retry_wave():
 		GameManager.wave_system_manager.reset()
 		GameManager.wave_system_manager.current_wave = session_data.wave
 
-	# 发射信号通知 UI
-	GameManager.wave_reset.emit()
+	# 波次已重置 - UI 应该监听 wave_system_manager 的信号或使用 session_data.wave_state_changed

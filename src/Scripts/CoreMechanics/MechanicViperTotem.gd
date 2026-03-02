@@ -24,7 +24,8 @@ func _ready():
 	add_child(timer)
 
 func _on_timer_timeout():
-	if not GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if not is_wave_active:
 		return
 	if not GameManager.grid_manager:
 		return

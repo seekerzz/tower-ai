@@ -59,15 +59,14 @@ func _ready():
 		GameManager.session_data.wave_changed.connect(_on_wave_changed)
 
 	GameManager.resource_changed.connect(update_ui)
-	GameManager.wave_started.connect(update_ui)
-	GameManager.wave_ended.connect(update_ui)
-
-	GameManager.wave_started.connect(_update_hud_visibility)
-	GameManager.wave_ended.connect(_update_hud_visibility)
-
-	# Connect for sidebar movement
-	GameManager.wave_started.connect(_update_sidebar_position)
-	GameManager.wave_ended.connect(_update_sidebar_position)
+	# 连接 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(update_ui)
+		GameManager.wave_system_manager.wave_ended.connect(update_ui)
+		GameManager.wave_system_manager.wave_started.connect(_update_hud_visibility)
+		GameManager.wave_system_manager.wave_ended.connect(_update_hud_visibility)
+		GameManager.wave_system_manager.wave_started.connect(_update_sidebar_position)
+		GameManager.wave_system_manager.wave_ended.connect(_update_sidebar_position)
 
 	GameManager.game_over.connect(_on_game_over)
 
@@ -260,7 +259,7 @@ func _setup_stats_panel():
 	if stats_container: stats_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _update_hud_visibility():
-	var is_combat = GameManager.is_wave_active
+	var is_combat = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	hp_bar.visible = is_combat
 	mana_bar.visible = is_combat
 	if damage_stats_panel:
@@ -277,7 +276,8 @@ func _update_sidebar_position():
 
 	var target_offset_bottom = UIConstants.MARGINS.sidebar_bottom_combat # 战斗模式：贴近底边 (InventoryPanel 会在这个位置之上)
 	
-	if not GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if not is_wave_active:
 		# 商店模式：向上避让
 		var shop_height = UIConstants.MARGINS.sidebar_shop_base_height
 		if shop_node and is_instance_valid(shop_node) and shop_node.visible:
@@ -455,7 +455,18 @@ func _on_game_over():
 
 func _on_retry_wave_pressed():
 	if game_over_panel: game_over_panel.hide()
-	GameManager.retry_wave()
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.reset()
+		GameManager.wave_system_manager.current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+	# 重试波次：完全恢复核心血量
+	if GameManager.session_data:
+		GameManager.session_data.core_health = GameManager.session_data.max_core_health
+		GameManager.session_data.is_wave_active = false
+	# 清除敌人
+	var main_loop = Engine.get_main_loop()
+	if main_loop and main_loop.has_method("call_group"):
+		main_loop.call_group("enemies", "queue_free")
+	GameManager.resource_changed.emit()
 
 func _on_new_game_pressed():
 	get_tree().reload_current_scene()

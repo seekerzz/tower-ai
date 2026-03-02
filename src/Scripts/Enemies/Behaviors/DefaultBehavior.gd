@@ -13,7 +13,8 @@ const WALL_SLAM_FACTOR = 0.5
 const HEAVY_IMPACT_THRESHOLD = 50.0
 
 func physics_process(delta: float) -> bool:
-	if !GameManager.is_wave_active: return false
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active: return false
 
 	# Update taunt target
 	if enemy.get("faction") == "player":

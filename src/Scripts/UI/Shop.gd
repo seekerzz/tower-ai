@@ -30,10 +30,10 @@ signal unit_bought(unit_key)
 
 func _ready():
 	GameManager.resource_changed.connect(update_ui)
-	GameManager.wave_started.connect(on_wave_started)
-	GameManager.wave_ended.connect(on_wave_ended)
-	if GameManager.has_signal("wave_reset"):
-		GameManager.wave_reset.connect(on_wave_reset)
+	# 连接 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(on_wave_started)
+		GameManager.wave_system_manager.wave_ended.connect(on_wave_ended)
 
 	# 连接 BoardController 信号
 	BoardController.shop_refreshed.connect(_on_shop_refreshed)
@@ -286,13 +286,9 @@ func on_wave_ended():
 	refresh_shop(true)
 	expand_shop()
 
-func on_wave_reset():
-	refresh_btn.disabled = false
-	expand_btn.disabled = false
-	start_wave_btn.disabled = false
-
 func _on_start_wave_button_pressed():
-	GameManager.start_wave()
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.start_wave()
 
 func _on_refresh_button_pressed():
 	refresh_shop(false)

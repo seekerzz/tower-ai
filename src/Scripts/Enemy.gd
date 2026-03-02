@@ -273,7 +273,8 @@ func _draw():
 		draw_string(font, bleed_pos, str(bleed_stacks), HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color.RED)
 
 func _physics_process(delta):
-	if !GameManager.is_wave_active: return
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active: return
 
 	if invincible_timer > 0:
 		invincible_timer -= delta

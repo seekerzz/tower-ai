@@ -15,7 +15,9 @@ const MAX_EXPLOSIONS_PER_FRAME = 10
 
 func _ready():
 	GameManager.combat_manager = self
-	GameManager.wave_started.connect(_on_wave_started)
+	# 连接 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(_on_wave_started)
 
 func _process(delta):
 	if explosion_queue.size() > 0:
@@ -43,7 +45,7 @@ func get_wave_type(n: int) -> String:
 	return types[int(idx) % types.size()]
 
 func start_wave_logic():
-	var wave = GameManager.wave
+	var wave = GameManager.session_data.wave if GameManager.session_data else 1
 
 	if wave == 5:
 		spawn_boss_wave()
@@ -159,11 +161,13 @@ func spawn_boss_wave():
 	start_win_check_loop()
 
 func _run_batch_sequence(batches_left: int, enemies_per_batch: int):
-	if !GameManager.is_wave_active or batches_left <= 0:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active or batches_left <= 0:
 		return
 
 	# Determine type for this batch
-	var wave_type = get_wave_type(GameManager.wave)
+	var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+	var wave_type = get_wave_type(current_wave)
 	var type_key = wave_type
 
 	# Logic from ref.html simplified/fixed:
@@ -178,7 +182,7 @@ func _run_batch_sequence(batches_left: int, enemies_per_batch: int):
 		# Random variant for event waves (or maybe mixed)
 		var variants = ['slime', 'wolf', 'poison', 'shooter']
 		type_key = variants.pick_random()
-	elif GameManager.wave == 2:
+	elif current_wave == 2:
 		# Special mix for Wave 2
 		# Mix 'mutant_slime' and 'crab'
 		if randf() < 0.3: # 30% chance for Crab
@@ -200,7 +204,7 @@ func _run_batch_sequence(batches_left: int, enemies_per_batch: int):
 	if batches_left > 1:
 		# Wait between batches (2s - 4s depending on wave)
 		# const nextDelay = Math.max(2000, 4000 - (game.wave * 100));
-		var delay = max(2.0, 4.0 - (GameManager.wave * 0.1))
+		var delay = max(2.0, 4.0 - (current_wave * 0.1))
 		await get_tree().create_timer(delay).timeout
 		_run_batch_sequence(batches_left - 1, enemies_per_batch)
 	else:
@@ -217,11 +221,14 @@ func _run_batch_sequence(batches_left: int, enemies_per_batch: int):
 
 func start_win_check_loop():
 	# Simple polling for win condition
-	while GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	while is_wave_active:
 		if enemies_to_spawn <= 0 and get_tree().get_nodes_in_group("enemies").size() == 0:
-			GameManager.end_wave()
+			if GameManager.wave_system_manager:
+				GameManager.wave_system_manager.force_end_wave()
 			break
 		await get_tree().create_timer(0.5).timeout
+		is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 
 func _spawn_batch(type_key: String, count: int):
 	var points = []
@@ -232,8 +239,9 @@ func _spawn_batch(type_key: String, count: int):
 		# Fallback to map center or some default
 		points.append(Vector2.ZERO)
 
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	for i in range(count):
-		if !GameManager.is_wave_active: break
+		if !is_wave_active: break
 		if enemies_to_spawn <= 0: break
 
 		var spawn_point = points.pick_random()
@@ -251,7 +259,8 @@ func _spawn_enemy_at_pos(pos: Vector2, type_key: String):
 	var enemy = ENEMY_SCENE.instantiate()
 	if type_key == "healer":
 		enemy.set_script(HEALER_SCRIPT)
-	enemy.setup(type_key, GameManager.wave)
+	var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+	enemy.setup(type_key, current_wave)
 	enemy.global_position = pos
 	add_child(enemy)
 

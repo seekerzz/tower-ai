@@ -23,7 +23,8 @@ func _ready():
 
 func _physics_process(delta):
 	# If wave is not active, do nothing
-	if !GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active:
 		super._physics_process(delta)
 		return
 

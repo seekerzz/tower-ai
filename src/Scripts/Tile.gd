@@ -134,7 +134,8 @@ func _on_area_2d_input_event(viewport, event, shape_idx):
 		tile_clicked.emit(self)
 
 func _on_area_2d_mouse_entered():
-	if !GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active:
 		set_highlight(true)
 
 func _on_area_2d_mouse_exited():

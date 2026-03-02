@@ -11,7 +11,8 @@ func on_setup():
 	_petrify_timer = 0.0
 
 func on_combat_tick(delta: float) -> bool:
-	if not GameManager.is_wave_active: return true
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if not is_wave_active: return true
 
 	_petrify_timer += delta
 	if _petrify_timer >= _petrify_interval:

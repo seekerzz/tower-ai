@@ -1,7 +1,8 @@
 extends "res://src/Scripts/Enemies/Behaviors/DefaultBehavior.gd"
 
 func physics_process(delta: float) -> bool:
-	if !GameManager.is_wave_active: return false
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active: return false
 
 	check_suicide_collision()
 	return super.physics_process(delta)

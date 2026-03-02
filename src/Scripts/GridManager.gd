@@ -597,8 +597,9 @@ func _init_astar():
 	astar_grid.default_estimate_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
 	astar_grid.update()
 
-	if GameManager.has_signal("wave_started"):
-		GameManager.wave_started.connect(func():
+	# 连接 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(func(_wave_number, _wave_type, _difficulty):
 			expansion_mode = false
 			clear_ghosts()
 		)
@@ -1118,7 +1119,8 @@ func can_place_unit(x: int, y: int, w: int, h: int, exclude_unit = null) -> bool
 	return true
 
 func _on_tile_clicked(tile):
-	if GameManager.is_wave_active: return
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if is_wave_active: return
 	# print("Clicked tile: ", tile.x, ",", tile.y)
 
 func remove_unit_from_grid(unit):

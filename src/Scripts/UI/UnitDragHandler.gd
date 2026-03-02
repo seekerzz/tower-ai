@@ -43,7 +43,8 @@ func setup(unit):
 
 func _get_drag_data(at_position):
 	if !unit_ref: return null
-	if !GameManager.is_wave_active and unit_ref.grid_pos != null:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active and unit_ref.grid_pos != null:
 		var preview = Control.new()
 		var rect = ColorRect.new()
 		rect.size = size

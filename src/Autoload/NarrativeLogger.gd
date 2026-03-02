@@ -8,8 +8,10 @@ func _ready():
 	_connect_game_signals()
 
 func _connect_game_signals():
-	GameManager.wave_started.connect(_on_wave_started)
-	GameManager.wave_ended.connect(_on_wave_ended)
+	# 连接到 WaveSystemManager 的波次信号
+	if GameManager.wave_system_manager:
+		GameManager.wave_system_manager.wave_started.connect(_on_wave_started)
+		GameManager.wave_system_manager.wave_ended.connect(_on_wave_ended)
 	GameManager.damage_dealt.connect(_on_damage_dealt)
 	GameManager.enemy_died.connect(_on_enemy_died)
 
@@ -24,13 +26,13 @@ func _connect_game_signals():
 		BoardController.unit_moved.connect(_on_unit_moved)
 		BoardController.unit_sold.connect(_on_unit_sold)
 
-func _on_wave_started():
-	var wave = GameManager.wave
+func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
+	var wave = wave_number if wave_number > 0 else (GameManager.session_data.wave if GameManager.session_data else 1)
 	var narrative = "【波次事件】第 %d 波战斗正式开始！" % wave
 	_build_and_broadcast("WaveStarted", narrative, {"wave": wave})
 
-func _on_wave_ended():
-	var wave = GameManager.wave
+func _on_wave_ended(wave_number: int = 0, stats: Dictionary = {}):
+	var wave = wave_number if wave_number > 0 else (GameManager.session_data.wave if GameManager.session_data else 1)
 	var narrative = "【波次事件】第 %d 波战斗结束，进入备战阶段。" % wave
 	_build_and_broadcast("WaveEnded", narrative, {"wave": wave})
 

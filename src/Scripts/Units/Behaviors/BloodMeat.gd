@@ -53,9 +53,11 @@ func on_setup():
 			GameManager.unit_devoured.connect(_on_unit_devoured)
 
 	# Connect to wave started to reset stacks
-	if GameManager.wave_started.is_connected(_on_wave_started):
-		GameManager.wave_started.disconnect(_on_wave_started)
-	GameManager.wave_started.connect(_on_wave_started)
+	# 连接到 WaveSystemManager 的 wave_started 信号
+	if GameManager.wave_system_manager:
+		if GameManager.wave_system_manager.wave_started.is_connected(_on_wave_started):
+			GameManager.wave_system_manager.wave_started.disconnect(_on_wave_started)
+		GameManager.wave_system_manager.wave_started.connect(_on_wave_started)
 
 func broadcast_buffs():
 	# Apply ATK buff to adjacent Wolf units
@@ -149,8 +151,8 @@ func on_cleanup():
 			buffed_unit.damage /= (1.0 + adjacent_wolf_buff)
 	buffed_units.clear()
 
-	if GameManager.wave_started.is_connected(_on_wave_started):
-		GameManager.wave_started.disconnect(_on_wave_started)
+	if GameManager.wave_system_manager and GameManager.wave_system_manager.wave_started.is_connected(_on_wave_started):
+		GameManager.wave_system_manager.wave_started.disconnect(_on_wave_started)
 	if unit.level >= 3 and GameManager.has_signal("unit_devoured"):
 		if GameManager.unit_devoured.is_connected(_on_unit_devoured):
 			GameManager.unit_devoured.disconnect(_on_unit_devoured)

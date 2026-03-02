@@ -445,7 +445,8 @@ func _get_buff_icon(buff_type: String) -> String:
 	return "?"
 
 func _process(delta):
-	if !GameManager.is_wave_active: return
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active: return
 	if not behavior: return
 
 	behavior.on_tick(delta)
@@ -713,7 +714,8 @@ func devour(food_unit):
 	GameManager.unit_upgraded.emit(self, old_level, level)
 
 func _on_area_2d_input_event(viewport, event, shape_idx):
-	if !GameManager.is_wave_active:
+	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	if !is_wave_active:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			unit_clicked.emit(self)
 

@@ -32,8 +32,9 @@ func _ready():
 	spawn_test_enemy(Vector2(650, 600), "slime")
 	spawn_test_enemy(Vector2(700, 600), "slime")
 
-	# Start Wave manually
-	GameManager.is_wave_active = true
+	# Start Wave manually - 直接设置 session_data
+	if GameManager.session_data:
+		GameManager.session_data.is_wave_active = true
 
 	# Run for 5 seconds to observe production and mechanics
 	await get_tree().create_timer(5.0).timeout

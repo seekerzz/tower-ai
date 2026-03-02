@@ -139,16 +139,11 @@ func _process(_delta):
 # ===== 游戏信号连接 =====
 
 func _connect_game_signals():
-	# 波次相关 - 连接GameManager的信号
-	GameManager.wave_started.connect(_on_wave_started)
-	GameManager.wave_ended.connect(_on_wave_ended)
-	GameManager.wave_reset.connect(_on_wave_reset)
-	GameManager.game_over.connect(_on_game_over)
-
-	# 波次相关 - 连接WaveSystemManager的信号（用于立即获得波次结束通知）
+	# 波次相关 - 只连接WaveSystemManager的信号
 	if GameManager.wave_system_manager:
 		GameManager.wave_system_manager.wave_started.connect(_on_wave_system_started)
 		GameManager.wave_system_manager.wave_ended.connect(_on_wave_system_ended)
+	GameManager.game_over.connect(_on_game_over)
 
 	# 升级选择相关
 	GameManager.upgrade_selection_shown.connect(_on_upgrade_selection_shown)
@@ -252,7 +247,8 @@ func _handle_client_message(text: String):
 		return
 
 	if is_game_over:
-		broadcast_text("【游戏结束】当前波次：%d，核心血量：0。" % GameManager.wave)
+		var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+		broadcast_text("【游戏结束】当前波次：%d，核心血量：0。" % current_wave)
 		return
 
 	if data.has("type") and data["type"] == "observe":
@@ -269,7 +265,7 @@ func _handle_client_message(text: String):
 			broadcast_text("【错误】actions 必须是数组")
 
 func _generate_natural_language_state() -> String:
-	var wave = GameManager.wave
+	var wave = GameManager.session_data.wave if GameManager.session_data else 1
 	var gold = GameManager.gold
 	var mana = GameManager.mana
 	var max_mana = GameManager.max_mana
