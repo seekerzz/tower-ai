@@ -2,26 +2,26 @@
 
 ## [Inbox - 待办]
 
-### ✅ COMBATMANAGER-FIX-001 修复完成
+### ✅ SIGNAL-FIX-001 修复完成
 
-**来源**: AI Player 最新跑测 / 技术总监修复
-**时间**: 2026-03-02 17:20
-**状态**: ✅ **已修复并验证通过**
+**来源**: 技术总监代码审查
+**时间**: 2026-03-02
+**状态**: ✅ **已修复并提交**
 
 **问题描述**:
-AI Player执行TOTEM-COW-001测试时发现新的代码错误：
-```
-SCRIPT ERROR: Invalid access to property or key 'total_enemies_for_wave' on a base object of type 'Node2D (CombatManager.gd)'.
-```
+WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法签名不匹配。
 
 **修复详情**:
-- 修复文件: `src/Scenes/HUD/EnemyProgressBar.gd`
-- 修复内容: 将 `GameManager.combat_manager` 改为 `GameManager.wave_system_manager`
-- 修复提交: `6352297`
+| 文件 | 修复内容 |
+|------|----------|
+| `src/Scripts/MainGame.gd` | `_on_wave_ended()` 添加默认参数 |
+| `src/Scripts/UI/Shop.gd` | `on_wave_ended()` 添加默认参数 |
+| `src/Scripts/Units/Behaviors/Shell.gd` | `_on_wave_ended()` 添加默认参数 |
+| `src/Scripts/Units/Behaviors/Plant.gd` | `_on_wave_end()` 添加默认参数 |
 
-**验证结果**: TOTEM-COW-001测试已完成，波次1-4正常启动和结束
+**修复提交**: `42a19c3`
 
-**下游任务**: 将日志流转给游戏策划分析
+**下游任务**: 继续图腾机制全面测试任务链
 
 ---
 
