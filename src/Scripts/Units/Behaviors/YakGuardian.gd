@@ -1,6 +1,6 @@
 extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 
-var taunt_behavior: RefCounted
+var taunt_behavior = null
 
 func on_setup():
 	var script = load("res://src/Scripts/Units/Behaviors/TauntBehavior.gd")

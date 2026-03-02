@@ -1,4 +1,3 @@
-class_name TauntBehavior
 extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 
 var taunt_radius: float = 120.0
