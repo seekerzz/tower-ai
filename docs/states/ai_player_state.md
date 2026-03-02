@@ -2,16 +2,60 @@
 
 ## [Inbox - 待测分支与策略]
 
-### 🚨 当前状态: 休眠 - 等待技术总监进一步修复
+### 🔥 CRASH-002 诊断测试任务 (来自项目总监)
 
-**状态**: 🤖 AI 模拟玩家已完成 TOTEM-COW-001-RETEST-2 跑测验证
+**任务ID**: CRASH-002-DIAGNOSTIC
+**类型**: 诊断性跑测
+**优先级**: P0 (紧急)
+**来源**: 项目总监 @ProjectDirector
 
-**任务结果**: ❌ CRASH-002 第二轮修复未成功
+**测试脚本**: `ai_client/crash002_diagnostic.py`
+
+**诊断目标**:
+- 确认崩溃是否与 Taunt/嘲讽机制有关
+- 确认崩溃是否特定于 cow_totem
+
+**测试场景**:
+1. **场景A**: 无单位部署 + 启动波次
+2. **场景B**: 其他图腾 (viper/butterfly/wolf) + 单位部署 + 启动波次
+3. **场景C**: 最小化场景 - 仅选择图腾
+
+**执行步骤**:
+```bash
+# 1. 启动 AI Client (Headless模式)
+cd /home/zhangzhan/tower-ai
+python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/CoreSelection.tscn --http-port 8080
+
+# 2. 在另一个终端运行诊断测试
+cd /home/zhangzhan/tower-ai
+python3 ai_client/crash002_diagnostic.py 8080
+```
+
+**输出要求**:
+- 生成日志: `logs/ai_session_diagnostic_*.log`
+- 更新本状态机
+- 向项目总监汇报诊断结论
+
+---
+
+### 🚨 当前状态: 诊断测试完成 - 等待技术总监分析
+
+**状态**: 🤖 AI 模拟玩家已完成 CRASH-002 诊断性跑测
+
+**任务结果**: ❌ CRASH-002 诊断测试完成 - 发现关键线索
 
 **崩溃详情**:
 - **错误信息**: `ERROR: Parameter "t" is null.`
 - **触发时机**: 第1波战斗开始时
-- **日志文件**: `logs/ai_session_cow_totem_20260302_092045.log`
+- **日志文件**: `logs/ai_session_diagnostic_20260302_0936.log`
+
+**诊断测试关键发现**:
+- **任务A (无单位部署 + 牛图腾)**: ❌ 崩溃仍然发生
+  - 结论: 崩溃与单位部署无关，非嘲讽机制问题
+- **任务B (蝴蝶图腾 + 部署单位)**: ❌ 崩溃同样发生
+  - 结论: 崩溃与图腾类型无关，所有图腾均受影响
+
+**新推测**: 崩溃发生在波次启动时的全局机制中，可能涉及敌人生成/初始化、波次状态管理、全局战斗系统或敌人AI/寻路
 - **崩溃时间戳**: 09:20:45
 
 **已验证机制**:
