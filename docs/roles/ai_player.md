@@ -21,7 +21,7 @@
     * HTTP API 接口规范（`/action`、`/observations`）
     * 支持的 Action 类型字典（如 `select_totem`、`buy_unit`、`move_unit` 等）
     * 游戏特殊机制（必须同时阅读 `docs/GameDesign.md`）
-3.  **执行并发跑测**：根据任务指定的策略（混沌流/极限流），调用 `ai_client` 脚本自动化游玩游戏，生成运行日志 `logs/ai_session_[时间戳].log`。
+3.  **执行多角色跑测**：根据任务指定的策略（混沌流/极限流），调用 `ai_client` 脚本自动化游玩游戏，生成运行日志 `logs/ai_session_[时间戳].log`。
 4.  **捕获与报告**：如果游戏 Crash，记录错误栈；如果顺利结束，记录最终状态。
 5.  **双向投递 (核心)**：
     * 将生成的日志路径 `logs/ai_session_xxx.log` 追加到 `docs/states/game_designer_state.md` 的 Inbox 中，供策划盲调分析。
