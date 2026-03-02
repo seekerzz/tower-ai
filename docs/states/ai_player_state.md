@@ -2,46 +2,61 @@
 
 ## [Inbox - 待测分支与策略]
 
-### 🚀 LOG-IMPROVEMENT-001-REGRESSION 回归测试任务 (新任务)
+### ❌ LOG-IMPROVEMENT-001-REGRESSION 回归测试任务 (已完成 - 发现CRASH-002未修复)
 
 **任务ID**: LOG-IMPROVEMENT-001-REGRESSION
 **类型**: 回归测试验证
 **优先级**: P0
 **来源**: 技术总监修复完成 / 项目总监协调
-**状态**: 🔄 **测试中 - 回归测试脚本已创建并提交**
+**状态**: ❌ **测试完成 - CRASH-002修复失败，日志埋点未生效**
 
-**背景**: 技术总监已完成所有修复：
+**背景**: 技术总监声称已完成所有修复：
 - 日志埋点增强（commit 4125f40）
 - CRASH-002修复（commit e7c634e, afee261）
-需要执行回归测试验证所有修复效果。
 
-**待执行测试任务**:
-1. [ ] TOTEM-COW-001-REGRESSION 牛图腾回归测试
-2. [ ] TOTEM-BAT-001-REGRESSION 蝙蝠图腾回归测试
-3. [ ] TOTEM-WOLF-001-REGRESSION 狼图腾回归测试
-4. [ ] TOTEM-BUTTERFLY-001-REGRESSION 蝴蝶图腾回归测试
-5. [ ] TOTEM-VIPER-001-REGRESSION 毒蛇图腾回归测试
-6. [ ] TOTEM-EAGLE-001-REGRESSION 鹰图腾回归测试
-7. [ ] UNITS-COMMON-001-REGRESSION 通用单位回归测试
+**测试执行结果**:
 
-**验证目标**:
-- [ ] 图腾攻击触发时是否有 `[图腾触发]` 日志输出
-- [ ] 资源变化（魂魄/充能/法力）是否有 `[图腾资源]` 日志
-- [ ] Buff/Debuff施加是否有 `[Buff施加]` 日志
-- [ ] 商店是否显示70%阵营单位
-- [ ] CRASH-002 是否仍然存在（非阻塞）
+| 任务ID | 图腾/类型 | 结果 | 日志文件 |
+|--------|----------|------|----------|
+| TOTEM-COW-001-REGRESSION | 牛图腾 | ❌ CRASH-002仍存在 | `logs/ai_session_cow_totem_20260302_193428.log` |
+| TOTEM-BAT-001-REGRESSION | 蝙蝠图腾 | ❌ CRASH-002仍存在 | `logs/ai_session_bat_totem_20260302_193611.log` |
+| TOTEM-WOLF-001-REGRESSION | 狼图腾 | ⏳ 被阻塞 | - |
+| TOTEM-BUTTERFLY-001-REGRESSION | 蝴蝶图腾 | ⏳ 被阻塞 | - |
+| TOTEM-VIPER-001-REGRESSION | 毒蛇图腾 | ⏳ 被阻塞 | - |
+| TOTEM-EAGLE-001-REGRESSION | 鹰图腾 | ⏳ 被阻塞 | - |
+| UNITS-COMMON-001-REGRESSION | 通用单位 | ⏳ 被阻塞 | - |
 
-**执行步骤**:
-1. ✅ 拉取最新 master 分支（包含 4125f40, e7c634e, afee261 提交）
-2. ✅ 创建回归测试脚本 `ai_client/regression_test.py`
-3. 🔄 依次执行7个测试任务
-4. 🔄 生成日志到 `logs/ai_session_[任务]_[时间戳].log`
-5. ⏳ 投递日志路径至游戏策划状态机
+**验证目标结果**:
+- ❌ `[图腾触发]` 日志输出 - 未检测到
+- ❌ `[图腾资源]` 日志（魂魄/充能/法力）- 未检测到
+- ❌ `[Buff施加]` 日志 - 未检测到
+- ✅ 商店70%阵营单位 - 正常
+- ❌ CRASH-002 修复 - **失败，仍然存在**
 
-**已创建测试脚本**:
-- 文件: `ai_client/regression_test.py` (Git提交: b2dfb7a)
-- 功能: 自动运行7个回归测试，验证日志埋点和CRASH-002修复
-- 输出: 汇总报告 + 详细日志 + JSON结果
+**关键发现**:
+1. **CRASH-002修复失败**: 尽管提交e7c634e声称修复，但回归测试证明崩溃仍然存在
+   - 错误信息: `ERROR: Parameter "t" is null.`
+   - 触发时机: 第1波战斗正式开始时
+   - 影响范围: 所有图腾流派
+
+2. **日志埋点未生效**: 未检测到符合规范的日志输出
+   - 无 `[TOTEM]` 格式日志
+   - 无 `[RESOURCE]` 格式日志
+   - 无 `[BUFF]` 格式日志
+
+3. **商店阵营过滤正常**: 功能工作正常
+
+**生成日志文件**:
+- `logs/ai_session_cow_totem_20260302_193428.log` (6.6KB)
+- `logs/ai_session_bat_totem_20260302_193611.log` (7.2KB)
+- `logs/ai_session_cow_totem_20260302_193110.log` (39KB)
+- `logs/LOG-IMPROVEMENT-001-REGRESSION-REPORT.md` (完整报告)
+
+**下游任务**:
+- 投递至技术总监状态机: CRASH-002修复失败，需要重新修复
+- 投递至游戏策划状态机: 日志埋点未生效，需要检查实现
+
+**测试报告**: `logs/LOG-IMPROVEMENT-001-REGRESSION-REPORT.md`
 
 ---
 
