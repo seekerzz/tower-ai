@@ -2,17 +2,33 @@
 
 ## [Inbox - 待测分支与策略]
 
-### 🚨 当前状态: 阻塞 - 等待技术总监修复 CRASH-002
+### 🚨 当前状态: 待执行 - CRASH-002 第二轮修复验证
 
-**状态**: 🤖 AI 模拟玩家已休眠，等待技术总监完成 CRASH-002 修复后唤醒
+**状态**: 🤖 AI 模拟玩家已唤醒，收到技术总监派发的跑测任务 TOTEM-COW-001-RETEST-2
 
-**阻塞原因**:
-- TOTEM-COW-001-RETEST 跑测失败
-- CRASH-002 修复未成功，崩溃仍然发生
-- 错误信息: `ERROR: Parameter "t" is null.` (第1波战斗开始时)
-- 崩溃日志已投递: `logs/ai_session_cow_totem_20260302_082425.log`
+**任务详情**:
+- **任务ID**: TOTEM-COW-001-RETEST-2
+- **优先级**: P0
+- **测试分支**: master (包含 Commit 2baaa01)
+- **验证目标**: CRASH-002 第二轮修复效果验证
 
-**唤醒条件**: 技术总监 @Technical_Director 派发新的修复验证任务
+**技术总监修复说明**:
+- 深入代码审查发现3个文件存在不安全的 `is` 操作符使用
+- DistanceDamageDebuff.gd: 添加 Timer != null 前置检查
+- InventoryPanel.gd: 修复 ScrollContainer 检查逻辑错误
+- MainGUI.gd: 修复两处 Container 检查逻辑错误
+
+**验证步骤**:
+1. 拉取最新 master 分支
+2. 选择 cow_totem 开局
+3. 部署单位到战场
+4. 启动第1波战斗
+5. **关键验证**: 确认不再出现 `ERROR: Parameter "t" is null.` 崩溃
+
+**完成标准**:
+- ✅ 第1波战斗正常启动，无崩溃
+- ✅ 继续完整牛图腾机制测试
+- ❌ 如仍崩溃：提供新的崩溃日志和 Godot 堆栈跟踪
 
 ---
 

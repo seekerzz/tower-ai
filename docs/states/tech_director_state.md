@@ -2,12 +2,12 @@
 
 ## [Inbox - 紧急修复任务]
 
-### 🚨 CRASH-002 修复失败 - 需要深入调查
+### ✅ CRASH-002 修复完成 - 等待跑测验证
 
 **来源**: AI Player 牛图腾流派测试 (TOTEM-COW-001-RETEST)
 **时间**: 2026-03-02 08:24:35
 **优先级**: P0 (阻塞所有测试)
-**状态**: ❌ 修复未成功，崩溃仍然发生
+**状态**: ✅ 修复已提交，等待跑测验证
 
 **问题描述**:
 - **错误信息**: `ERROR: Parameter "t" is null.`
@@ -15,26 +15,20 @@
 - **日志文件**: `logs/ai_session_cow_totem_20260302_082425.log`
 - **崩溃时间戳**: 08:24:35.841
 
-**已尝试修复（未成功）**:
-1. ✅ AI Player修复语法错误：`Vector2i != null` 等无效类型检查
-2. ✅ 技术总监扫描26+文件添加 `Type != null` 前置保护
-3. ✅ Commit 8ca4ea6: Enemy.gd 添加 StatusEffect 预加载
-4. ❌ **结果**: 崩溃仍然在第1波启动时发生
+**根本原因分析**:
+深入代码审查发现以下文件存在不安全的 `is` 操作符使用：
+1. **DistanceDamageDebuff.gd:37** - `c is Timer` 缺少 `Timer != null` 前置检查
+2. **InventoryPanel.gd:27** - 逻辑错误：`ScrollContainer == null or not parent is ScrollContainer`
+3. **MainGUI.gd:205,221** - 逻辑错误：`Container == null or not top_left_panel is Container`
 
-**可能原因分析**:
-1. 有其他文件使用 `is` 操作符进行检查，但未在扫描范围内
-2. 问题可能不在 `is` 操作符，而是其他类型的空指针引用
-3. 可能需要 Godot 运行时调试才能定位确切问题
-
-**修复建议**:
-- 进行更全面的代码扫描，查找所有可能导致空指针的地方
-- 使用 Godot 编辑器进行真实运行调试
-- 检查波次启动相关的代码路径（WaveManager, Spawn逻辑等）
-- 逐行排查第1波启动时的代码执行路径
+**修复详情** (Commit 2baaa01):
+- `DistanceDamageDebuff.gd`: 添加 `Timer != null` 前置检查
+- `InventoryPanel.gd`: 修复逻辑为 `ScrollContainer != null and not (parent is ScrollContainer)`
+- `MainGUI.gd`: 修复两处逻辑为 `Container != null and not (top_left_panel is Container)`
 
 **下一步**:
-- 技术总监需要进行深入代码审查和调试
-- 必要时向项目总监汇报，考虑是否需要人类老板介入
+- 等待 AI Player 跑测验证修复效果
+- 如仍崩溃，继续深入调查
 
 ---
 
@@ -244,11 +238,11 @@
 
 ## [Meta - 元数据]
 
-- **当前状态**: ✅ CRASH-002 代码审查完成，等待跑测验证
+- **当前状态**: ✅ CRASH-002 第二轮修复完成，等待跑测验证
 - **最后唤醒**: 2026-03-02 (由项目总监唤醒)
-- **处理中任务**: CRASH-002 运行时崩溃修复 - 已提交跑测
-- **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时) - 已修复待验证
-- **最新合并**: feature/balance_fix_wave1 已归档
+- **处理中任务**: CRASH-002 运行时崩溃修复 - 第二轮修复已提交
+- **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时) - 第二轮修复待验证
+- **最新合并**: Commit 2baaa01 - 修复3个文件中的不安全 `is` 操作符使用
 - **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项 (被CRASH-002阻塞)
 - **Jules并行能力**: 最多同时派发5个独立任务
 
@@ -256,20 +250,28 @@
 
 ## [Downstream - 向下游派发任务]
 
-### 📬 派发给 AI Player - 跑测任务
+### 📬 派发给 AI Player - 跑测任务 (更新)
 
-**任务ID**: TOTEM-COW-001-RETEST
+**任务ID**: TOTEM-COW-001-RETEST-2
 **类型**: 跑测验证
 **优先级**: P0
 **测试分支**: master
-**测试任务**: TOTEM-COW-001 牛图腾流派全面测试（重新验证）
+**依赖提交**: Commit 2baaa01 (CRASH-002 第二轮修复)
+**测试任务**: TOTEM-COW-001 牛图腾流派全面测试（第二轮验证）
 
 **验证内容**:
-1. 选择 cow_totem 开局
-2. 部署单位到战场
-3. 启动第1波战斗
-4. 验证是否出现 `ERROR: Parameter "t" is null.` 崩溃
-5. 如崩溃不再出现，继续完整牛图腾机制测试
+1. 拉取最新 master 分支 (包含 Commit 2baaa01)
+2. 选择 cow_totem 开局
+3. 部署单位到战场
+4. 启动第1波战斗
+5. **关键验证**: 确认不再出现 `ERROR: Parameter "t" is null.` 崩溃
+6. 如崩溃不再出现，继续完整牛图腾机制测试
+
+**技术总监修复说明**:
+- 修复了3个文件中不安全的 `is` 操作符使用
+- DistanceDamageDebuff.gd: 添加 Timer != null 检查
+- InventoryPanel.gd: 修复 ScrollContainer 检查逻辑
+- MainGUI.gd: 修复 Container 检查逻辑 (2处)
 
 **预期结果**:
 - 第1波战斗正常启动，无崩溃
@@ -277,8 +279,8 @@
 - 全屏反击机制正常工作
 
 **报告方式**:
-- 如测试通过：更新状态机，归档 CRASH-002 修复
-- 如仍崩溃：提供新的崩溃日志，继续修复
+- 如测试通过：更新状态机，归档 CRASH-002 修复，继续图腾机制测试
+- 如仍崩溃：提供新的崩溃日志和 Godot 堆栈跟踪，继续第三轮修复
 
 ---
 
