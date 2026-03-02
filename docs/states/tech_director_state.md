@@ -872,6 +872,16 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
     3. 日志埋点严重不足，无法黑盒验证任何机制
   - 建议：增加蝙蝠图腾机制日志埋点，修复单位购买异常
 
+- [ ] 待处理提案: docs/design_proposals/proposal_common_units_analysis_20260302.md -- 来源@Game_Designer -- 2026-03-02
+  - 问题：UNITS-COMMON-001测试日志分析，日志埋点严重不足，测试流程不完整
+  - 关联日志：logs/ai_session_common_units_20260302_175641.log
+  - 优先级：P1
+  - 关键发现：
+    1. 测试流程不完整（仅购买1个单位，未验证Buff叠加）
+    2. 所有通用单位机制不可见（产蓝/Buff传播/弹射/分裂/产金）
+    3. 日志埋点严重不足，无法黑盒验证任何机制
+  - 建议：完善测试流程，增加通用单位机制日志埋点
+
 - [ ] 待处理提案: docs/design_proposals/proposal_log_improvement_001.md -- 来源@Game_Designer -- 2026-03-02
   - 问题：图腾机制日志埋点严重不足，无法通过黑盒观察验证机制
   - 关联日志：牛图腾/蝙蝠图腾/狼图腾测试日志（均因崩溃未能完整测试）
