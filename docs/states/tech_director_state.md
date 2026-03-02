@@ -1,11 +1,42 @@
 # 💻 技术总监状态机
 
+## [Inbox - 紧急修复任务]
+
+### 🚨 CRASH-002 重新出现 (AI Player重新验证发现)
+
+**来源**: AI Player 牛图腾流派测试 (TOTEM-COW-001)
+**时间**: 2026-03-02
+**优先级**: P0 (阻塞所有测试)
+
+**问题描述**:
+- **错误信息**: `ERROR: Parameter "t" is null.`
+- **触发时机**: 第1波战斗开始时
+- **日志文件**: `logs/ai_session_cow_totem_20260302_082425.log`
+
+**AI Player已修复部分**:
+- ✅ 修复了语法错误：`Vector2i != null` 等无效类型检查（Godot不允许内置类型作为变量名）
+- 涉及的文件：
+  - `src/Scripts/Controllers/BoardController.gd`
+  - `src/Autoload/AIManager.gd`
+  - `src/Autoload/ActionDispatcher.gd`
+  - `src/Autoload/NarrativeLogger.gd`
+  - `src/Scripts/UI/Shop.gd`
+
+**待修复部分**:
+- ❌ 运行时崩溃仍然存在，需要进一步调查
+- 可能的根源：
+  1. 敌人生成逻辑中的空引用
+  2. 波次状态转换时的时序问题
+  3. 图腾触发机制中的空检查缺失
+
+---
+
 ## [Inbox - 待处理提案]
 
 - [ ] 待处理提案: docs/design_proposals/proposal_log_improvement_001.md -- 来源@Game_Designer -- 2026-03-02
   - 问题：图腾机制日志埋点严重不足，无法通过黑盒观察验证机制
   - 关联日志：牛图腾/蝙蝠图腾/狼图腾测试日志（均因崩溃未能完整测试）
-  - 优先级：P1（阻塞策划验证机制正确性）
+  - 优先级：P1（因CRASH-002重新出现，降级处理，先修复崩溃）
   - 建议：在修复崩溃的同时增加日志埋点，详见提案文档
 
 ---
@@ -122,12 +153,12 @@
 
 ## [Meta - 元数据]
 
-- **当前状态**: CRASH-002 & CRASH-WOLF-001 修复完成，等待AI Player验证
+- **当前状态**: ⚠️ CRASH-002 重新出现，需要紧急修复
 - **最后唤醒**: 2026-03-02 (由项目总监唤醒)
-- **处理中任务**: 无
-- **最新崩溃**: 无（已修复）
+- **处理中任务**: CRASH-002 运行时崩溃修复
+- **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时)
 - **最新合并**: feature/balance_fix_wave1 已归档
-- **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项
+- **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项 (被CRASH-002阻塞)
 - **Jules并行能力**: 最多同时派发5个独立任务
 
 ---
