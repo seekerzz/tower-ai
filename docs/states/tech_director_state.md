@@ -832,6 +832,26 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
     3. CombatManager属性访问错误 - `Invalid access to property 'total_enemies_for_wave'`
   - 建议：修复重构后的代码不一致问题，进行回归测试
 
+- [ ] 待处理提案: docs/design_proposals/proposal_viper_totem_analysis_20260302.md -- 来源@Game_Designer -- 2026-03-02
+  - 问题：TOTEM-VIPER-001测试日志分析，日志埋点严重不足，商店阵营过滤异常
+  - 关联日志：logs/ai_session_viper_totem_20260302_174527.log
+  - 优先级：P1
+  - 关键发现：
+    1. 商店阵营过滤异常：显示lucky_cat/squirrel等非毒蛇阵营单位
+    2. 所有毒蛇图腾机制不可见（毒液攻击/中毒层数/斩杀等）
+    3. 日志埋点严重不足，无法黑盒验证任何机制
+  - 建议：修复商店阵营过滤，增加毒蛇图腾机制日志埋点
+
+- [ ] 待处理提案: docs/design_proposals/proposal_butterfly_totem_analysis_20260302.md -- 来源@Game_Designer -- 2026-03-02
+  - 问题：TOTEM-BUTTERFLY-001测试日志分析，日志埋点严重不足
+  - 关联日志：logs/ai_session_butterfly_totem_20260302_174227.log
+  - 优先级：P1
+  - 关键发现：
+    1. 测试流程不完整，缺少关键验证步骤
+    2. 所有蝴蝶图腾机制不可见（环绕法球/法力回复/冻结等）
+    3. 日志埋点严重不足，无法黑盒验证任何机制
+  - 建议：完善测试流程，增加蝴蝶图腾机制日志埋点
+
 - [ ] 待处理提案: docs/design_proposals/proposal_wolf_totem_analysis_20260302.md -- 来源@Game_Designer -- 2026-03-02
   - 问题：TOTEM-WOLF-001测试日志分析，日志埋点严重不足
   - 关联日志：logs/ai_session_wolf_totem_20260302_173637.log
