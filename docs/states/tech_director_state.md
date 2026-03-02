@@ -48,6 +48,44 @@
 
 ---
 
+### 🚨 紧急修复: CRASH-002 深入调查 (任务#9)
+
+**任务ID**: CRASH-002-DEEP-DIVE
+**来源**: AI Player验证测试 / 项目总监指派
+**时间**: 2026-03-02 17:23
+**优先级**: P0 (阻塞所有测试)
+**状态**: 🚨 **深入调查中**
+
+**问题描述**:
+尽管已完成以下修复，CRASH-002 (`Parameter "t" is null`) 仍然存在：
+- ✅ WAVE-REFACTOR-001波次状态架构重构
+- ✅ COMBATMANAGER-FIX-001属性引用修复
+- ✅ SIGNAL-FIX-001信号参数修复
+
+**最新错误信息**:
+```
+ERROR: Parameter "t" is null.
+触发时机: 第1波战斗正式开始时
+日志文件: logs/ai_session_cow_totem_20260302_172320.log
+```
+
+**调查方向**:
+1. 检查Enemy.gd中所有is操作符的使用
+2. 检查波次启动时的敌人生成逻辑
+3. 检查定时器回调中的类型检查
+4. 检查信号连接中的类型转换
+5. 检查WaveSystemManager中敌人初始化代码
+
+**关键文件**:
+- src/Scripts/Enemy.gd
+- src/Scripts/Managers/WaveSystemManager.gd
+- src/Scripts/CoreMechanics/CombatManager.gd
+- src/Scripts/CoreMechanics/BaseTotemMechanic.gd
+
+**下一步**: 深入调查根本原因并实施修复
+
+---
+
 ### ✅ 紧急修复: CombatManager属性访问错误 (任务#8)
 
 **任务ID**: COMBATMANAGER-FIX-001
@@ -73,11 +111,11 @@ SCRIPT ERROR: Invalid access to property or key 'total_enemies_for_wave' on a ba
 - 修复方式: 将 `GameManager.combat_manager` 改为 `GameManager.wave_system_manager`
 - 修复提交: `6352297`
 
-**验证要求**:
-- 运行 `python3 ai_client/crash002_diagnostic.py` 确认无报错
-- 启动第1波战斗，确认不再出现属性访问错误
+**验证结果**:
+- ✅ 属性访问错误已修复
+- ❌ 但CRASH-002 (`Parameter "t" is null`) 仍然存在
 
-**下一步**: 通知项目总监和AI Player恢复图腾测试任务链
+**下一步**: 继续调查CRASH-002根本原因
 
 ---
 
