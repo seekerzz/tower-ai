@@ -1,6 +1,6 @@
 extends "res://src/Scripts/CoreMechanics/CoreMechanic.gd"
 
-func on_wave_started():
+func on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	# Handle generic data-driven core types
 	if GameManager.data_manager and GameManager.data_manager.data.has("CORE_TYPES") and GameManager.data_manager.data["CORE_TYPES"].has(GameManager.core_type):
 		var core_data = GameManager.data_manager.data["CORE_TYPES"][GameManager.core_type]

@@ -1,7 +1,7 @@
 extends Node
 class_name CoreMechanic
 
-func on_wave_started():
+func on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	pass
 
 func on_core_damaged(amount: float):

@@ -272,7 +272,7 @@ func buy_unit(index, unit_key, card_ref):
 		card_ref.mouse_filter = MOUSE_FILTER_IGNORE
 		unit_bought.emit(unit_key)
 
-func on_wave_started():
+func on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	refresh_btn.disabled = true
 	expand_btn.disabled = true
 	start_wave_btn.disabled = true

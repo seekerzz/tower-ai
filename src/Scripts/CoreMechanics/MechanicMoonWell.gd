@@ -5,7 +5,7 @@ var moonwell_pool: float = 0.0
 func on_damage_dealt_by_unit(_unit, amount: float):
 	moonwell_pool += amount * 0.1
 
-func on_wave_started():
+func on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	if GameManager.inventory_manager:
 		var item_data = { "item_id": "moon_water", "count": 1 }
 		if !GameManager.inventory_manager.add_item(item_data):
