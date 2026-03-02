@@ -26,7 +26,7 @@ from pathlib import Path
 from datetime import datetime
 
 API_KEY = os.getenv('JULES_API_KEY')
-PROXY = os.getenv('HTTP_PROXY', 'http://127.0.0.1:10808')
+PROXY = os.getenv('HTTP_PROXY', '')
 API_URL = "https://jules.googleapis.com/v1alpha/sessions"
 
 
