@@ -49,11 +49,17 @@
 - 可能延迟图腾攻击定时器启动
 
 **准备任务**: TOTEM-COW-001-RETEST-3 验证测试
+- **验证脚本**: `ai_client/totem_cow_retest3.py`
 - **验证重点**:
   1. 第1波是否正常启动，无崩溃
   2. 牛图腾受伤充能机制
   3. 全屏反击机制
   4. 嘲讽联动机制
+- **执行命令**:
+  ```bash
+  python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/CoreSelection.tscn --http-port 8080
+  python3 ai_client/totem_cow_retest3.py 8080
+  ```
 
 **任务结果**: ❌ CRASH-002 诊断测试完成 - 发现关键线索
 
