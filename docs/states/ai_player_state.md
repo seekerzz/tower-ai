@@ -38,65 +38,68 @@
 
 ---
 
-### 🔥 TOTEM-COW-001-RETEST-3 验证测试任务 (来自项目总监)
+### ❌ TOTEM-COW-001-RETEST-3 验证测试任务 (已完成 - 修复失败)
 
 **任务ID**: TOTEM-COW-001-RETEST-3
 **类型**: 修复验证跑测
 **优先级**: P0
 **来源**: 项目总监 @ProjectDirector
-**修复提交**: Commit 2d6c0e6
+**修复提交**: Commit 2d6c0e6 / 2f93927
+**状态**: ❌ 验证失败
 
 **修复内容**:
 - ✅ 移除 `TauntBehavior.gd` 的 `class_name TauntBehavior`
 - ✅ 修复 `YakGuardian.gd` 类型声明为 `var taunt_behavior = null`
+- ✅ 增强 `BaseTotemMechanic.get_nearest_enemies()` 防御性编程
+- ✅ 修复 `CombatManager.find_nearest_enemy()` 空值检查
+- ✅ 修复 `DefaultBehavior._find_nearest_hostile()` 空值检查
 
-**验证目标**:
-- 确认 CRASH-002 修复成功
-- 验证牛图腾核心机制正常工作
+**验证结果**: ❌ CRASH-002 修复未成功
 
-**执行步骤**:
-```bash
-# 1. 拉取最新代码
-git pull origin master
+| 验证项 | 结果 |
+|--------|------|
+| 第1波启动 | ❌ 崩溃仍然发生 |
+| 受伤充能 | ⏳ 未验证（波次未启动） |
+| 全屏反击 | ⏳ 未验证（波次未启动） |
+| 嘲讽联动 | ⏳ 未验证（波次未启动） |
 
-# 2. 启动 AI Client (Headless模式)
-cd /home/zhangzhan/tower-ai
-python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/CoreSelection.tscn --http-port 8080
+**崩溃详情**:
+- **错误信息**: `ERROR: Parameter "t" is null.`
+- **触发时机**: 第1波战斗正式开始时
+- **日志文件**: `logs/ai_session_cow_totem_20260302_094638.log`
 
-# 3. 在另一个终端运行验证测试
-cd /home/zhangzhan/tower-ai
-python3 ai_client/totem_cow_retest3.py 8080
-```
+**已验证机制**:
+- ✅ 牛图腾选择正常
+- ✅ 商店刷新正常（出现yak_guardian）
+- ✅ 单位购买正常（购买yak_guardian）
+- ✅ 单位部署正常（部署到1,0）
+- ❌ 第1波启动崩溃
 
-**验证重点**:
-1. 第1波是否正常启动，无崩溃
-2. 牛图腾受伤充能机制
-3. 全屏反击机制
-4. 嘲讽联动机制（YakGuardian）
-
-**输出要求**:
-- 生成日志: `logs/ai_session_cow_totem_retest3_*.log`
-- 更新本状态机
-- 向项目总监汇报验证结果
+**生成日志**: `logs/ai_session_cow_totem_20260302_094638.log`
 
 ---
 
-### 🚨 当前状态: 待命 - 准备执行 TOTEM-COW-001-RETEST-3
+### 🚨 当前状态: 休眠 - 等待技术总监进一步修复
 
-**准备任务**: TOTEM-COW-001-RETEST-3 验证测试
-- **验证脚本**: `ai_client/totem_cow_retest3.py`
-- **验证重点**:
-  1. 第1波是否正常启动，无崩溃
-  2. 牛图腾受伤充能机制
-  3. 全屏反击机制
-  4. 嘲讽联动机制
-- **执行命令**:
-  ```bash
-  python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/CoreSelection.tscn --http-port 8080
-  python3 ai_client/totem_cow_retest3.py 8080
-  ```
+**状态**: 🤖 AI 模拟玩家已完成 TOTEM-COW-001-RETEST-3 验证测试
 
-**任务结果**: ❌ CRASH-002 诊断测试完成 - 发现关键线索
+**任务结果**: ❌ CRASH-002 第四轮修复未成功
+
+**崩溃详情**:
+- **错误信息**: `ERROR: Parameter "t" is null.`
+- **触发时机**: 第1波战斗正式开始时
+- **日志文件**: `logs/ai_session_cow_totem_20260302_094638.log`
+- **崩溃时间戳**: 09:46:47
+
+**已验证机制**:
+- ✅ 牛图腾选择正常
+- ✅ 商店刷新正常（出现yak_guardian）
+- ✅ 单位购买正常（购买yak_guardian）
+- ✅ 单位部署正常（部署到1,0）
+- ❌ 第1波启动崩溃
+
+**待验证机制** (被CRASH-002阻塞):
+- 受伤充能、全屏反击、嘲讽联动、伤害转MP、减伤回血、治疗核心
 
 **崩溃详情**:
 - **错误信息**: `ERROR: Parameter "t" is null.`
