@@ -2,6 +2,139 @@
 
 ## [Inbox - 紧急修复任务]
 
+### 🔍 CRASH-002 第四轮 - 技术总监深入调查报告
+
+**任务ID**: CRASH-002-INVESTIGATION-4
+**来源**: 项目总监指派
+**时间**: 2026-03-02
+**优先级**: P0 (阻塞所有测试)
+**状态**: 🔍 深入调查完成，发现潜在问题
+
+---
+
+#### 调查范围
+
+已检查以下与 Taunt/Aggro 机制相关的核心文件：
+
+| 文件路径 | 检查内容 | 状态 |
+|---------|---------|------|
+| `src/Scripts/Managers/AggroManager.gd` | Taunt 管理器实现 | ✅ 无 `is` 操作符问题 |
+| `src/Scripts/Units/Behaviors/TauntBehavior.gd` | Taunt 行为逻辑 | ⚠️ 发现潜在问题 |
+| `src/Scripts/Units/Behaviors/YakGuardian.gd` | 牦牛守护单位行为 | ⚠️ 发现潜在问题 |
+| `src/Scripts/Units/UnitBehavior.gd` | 行为基类 | ✅ 正常 |
+| `src/Scripts/Unit.gd` | 单位主类 | ✅ 正常 |
+| `src/Scripts/Enemy.gd` | 敌人类（调用 find_attack_target） | ✅ 已修复 `is` 检查 |
+| `src/Scripts/Enemies/Behaviors/DefaultBehavior.gd` | 敌人默认行为 | ✅ 无 `is` 操作符问题 |
+| `src/Scripts/Managers/WaveSystemManager.gd` | 波次管理器 | ✅ 正常 |
+
+---
+
+#### 关键发现
+
+**发现1: YakGuardian.gd 类型声明问题**
+
+```gdscript
+# 当前代码 (第3行)
+var taunt_behavior: RefCounted
+
+# 问题: 应该声明为 TauntBehavior 类型，但 TauntBehavior 是 class_name
+# 如果 TauntBehavior 类加载失败，这可能导致运行时问题
+```
+
+**发现2: TauntBehavior 类结构潜在风险**
+
+```gdscript
+# TauntBehavior.gd
+class_name TauntBehavior  # <-- 使用 class_name
+extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
+```
+
+`TauntBehavior` 使用 `class_name` 同时继承自脚本路径，这种混合用法在 Godot 中可能导致类注册问题。
+
+**发现3: 所有 `is` 操作符已修复**
+
+全面扫描了所有 GDScript 文件，确认所有已知的 `is` 操作符使用都已添加 `Type != null` 前置检查。已检查的文件包括：
+- `Enemy.gd` - 已修复
+- `DistanceDamageDebuff.gd` - 已修复
+- `InventoryPanel.gd` - 已修复
+- `MainGUI.gd` - 已修复
+- `UnitWolf.gd`, `UnitFox.gd` - 已修复
+- `ArrowFrog.gd`, `BloodChalice.gd` - 已修复
+- `PetrifiedStatus.gd`, `PetrifiedShatterEffect.gd` - 已修复
+- 以及其他 15+ 个文件
+
+---
+
+#### 崩溃触发链分析
+
+```
+第1波开始
+    ↓
+WaveSystemManager.start_wave() → is_wave_active = true
+    ↓
+Unit._process() 开始执行 (因为 is_wave_active)
+    ↓
+YakGuardian.on_tick() → taunt_behavior.on_tick()
+    ↓
+TauntBehavior._trigger_taunt() → AggroManager.apply_taunt()
+    ↓
+AggroManager.apply_taunt() 发射 taunt_started 信号
+    ↓
+[崩溃发生点]
+```
+
+---
+
+#### 假设：TauntBehavior 类加载问题
+
+**假设**: `TauntBehavior` 使用 `class_name` 的同时继承自脚本路径，可能导致：
+1. 类注册时出现问题
+2. `YakGuardian.gd` 加载时 `TauntBehavior` 类尚未注册完成
+3. 运行时 `TauntBehavior` 实际为 null，导致 `is` 操作符崩溃
+
+**验证方法**: 需要修改代码并测试
+
+---
+
+#### 建议的修复方案
+
+**方案A: 移除 TauntBehavior 的 class_name（推荐）**
+
+```gdscript
+# TauntBehavior.gd
+# 移除: class_name TauntBehavior
+extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
+```
+
+**方案B: 修改 YakGuardian 类型声明**
+
+```gdscript
+# YakGuardian.gd
+# 改为不使用类型注解，或改为 var taunt_behavior = null
+var taunt_behavior = null
+```
+
+**方案C: 延迟 TauntBehavior 实例化**
+
+```gdscript
+# YakGuardian.gd
+func on_setup():
+    # 延迟一帧加载，确保类已注册
+    await get_tree().process_frame
+    var script = load("res://src/Scripts/Units/Behaviors/TauntBehavior.gd")
+    ...
+```
+
+---
+
+#### 结论
+
+经过全面调查，所有显式的 `is` 操作符使用都已被修复。崩溃可能与 `TauntBehavior` 类的 `class_name` 注册时序有关。
+
+**建议**: 实施方案A（移除 class_name）进行测试验证。
+
+---
+
 ### ❌ CRASH-002 第二轮修复验证失败
 
 **任务ID**: TOTEM-COW-001-RETEST-2
@@ -335,7 +468,7 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
 
 ## [Meta - 元数据]
 
-- **当前状态**: ✅ CRASH-002 第二轮修复完成，等待跑测验证
+- **当前状态**: 🔍 CRASH-002 深入调查完成，发现 TauntBehavior class_name 潜在问题
 - **最后唤醒**: 2026-03-02 (由项目总监唤醒)
 - **处理中任务**: CRASH-002 运行时崩溃修复 - 第二轮修复已提交
 - **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时) - 第二轮修复待验证
