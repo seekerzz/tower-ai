@@ -2,21 +2,45 @@
 
 ## [Inbox - 待办]
 
+### 🚨 紧急: CombatManager.gd 属性访问错误 (阻塞中)
+
+**来源**: AI Player 最新跑测
+**时间**: 2026-03-02 17:17
+**状态**: 🚨 **阻塞所有测试 - 需技术总监立即修复**
+
+**问题描述**:
+AI Player执行TOTEM-COW-001测试时发现新的代码错误：
+```
+SCRIPT ERROR: Invalid access to property or key 'total_enemies_for_wave' on a base object of type 'Node2D (CombatManager.gd)'.
+```
+
+**技术详情**:
+- 错误文件: `src/Scripts/CoreMechanics/CombatManager.gd`
+- 错误原因: WAVE-REFACTOR-001重构后，`total_enemies_for_wave`属性引用未更新
+- 触发时机: 第1波战斗启动时
+- 相关日志: `logs/ai_session_cow_totem_20260302_171744.log`
+
+**修复任务**: 已投递技术总监紧急修复
+
+**下游影响**: TOTEM-COW-001及所有后续测试任务被阻塞
+
+---
+
 ### 🔄 恢复图腾机制全面测试任务链
 
 **来源**: @Project_Director
 **时间**: 2026-03-02
-**状态**: 🔄 **Agent Team已启动，AI Player执行中**
+**状态**: ⏸️ **被CombatManager属性错误阻塞**
 
 **Agent Team状态**:
 | Agent | 任务 | 状态 |
 |-------|------|------|
-| AI Player | TOTEM-COW-001牛图腾测试 | 🔄 in_progress |
+| AI Player | TOTEM-COW-001牛图腾测试 | ⏸️ 被阻塞 |
 | Game Designer | 等待分析日志 | ⏳ pending |
-| Technical Director | 等待处理提案 | ⏳ pending |
+| Technical Director | 紧急修复CombatManager | 🔄 in_progress |
 | Project Director | 监控协调 | 🔄 in_progress |
 
-**背景**: WAVE-REFACTOR-001重构已完成，CRASH-002已修复，现恢复测试任务链。
+**背景**: WAVE-REFACTOR-001重构已完成，CRASH-002已修复，但发现新的CombatManager属性访问错误需要修复。
 
 **待执行任务**:
 - [ ] TOTEM-COW-001 牛图腾流派测试
@@ -328,9 +352,9 @@
 
 ## [Meta - 元数据]
 
-- **当前状态**: 🔄 Agent Teams已重建，等待恢复图腾测试任务链
+- **当前状态**: 🚨 发现新阻塞问题 - CombatManager属性访问错误
 - **最后唤醒**: 2026-03-02
-- **处理中任务**: 恢复图腾机制全面测试任务链（任务#2）
+- **处理中任务**: 派发技术总监修复CombatManager.gd的`total_enemies_for_wave`引用问题
 - **里程碑**:
   - ✅ WAVE-REFACTOR-001波次状态重构 - 已完成并合并到master
   - ✅ CRASH-002波次启动崩溃 - 已通过架构重构修复

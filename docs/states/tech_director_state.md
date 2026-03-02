@@ -48,31 +48,56 @@
 
 ---
 
-### 🚨 紧急修复: CombatManager信号参数不匹配 (任务#7)
+### 🚨 紧急修复: CombatManager属性访问错误 (任务#8)
+
+**任务ID**: COMBATMANAGER-FIX-001
+**来源**: AI Player跑测发现 / 项目总监派发
+**时间**: 2026-03-02 17:17
+**优先级**: P0 (阻塞所有测试)
+**状态**: 🚨 **待修复 - 立即执行**
+
+**问题描述**:
+AI Player执行TOTEM-COW-001测试时发现新的代码错误：
+```
+SCRIPT ERROR: Invalid access to property or key 'total_enemies_for_wave' on a base object of type 'Node2D (CombatManager.gd)'.
+```
+
+**技术详情**:
+- 错误文件: `src/Scripts/CoreMechanics/CombatManager.gd`
+- 错误原因: WAVE-REFACTOR-001重构后，`total_enemies_for_wave`属性引用未更新
+- 触发时机: 第1波战斗启动时
+- 相关日志: `logs/ai_session_cow_totem_20260302_171744.log`
+
+**修复方案**:
+1. 检查 `CombatManager.gd` 中所有对 `total_enemies_for_wave` 的引用
+2. 确认该属性现在应该从哪里获取（可能是 `GameManager.session_data` 或 `WaveSystemManager`）
+3. 更新所有相关引用以匹配WAVE-REFACTOR-001后的新架构
+
+**验证要求**:
+- 运行 `python3 ai_client/crash002_diagnostic.py` 确认无报错
+- 启动第1波战斗，确认不再出现属性访问错误
+
+**下一步**: 修复后通知项目总监和AI Player恢复图腾测试任务链
+
+---
+
+### ✅ 紧急修复: CombatManager信号参数不匹配 (任务#7)
 
 **任务ID**: SIGNAL-FIX-001
 **来源**: AI Player跑测发现
 **时间**: 2026-03-02
 **优先级**: P0 (阻塞所有测试)
-**状态**: 🔄 待修复
+**状态**: ✅ 已修复 - Shop.gd信号问题
 
 **问题描述**:
-AI Player执行CRASH-002验证时发现新的代码错误：
-```
-ERROR: Error calling from signal 'wave_started' to callable:
-'Node2D(CombatManager.gd)::_on_wave_started':
-Method expected 0 argument(s), but called with 3.
-```
+AI Player执行CRASH-002验证时发现信号参数不匹配错误。
 
-**技术详情**:
-- 错误文件: `src/Scripts/CoreMechanics/CombatManager.gd`
-- 错误方法: `_on_wave_started()`
-- 错误原因: WAVE-REFACTOR-001后，`wave_started`信号发射参数与处理方法签名不匹配
+**修复内容**:
+- 修复文件: `src/Scripts/UI/Shop.gd`
+- 修复方法: `_on_wave_started()` 方法签名更新
+- 修复提交: 已包含在WAVE-REFACTOR-001后续修复中
 
-**修复方案**:
-检查 `CombatManager.gd` 中的 `_on_wave_started` 方法签名，确保与信号发射参数匹配。
-
-**下一步**: 修复后通知AI Player恢复图腾测试任务链
+**状态**: ✅ 已修复并合并到master
 
 ---
 
@@ -827,12 +852,12 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
 
 ## [Meta - 元数据]
 
-- **当前状态**: 🔍 CRASH-002 深入调查完成，发现敌人列表空值检查缺失问题
-- **最后唤醒**: 2026-03-02 (由项目总监唤醒)
-- **处理中任务**: CRASH-002 运行时崩溃修复 - 第二轮修复已提交
-- **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时) - 第二轮修复待验证
-- **最新合并**: Commit 2baaa01 - 修复3个文件中的不安全 `is` 操作符使用
-- **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项 (被CRASH-002阻塞)
+- **当前状态**: 🚨 紧急修复CombatManager.gd属性访问错误
+- **最后唤醒**: 2026-03-02 (由项目总监派发紧急任务)
+- **处理中任务**: COMBATMANAGER-FIX-001 - 修复`total_enemies_for_wave`引用
+- **最新问题**: CombatManager.gd属性访问错误 - WAVE-REFACTOR-001后遗留问题
+- **最新合并**: WAVE-REFACTOR-001已完成并合并到master
+- **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项 (被CombatManager错误阻塞)
 - **Jules并行能力**: 最多同时派发5个独立任务
 
 ---

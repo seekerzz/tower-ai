@@ -8,7 +8,7 @@
 **类型**: 全面机制验证跑测
 **优先级**: P0
 **来源**: 项目总监 @ProjectDirector
-**状态**: 🔄 **执行中 - Agent Team已启动，当前执行TOTEM-COW-001**
+**状态**: ⏸️ **阻塞 - 发现新错误COMBATMANAGER-FIX-001**
 
 **Agent任务分配**:
 - AI Player: 🔄 执行TOTEM-COW-001牛图腾测试
@@ -17,7 +17,7 @@
 - Project Director: 🔄 监控协调
 
 **待执行任务**:
-1. [ ] TOTEM-COW-001 牛图腾流派测试 - 原始CRASH-002阻塞
+1. [ ] TOTEM-COW-001 牛图腾流派测试 - COMBATMANAGER-FIX-001阻塞
 2. [ ] TOTEM-BAT-001 蝙蝠图腾流派测试
 3. [ ] TOTEM-WOLF-001 狼图腾流派测试
 4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
@@ -25,12 +25,15 @@
 6. [ ] TOTEM-EAGLE-001 鹰图腾流派测试
 7. [ ] UNITS-COMMON-001 通用单位测试
 
-**CRASH-002最新验证结果** (2026-03-02 16:03, 基于最新代码):
-- ✅ 信号参数问题已修复 - 波次可以启动
-- ❌ 原始CRASH-002错误仍然存在: `Parameter "t" is null.`
-- 生成日志: `logs/ai_session_diagnostic_20260302_160302.log`
+**TOTEM-COW-001执行结果** (2026-03-02 17:19):
+- ✅ 牛图腾选择正常
+- ✅ 商店阵营过滤正常（显示yak_guardian, rock_armor_cow等牛阵营单位）
+- ✅ 单位购买部署正常（yak_guardian部署到1,0）
+- ✅ 核心血量计算正常（500.0 → 1000.0）
+- ❌ **新崩溃**: `Invalid access to property 'total_enemies_for_wave'`
+- 生成日志: `logs/ai_session_cow_totem_20260302_171744.log`
 
-**前置依赖**: 等待技术总监修复原始CRASH-002错误（`is`操作符空值保护）
+**前置依赖**: 等待技术总监修复COMBATMANAGER-FIX-001（WAVE-REFACTOR-001后遗留的属性引用问题）
 
 **历史记录**:
 - TOTEM-COW-001 首次执行 (15:53): 发现Shop.gd信号问题
