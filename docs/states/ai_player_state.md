@@ -8,10 +8,10 @@
 **类型**: 全面机制验证跑测
 **优先级**: P0
 **来源**: 项目总监 @ProjectDirector
-**状态**: ⏸️ 阻塞 - 等待Shop.gd修复
+**状态**: 🔄 **进行中 - 基于最新代码重新测试**
 
 **待执行任务**:
-1. [ ] TOTEM-COW-001 牛图腾流派测试 - 发现Shop.gd信号问题
+1. [ ] TOTEM-COW-001 牛图腾流派测试 - 等待基于最新代码验证
 2. [ ] TOTEM-BAT-001 蝙蝠图腾流派测试
 3. [ ] TOTEM-WOLF-001 狼图腾流派测试
 4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
@@ -19,30 +19,22 @@
 6. [ ] TOTEM-EAGLE-001 鹰图腾流派测试
 7. [ ] UNITS-COMMON-001 通用单位测试
 
-**前置依赖**: 等待技术总监修复Shop.gd信号参数问题
+**重要通知** (2026-03-02):
+Shop.gd 已在 commit `7624231` 中修复。之前的测试基于旧代码运行。
 
-**CRASH-002重新验证结果** (2026-03-02 15:55):
-- ❌ 修复未成功 - Shop.gd `on_wave_started` 信号参数仍然不匹配
-- 错误信息: `Method expected 0 argument(s), but called with 3`
-- 生成日志: `logs/ai_session_diagnostic_20260302_155509.log`
+**当前代码状态**:
+- ✅ Shop.gd: `func on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0)`
+- ✅ 所有 `_on_wave_started` 方法签名已统一
 
-**TOTEM-COW-001 首次执行结果** (2026-03-02 15:53):
-- ✅ 图腾选择: 通过
-- ✅ 商店阵营过滤: 通过
-- ✅ 核心血量计算: 通过
-- ❌ 波次启动: Shop.gd `on_wave_started` 信号参数不匹配
-- ⏳ 受伤充能: 未验证（波次启动崩溃）
-- ⏳ 全屏反击: 未验证
-- ⏳ 嘲讽联动: 未验证
-- ⏳ 伤害转MP: 未验证
-- ⏳ 减伤回血: 未验证
-- ⏳ 治疗核心: 未验证
+**需要执行**:
+1. 确认本地代码已更新到最新 (`git log` 检查是否有 `7624231`)
+2. 重新运行诊断测试 `ai_client/crash002_diagnostic.py`
+3. 验证波次能否正常启动
+4. 启动 TOTEM-COW-001 测试
 
-**新发现问题**:
-- 错误文件: `src/Scripts/UI/Shop.gd`
-- 错误方法: `on_wave_started()`
-- 错误原因: 信号 `wave_started` 发射时传递3个参数，但处理方法期望0个参数
-- 生成日志: `logs/ai_session_cow_totem_20260302_155153.log`
+**历史记录**:
+- TOTEM-COW-001 首次执行 (15:53): 发现Shop.gd信号问题
+- CRASH-002重新验证 (15:55): 基于旧代码，结果无效
 
 ---
 
