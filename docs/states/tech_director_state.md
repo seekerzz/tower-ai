@@ -172,7 +172,26 @@ WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法
 
 ---
 
-**下一步**: 通知项目总监重构完成，可以恢复图腾机制测试任务链
+### ✅ 紧急修复: 单位购买异常 (任务#11)
+
+**任务ID**: UNIT-PURCHASE-FIX-001
+**来源**: 游戏策划分析提案 (proposal_bat_totem_analysis_20260302.md)
+**时间**: 2026-03-02
+**优先级**: P0 (阻塞所有测试)
+**状态**: ✅ **已修复并提交**
+
+**问题描述**:
+AI意图购买某个单位（如mosquito、iron_turtle），但实际购买的是商店中该位置的其他单位（如bear、meat）。
+
+**根本原因**:
+`ActionDispatcher._action_buy_unit` 方法调用 `BoardController.buy_unit` 时没有传递 `expected_unit_key` 参数，导致无法进行单位验证。
+
+**修复内容**:
+- 修复文件: `src/Autoload/ActionDispatcher.gd`
+- 修复方式: 从action中获取 `expected_unit_key` 并传递给 `BoardController.buy_unit`
+- 修复提交: `72093f7`
+
+**下一步**: 通知项目总监修复完成，可以恢复图腾机制测试任务链
 - 监控间隔: 60秒
 
 **监控命令**:
@@ -812,6 +831,16 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
     2. Parameter "t" is null - CRASH-002在重构后仍然出现
     3. CombatManager属性访问错误 - `Invalid access to property 'total_enemies_for_wave'`
   - 建议：修复重构后的代码不一致问题，进行回归测试
+
+- [ ] 待处理提案: docs/design_proposals/proposal_wolf_totem_analysis_20260302.md -- 来源@Game_Designer -- 2026-03-02
+  - 问题：TOTEM-WOLF-001测试日志分析，日志埋点严重不足
+  - 关联日志：logs/ai_session_wolf_totem_20260302_173637.log
+  - 优先级：P1
+  - 关键发现：
+    1. 单位购买异常：意图sheep_spirit，实际shell（系统性问题）
+    2. 所有狼图腾机制不可见（魂魄收集/图腾加成/克隆等）
+    3. 日志埋点严重不足，无法黑盒验证任何机制
+  - 建议：增加狼图腾机制日志埋点，修复单位购买异常
 
 - [ ] 待处理提案: docs/design_proposals/proposal_bat_totem_analysis_20260302.md -- 来源@Game_Designer -- 2026-03-02
   - 问题：TOTEM-BAT-001测试日志分析，日志埋点严重不足
