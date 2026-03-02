@@ -28,12 +28,20 @@
 - [ ] 验证测试通过
 - [ ] 合并到 master
 
+**监控状态**:
+- 后台监控 PID: `1957640`
+- 监控日志: `/tmp/jules_monitor.log`
+- 监控间隔: 60秒
+
 **监控命令**:
 ```bash
 # 查询任务状态
 curl -s "https://jules.googleapis.com/v1alpha/sessions/18084724093959403440" \
   -H "X-Goog-Api-Key: \$JULES_API_KEY" \
   --proxy "http://127.0.0.1:10998"
+
+# 查看监控日志
+tail -f /tmp/jules_monitor.log
 ```
 
 **任务背景**:
