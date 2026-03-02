@@ -813,6 +813,16 @@ T+00:05  【系统严重报错】ERROR: Parameter "t" is null.  <-- 崩溃发生
     3. CombatManager属性访问错误 - `Invalid access to property 'total_enemies_for_wave'`
   - 建议：修复重构后的代码不一致问题，进行回归测试
 
+- [ ] 待处理提案: docs/design_proposals/proposal_bat_totem_analysis_20260302.md -- 来源@Game_Designer -- 2026-03-02
+  - 问题：TOTEM-BAT-001测试日志分析，日志埋点严重不足
+  - 关联日志：logs/ai_session_bat_totem_20260302_173150.log
+  - 优先级：P1
+  - 关键发现：
+    1. 单位购买异常：意图mosquito，实际bear
+    2. 所有蝙蝠图腾机制不可见（流血攻击/吸血效果/血池机制等）
+    3. 日志埋点严重不足，无法黑盒验证任何机制
+  - 建议：增加蝙蝠图腾机制日志埋点，修复单位购买异常
+
 - [ ] 待处理提案: docs/design_proposals/proposal_log_improvement_001.md -- 来源@Game_Designer -- 2026-03-02
   - 问题：图腾机制日志埋点严重不足，无法通过黑盒观察验证机制
   - 关联日志：牛图腾/蝙蝠图腾/狼图腾测试日志（均因崩溃未能完整测试）
