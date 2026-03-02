@@ -364,7 +364,8 @@ func update_ui():
 
 	hp_label.text = "❤️ %d/%d" % [int(GameManager.core_health), int(GameManager.max_core_health)]
 	mana_label.text = "💧 %d/%d" % [int(GameManager.mana), int(GameManager.max_mana)]
-	wave_label.text = "Wave %d" % GameManager.wave
+	var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
+	wave_label.text = "Wave %d" % current_wave
 	if combat_gold_label:
 		combat_gold_label.text = "💰 %d" % GameManager.gold
 

@@ -127,7 +127,7 @@ func _setup_test():
 
 	if GameManager.wave_system_manager:
 		GameManager.wave_system_manager.start_wave()
-	# GameManager.wave_ended is only emitted after UI interaction, which we skip in headless.
+	# Wave ended signal is emitted by WaveSystemManager after UI interaction, which we skip in headless.
 	# So we monitor is_wave_active in _process instead.
 
 func _on_wave_started():
