@@ -3,6 +3,7 @@ extends CharacterBody2D
 
 const EnemyBehavior = preload("res://src/Scripts/Enemies/Behaviors/EnemyBehavior.gd")
 const AssetLoader = preload("res://src/Scripts/Utils/AssetLoader.gd")
+const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
 
 signal died
 signal attack_missed(enemy)
