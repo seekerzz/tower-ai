@@ -1,5 +1,167 @@
 # 💻 技术总监状态机
 
+## [Inbox - 紧急重构任务]
+
+### 🔄 WAVE-REFACTOR-001: 波次状态与信号链条深度重构
+
+**任务ID**: WAVE-REFACTOR-001
+**来源**: 项目总监指派（Jules任务）
+**时间**: 2026-03-02
+**优先级**: P0 (架构债务清理，阻塞后续开发)
+**状态**: 🔄 等待提交 Jules 任务
+
+**任务背景**:
+当前项目在波次控制和状态管理上存在严重的职责混乱和代码冗余。GameManager、WaveSystemManager 和 SessionData 三处都在维护波次状态（wave, is_wave_active），并且 GameManager 和 WaveSystemManager 各自发射同名的波次信号。这种双重监听和多重状态是导致底层时序 Bug 和 Parameter "t" is null 崩溃的根本原因。
+
+**任务目标**:
+彻底剥离 GameManager 中的波次与状态控制逻辑，确立 SessionData 为波次数据的唯一存储池（Source of Truth），确立 WaveSystemManager 为修改波次状态与发射信号的唯一控制器。追求最简单的架构和最高的代码可读性，允许对现有调用进行大改。
+
+**Jules任务Prompt**:
+```
+波次状态与信号链条深度重构
+
+任务背景：
+当前项目在波次控制和状态管理上存在严重的职责混乱和代码冗余。GameManager、WaveSystemManager 和 SessionData 三处都在维护波次状态（wave, is_wave_active），并且 GameManager 和 WaveSystemManager 各自发射同名的波次信号。这种双重监听和多重状态是导致底层时序 Bug 和 Parameter "t" is null 崩溃的根本原因。
+
+任务目标：
+彻底剥离 GameManager 中的波次与状态控制逻辑，确立 SessionData 为波次数据的唯一存储池（Source of Truth），确立 WaveSystemManager 为修改波次状态与发射信号的唯一控制器。追求最简单的架构和最高的代码可读性，允许对现有调用进行大改。
+
+执行步骤：
+
+改造 SessionData.gd（数据层）
+
+检查并确保该文件拥有 wave: int 和 is_wave_active: bool 变量，作为全网唯一的波次状态事实来源。
+
+改造 WaveSystemManager.gd（控制层）
+
+确保 start_wave() 和 _end_wave() 等核心方法在执行时，直接修改 GameManager.session_data.wave 和 GameManager.session_data.is_wave_active。
+
+确认该脚本正确发射 wave_started 和 wave_ended 信号。
+
+彻底净化 GameManager.gd（门面剥离）
+
+删除变量：移除 wave、is_wave_active 及其所有的 getter/setter。
+
+删除信号：移除 wave_started、wave_ended、wave_reset 信号的定义。
+
+删除方法：移除 start_wave()、end_wave()、retry_wave()、_finish_wave_process() 等直接控制波次的方法。
+
+移除 _ready() 中针对波次双重监听的旧逻辑（如 wave_system_manager.wave_started.connect(_on_wave_system_started) 与相关回退逻辑）。
+
+全局引用修复（消除报错）
+
+全局搜索项目中所有对 GameManager.wave 和 GameManager.is_wave_active 的读取，替换为 GameManager.session_data.wave 和 GameManager.session_data.is_wave_active（或者通过 GameManager.wave_system_manager.is_wave_active 读取，保持统一即可）。
+
+全局搜索项目中所有连接到 GameManager.wave_started 和 GameManager.wave_ended 的监听（如 AIManager.gd, CombatManager.gd, BaseTotemMechanic.gd 等），全部改写为连接到 GameManager.wave_system_manager.wave_started。
+
+全局搜索调用 GameManager.start_wave() 的地方（如 ActionDispatcher.gd），替换为 GameManager.wave_system_manager.start_wave()。
+
+测试与验证要求：
+
+Godot 调试验证点（必须执行并修正报错）：
+在命令行以 Headless 模式运行任意一个 AI 诊断脚本（例如 python3 ai_client/crash002_diagnostic.py），或者直接运行项目的测试场景。密切观察 Godot 引擎控制台输出，你必须捕获并修复所有因为 GameManager 缺少 wave 属性或缺失 wave_started 信号而导致的脚本编译或运行时报错（Script Error），直到游戏能正常不报错地启动并进入第一波。
+
+人工验证点：
+
+启动带界面的游戏（python3 ai_client/ai_game_client.py --visual）。
+
+放置一个任意单位后，点击或发送动作开启第一波次。
+
+观察 AI 客户端终端输出，确认 WaveStarted 和 WaveEnded 事件只被接收到了一次（没有重复日志）。
+
+观察界面 UI 顶部的波数显示和金币结算，是否在波次结束时正常增加。
+```
+
+**影响范围分析**:
+- `GameManager.is_wave_active` 读取: 23个文件
+- `GameManager.wave_started.connect`: 11个文件
+- `GameManager.wave_ended.connect`: 9个文件
+- `GameManager.start_wave()`: 2个文件
+
+**关键文件清单**:
+- `src/Autoload/GameManager.gd` - 需要净化
+- `src/Scripts/Managers/WaveSystemManager.gd` - 控制器唯一入口
+- `src/Scripts/Data/SessionData.gd` - 数据源唯一存储
+- `src/Scripts/CombatManager.gd` - 需要修复信号连接
+- `src/Scripts/UI/MainGUI.gd` - 需要修复信号连接
+- `src/Autoload/AIManager.gd` - 需要修复信号连接
+- `src/Scripts/MainGame.gd` - 需要修复信号连接
+- `src/Scripts/GridManager.gd` - 需要修复信号连接
+- `src/Scripts/Unit.gd` - 需要修复状态读取
+- `src/Scripts/Enemy.gd` - 需要修复状态读取
+- 以及其他14个需要修复引用的地方
+
+**Jules提交命令**:
+```bash
+cd /home/zhangzhan/tower-ai
+export http_proxy=http://192.168.123.52:11810
+export https_proxy=http://192.168.123.52:11810
+export HTTP_PROXY=$http_proxy
+export HTTPS_PROXY=$https_proxy
+
+python3 jules/submit_jules_task.py \
+    -t refactor-wave-state-architecture \
+    -p "波次状态与信号链条深度重构
+
+任务背景：
+当前项目在波次控制和状态管理上存在严重的职责混乱和代码冗余。GameManager、WaveSystemManager 和 SessionData 三处都在维护波次状态（wave, is_wave_active），并且 GameManager 和 WaveSystemManager 各自发射同名的波次信号。这种双重监听和多重状态是导致底层时序 Bug 和 Parameter \"t\" is null 崩溃的根本原因。
+
+任务目标：
+彻底剥离 GameManager 中的波次与状态控制逻辑，确立 SessionData 为波次数据的唯一存储池（Source of Truth），确立 WaveSystemManager 为修改波次状态与发射信号的唯一控制器。追求最简单的架构和最高的代码可读性，允许对现有调用进行大改。
+
+执行步骤：
+
+改造 SessionData.gd（数据层）
+
+检查并确保该文件拥有 wave: int 和 is_wave_active: bool 变量，作为全网唯一的波次状态事实来源。
+
+改造 WaveSystemManager.gd（控制层）
+
+确保 start_wave() 和 _end_wave() 等核心方法在执行时，直接修改 GameManager.session_data.wave 和 GameManager.session_data.is_wave_active。
+
+确认该脚本正确发射 wave_started 和 wave_ended 信号。
+
+彻底净化 GameManager.gd（门面剥离）
+
+删除变量：移除 wave、is_wave_active 及其所有的 getter/setter。
+
+删除信号：移除 wave_started、wave_ended、wave_reset 信号的定义。
+
+删除方法：移除 start_wave()、end_wave()、retry_wave()、_finish_wave_process() 等直接控制波次的方法。
+
+移除 _ready() 中针对波次双重监听的旧逻辑（如 wave_system_manager.wave_started.connect(_on_wave_system_started) 与相关回退逻辑）。
+
+全局引用修复（消除报错）
+
+全局搜索项目中所有对 GameManager.wave 和 GameManager.is_wave_active 的读取，替换为 GameManager.session_data.wave 和 GameManager.session_data.is_wave_active（或者通过 GameManager.wave_system_manager.is_wave_active 读取，保持统一即可）。
+
+全局搜索项目中所有连接到 GameManager.wave_started 和 GameManager.wave_ended 的监听（如 AIManager.gd, CombatManager.gd, BaseTotemMechanic.gd 等），全部改写为连接到 GameManager.wave_system_manager.wave_started。
+
+全局搜索调用 GameManager.start_wave() 的地方（如 ActionDispatcher.gd），替换为 GameManager.wave_system_manager.start_wave()。
+
+测试与验证要求：
+
+Godot 调试验证点（必须执行并修正报错）：
+在命令行以 Headless 模式运行任意一个 AI 诊断脚本（例如 python3 ai_client/crash002_diagnostic.py），或者直接运行项目的测试场景。密切观察 Godot 引擎控制台输出，你必须捕获并修复所有因为 GameManager 缺少 wave 属性或缺失 wave_started 信号而导致的脚本编译或运行时报错（Script Error），直到游戏能正常不报错地启动并进入第一波。
+
+人工验证点：
+
+启动带界面的游戏（python3 ai_client/ai_game_client.py --visual）。
+
+放置一个任意单位后，点击或发送动作开启第一波次。
+
+观察 AI 客户端终端输出，确认 WaveStarted 和 WaveEnded 事件只被接收到了一次（没有重复日志）。
+
+观察界面 UI 顶部的波数显示和金币结算，是否在波次结束时正常增加。
+
+要求：
+1. 采用 Godot 进行真实运行调试，并自动修正返回的报错日志
+2. 输出人工测试验证点：如何在游戏中验证该重构是否生效
+3. 禁止创建任何 .md 文件或文档"
+```
+
+---
+
 ## [Inbox - 紧急修复任务]
 
 ### ✅ CRASH-002 第四轮修复完成
