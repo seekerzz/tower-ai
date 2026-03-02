@@ -8,7 +8,7 @@
 **类型**: 全面机制验证跑测
 **优先级**: P0
 **来源**: 项目总监 @ProjectDirector
-**状态**: 🔄 执行中 - 发现更多信号参数问题
+**状态**: ⏸️ 阻塞 - 等待Shop.gd修复
 
 **待执行任务**:
 1. [ ] TOTEM-COW-001 牛图腾流派测试 - 发现Shop.gd信号问题
@@ -20,6 +20,11 @@
 7. [ ] UNITS-COMMON-001 通用单位测试
 
 **前置依赖**: 等待技术总监修复Shop.gd信号参数问题
+
+**CRASH-002重新验证结果** (2026-03-02 15:55):
+- ❌ 修复未成功 - Shop.gd `on_wave_started` 信号参数仍然不匹配
+- 错误信息: `Method expected 0 argument(s), but called with 3`
+- 生成日志: `logs/ai_session_diagnostic_20260302_155509.log`
 
 **TOTEM-COW-001 首次执行结果** (2026-03-02 15:53):
 - ✅ 图腾选择: 通过
