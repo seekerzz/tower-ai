@@ -18,6 +18,11 @@ func on_projectile_crit(projectile, target):
 			projectile.trigger_eagle_echo(target, echo_mult)
 			if projectile.source_unit:
 				GameManager.totem_echo_triggered.emit(projectile.source_unit, echo_damage)
+				# 记录鹰图腾暴击回响日志
+				if AILogger:
+					var unit_name = projectile.source_unit.type_key if "type_key" in projectile.source_unit else "单位"
+					var target_name = target.type_key if target and "type_key" in target else "敌人"
+					AILogger.totem_triggered("鹰图腾", target_name, "暴击回响 %.0f 伤害" % echo_damage)
 				# Emit echo_triggered signal for test logging
 				if GameManager.has_signal("echo_triggered"):
 					GameManager.echo_triggered.emit(projectile.source_unit, target, projectile.damage, echo_damage)

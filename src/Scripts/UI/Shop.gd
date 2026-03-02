@@ -174,8 +174,18 @@ func _perform_refresh():
 	# Get player's current totem
 	var player_faction = GameManager.core_type
 
-	# Get available unit pool
-	var available_units = _get_units_for_faction(player_faction)
+	# Get available unit pool with faction weighting
+	var faction_units = []
+	var universal_units = []
+
+	for unit_key in Constants.UNIT_TYPES.keys():
+		var unit_data = Constants.UNIT_TYPES[unit_key]
+		var unit_faction = unit_data.get("faction", "universal")
+
+		if unit_faction == player_faction:
+			faction_units.append(unit_key)
+		elif unit_faction == "universal":
+			universal_units.append(unit_key)
 
 	var new_items = []
 
@@ -183,7 +193,15 @@ func _perform_refresh():
 		if shop_items.size() > i and shop_locked[i]:
 			new_items.append(shop_items[i])
 		else:
-			new_items.append(available_units.pick_random())
+			# 70%概率出现阵营单位，30%概率出现通用单位
+			if faction_units.size() > 0 and randf() < 0.7:
+				new_items.append(faction_units.pick_random())
+			elif universal_units.size() > 0:
+				new_items.append(universal_units.pick_random())
+			elif faction_units.size() > 0:
+				new_items.append(faction_units.pick_random())
+			else:
+				new_items.append(Constants.UNIT_TYPES.keys().pick_random())
 
 	shop_items = new_items
 
