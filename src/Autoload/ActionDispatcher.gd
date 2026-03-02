@@ -70,7 +70,8 @@ func _action_select_totem(action: Dictionary) -> Dictionary:
 
 func _action_buy_unit(action: Dictionary) -> Dictionary:
 	var shop_index = _to_int_index(action.get("shop_index", -1))
-	return BoardController.buy_unit(shop_index)
+	var expected_unit_key = action.get("expected_unit_key", "")
+	return BoardController.buy_unit(shop_index, expected_unit_key)
 
 func _action_sell_unit(action: Dictionary) -> Dictionary:
 	var zone = action.get("zone", "")

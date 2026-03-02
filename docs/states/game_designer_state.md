@@ -2,12 +2,13 @@
 
 ## [Inbox - 待分析日志]
 
-### 🔄 TOTEM-WOLF-001 狼图腾测试日志 - 待分析
+### ✅ TOTEM-WOLF-001 狼图腾测试日志 - 分析完成
 
 **任务ID**: TOTEM-WOLF-001-ANALYSIS
 **来源**: AI Player测试完成 / 项目总监派发
 **时间**: 2026-03-02 17:37
 **优先级**: P0
+**状态**: ✅ 分析完成，报告已投递技术总监
 
 **待分析日志**: `logs/ai_session_wolf_totem_20260302_173637.log`
 
@@ -15,7 +16,7 @@
 - ✅ 测试完成 - 波次1-4正常启动和结束
 - ✅ 狼图腾选择正常
 - ⚠️ CRASH-002在第1波开始时出现，但测试继续进行
-- ❌ 所有狼图腾机制无法验证（日志埋点不足）
+- ❌ 所有狼图腾机制无法验证（日志埋点严重不足）
 
 **测试单位覆盖**:
 - 羊灵 (sheep_spirit): 克隆机制
@@ -24,6 +25,13 @@
 - 恶霸犬 (dog): 狂暴
 - 鬣狗 (hyena): 残血收割
 - 狐狸 (fox): 魅惑
+
+**关键发现**:
+1. 单位购买异常：意图sheep_spirit，实际shell（系统性问题）
+2. 所有狼图腾机制不可见（魂魄收集/图腾加成/克隆等）
+3. 日志埋点严重不足，无法黑盒验证
+
+**分析报告**: `docs/design_proposals/proposal_wolf_totem_analysis_20260302.md`
 
 **待验证机制**:
 - 魂魄收集、图腾魂魄加成、羊灵克隆、狮子冲击波、血食狼群辅助
@@ -144,6 +152,13 @@
   - 新发现问题: Parameter "t" is null 仍然出现
   - 分析报告: docs/design_proposals/proposal_wave_refactor_issues_analysis.md
 
+- [x] ~~待分析: logs/ai_session_wolf_totem_20260302_173637.log -- 策略: 狼图腾魂魄收割流 -- 来源@AI_Player~~
+  - 状态: ✅ 黑盒分析完成，报告已投递技术总监
+  - 已验证: 狼图腾选择✅、波次系统✅、单位部署✅
+  - 新发现问题: 单位购买异常（意图sheep_spirit实际shell）、所有机制不可见
+  - 关键问题: 日志埋点严重不足，无法验证魂魄收集/图腾加成/克隆等
+  - 分析报告: docs/design_proposals/proposal_wolf_totem_analysis_20260302.md
+
 - [x] ~~待分析: logs/ai_session_bat_totem_20260302_173150.log -- 策略: 蝙蝠图腾吸血续航流 -- 来源@AI_Player~~
   - 状态: ✅ 黑盒分析完成，报告已投递技术总监
   - 已验证: 蝙蝠图腾选择✅、波次系统✅、单位部署✅
@@ -250,6 +265,18 @@
   - 已验证: 牛图腾选择✅、商店阵营过滤✅、单位购买部署✅、核心血量计算✅
   - 待修复后重测: 受伤充能、全屏反击、嘲讽联动、伤害转MP、减伤回血、治疗核心
   - 已投递技术总监: 日志埋点增强方案
+
+- [x] 已分析: logs/ai_session_bat_totem_20260302_173150.log -- 策略: 蝙蝠图腾吸血续航流 -- 来源@AI_Player
+  - 分析报告: docs/design_proposals/proposal_bat_totem_analysis_20260302.md
+  - 关键发现: 日志埋点严重不足，所有机制不可见；单位购买异常
+  - 已验证: 蝙蝠图腾选择✅、波次系统✅、单位部署✅
+  - 待验证: 图腾流血攻击、吸血效果、血池机制、生命链条、鲜血溢出
+
+- [x] 已分析: logs/ai_session_wolf_totem_20260302_173637.log -- 策略: 狼图腾魂魄收割流 -- 来源@AI_Player
+  - 分析报告: docs/design_proposals/proposal_wolf_totem_analysis_20260302.md
+  - 关键发现: 日志埋点严重不足，所有机制不可见；单位购买异常（系统性问题）
+  - 已验证: 狼图腾选择✅、波次系统✅、单位部署✅
+  - 待验证: 魂魄收集、图腾魂魄加成、羊灵克隆、狮子冲击波、血食狼群辅助
 
 - [x] 已分析: logs/ai_session_bat_totem_20260302_173150.log -- 策略: 蝙蝠图腾吸血续航流 -- 来源@AI_Player
   - 分析报告: docs/design_proposals/proposal_bat_totem_analysis_20260302.md

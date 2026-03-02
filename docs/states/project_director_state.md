@@ -25,38 +25,46 @@ WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法
 
 ---
 
-### 🔄 恢复图腾机制全面测试任务链
+### 🔄 恢复图腾机制全面测试任务链 - 批量派发
 
-**来源**: @Project_Director
+**来源**: @Project_Director / Team Lead
 **时间**: 2026-03-02
-**状态**: ⏸️ **被CRASH-002阻塞 - 调查完成，需要决策**
+**状态**: 🔄 **批量测试中 - 已派发TOTEM-BUTTERFLY-001和TOTEM-VIPER-001**
 
 **Agent Team状态**:
 | Agent | 任务 | 状态 |
 |-------|------|------|
-| AI Player | TOTEM-COW-001牛图腾测试 | ✅ 已完成 |
-| Game Designer | 分析TOTEM-COW-001日志 | ✅ 已完成 |
-| Technical Director | CRASH-002深入调查 | ✅ 已完成 |
+| AI Player | TOTEM-BUTTERFLY-001 + TOTEM-VIPER-001 | 🔄 执行中 |
+| Game Designer | 等待分析日志 | ⏳ pending |
+| Technical Director | 待机 | ⏳ pending |
 | Project Director | 监控协调 | 🔄 in_progress |
 
 **背景**:
 - COMBATMANAGER-FIX-001和SIGNAL-FIX-001已修复
-- 技术总监已完成CRASH-002深入调查
-- 调查发现所有已知的代码级`is`操作符问题已修复
-- CRASH-002可能来自Godot引擎内部或需要更详细的运行时日志
+- TOTEM-COW-001已完成，波次1-4正常
+- 决策：即使CRASH-002存在，测试也应继续进行
+- 加快测试进度，并行执行剩余图腾测试
 
-**关键发现**:
-- 崩溃发生在第1波开始时，但测试可以继续进行
-- 所有`is`操作符都已添加`Type != null`前置检查
-- 敌人列表访问都已加固
-- 崩溃可能来自引擎内部或动态加载的脚本
+**已派发批量测试任务**:
+
+**任务1: TOTEM-BUTTERFLY-001 蝴蝶图腾测试**
+- 选择图腾: butterfly_totem
+- 测试单位: 火炬、蝴蝶、冰晶蝶、仙女龙、萤火虫、凤凰、电鳗、龙
+- 测试策略: 法力循环流
+- 重点验证: 环绕法球、法力回复、冻结debuff、传送概率、火雨AOE、闪电链、黑洞控制
+
+**任务2: TOTEM-VIPER-001 毒蛇图腾测试**
+- 选择图腾: viper_totem
+- 测试单位: 蜘蛛、雪人、蝎子、毒蛇、箭毒蛙、老鼠、蟾蜍、美杜莎
+- 测试策略: 剧毒叠加流
+- 重点验证: 毒液攻击、中毒层数叠加(最大50层)、斩杀机制、瘟疫传播、石化凝视
 
 **待执行任务**:
-- [ ] TOTEM-COW-001 牛图腾流派测试
-- [ ] TOTEM-BAT-001 蝙蝠图腾流派测试
-- [ ] TOTEM-WOLF-001 狼图腾流派测试
-- [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
-- [ ] TOTEM-VIPER-001 毒蛇图腾流派测试
+- [x] TOTEM-COW-001 牛图腾流派测试 - ✅ 已完成
+- [x] TOTEM-BAT-001 蝙蝠图腾流派测试 - ✅ 已完成
+- [x] TOTEM-WOLF-001 狼图腾流派测试 - ✅ 已完成
+- [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试 - 🔄 执行中
+- [ ] TOTEM-VIPER-001 毒蛇图腾流派测试 - 🔄 执行中
 - [ ] TOTEM-EAGLE-001 鹰图腾流派测试
 - [ ] UNITS-COMMON-001 通用单位测试
 

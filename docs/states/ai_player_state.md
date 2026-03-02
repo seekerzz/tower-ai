@@ -2,28 +2,44 @@
 
 ## [Inbox - 待测分支与策略]
 
-### 🔄 图腾机制全面测试任务链 (任务#2)
+### 🔄 图腾机制全面测试任务链 (任务#2) - 批量执行中
 
 **任务ID**: TOTEM-TEST-CHAIN-001
 **类型**: 全面机制验证跑测
 **优先级**: P0
 **来源**: 项目总监 @ProjectDirector
-**状态**: 🔄 **执行中 - TOTEM-BAT-001待派发**
+**状态**: 🔄 **批量执行中 - TOTEM-BUTTERFLY-001 + TOTEM-VIPER-001**
 
 **Agent任务分配**:
-- AI Player: 🔄 等待TOTEM-BAT-001任务
-- Game Designer: 🔄 分析TOTEM-COW-001日志
-- Technical Director: ✅ COMBATMANAGER-FIX-001已修复
+- AI Player: 🔄 执行TOTEM-BUTTERFLY-001 + TOTEM-VIPER-001
+- Game Designer: ⏳ 等待分析日志
+- Technical Director: ⏳ 待机
 - Project Director: 🔄 监控协调
 
 **待执行任务**:
 1. [x] TOTEM-COW-001 牛图腾流派测试 - ✅ 已完成，波次1-4正常
 2. [x] TOTEM-BAT-001 蝙蝠图腾流派测试 - ✅ 已完成，CRASH-002仍存在
 3. [x] TOTEM-WOLF-001 狼图腾流派测试 - ✅ 已完成，CRASH-002仍存在
-4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
-5. [ ] TOTEM-VIPER-001 毒蛇图腾流派测试
+4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试 - 🔄 执行中
+5. [ ] TOTEM-VIPER-001 毒蛇图腾流派测试 - 🔄 执行中
 6. [ ] TOTEM-EAGLE-001 鹰图腾流派测试
 7. [ ] UNITS-COMMON-001 通用单位测试
+
+**当前批量测试任务** (来自Team Lead):
+
+**任务1: TOTEM-BUTTERFLY-001 蝴蝶图腾测试**
+- 选择图腾: butterfly_totem
+- 测试单位: 火炬、蝴蝶、冰晶蝶、仙女龙、萤火虫、凤凰、电鳗、龙
+- 测试策略: 法力循环流
+- 重点验证: 环绕法球、法力回复、冻结debuff、传送概率、火雨AOE、闪电链、黑洞控制
+- 注意: 即使CRASH-002存在，测试也应继续
+
+**任务2: TOTEM-VIPER-001 毒蛇图腾测试**
+- 选择图腾: viper_totem
+- 测试单位: 蜘蛛、雪人、蝎子、毒蛇、箭毒蛙、老鼠、蟾蜍、美杜莎
+- 测试策略: 剧毒叠加流
+- 重点验证: 毒液攻击、中毒层数叠加(最大50层)、斩杀机制、瘟疫传播、石化凝视
+- 注意: 即使CRASH-002存在，测试也应继续
 
 **TOTEM-COW-001执行结果** (2026-03-02 17:19):
 - ✅ 牛图腾选择正常
