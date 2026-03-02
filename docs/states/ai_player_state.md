@@ -2,6 +2,40 @@
 
 ## [Inbox - 待测分支与策略]
 
+### 🚀 LOG-IMPROVEMENT-001-REGRESSION 回归测试任务 (新任务)
+
+**任务ID**: LOG-IMPROVEMENT-001-REGRESSION
+**类型**: 回归测试验证
+**优先级**: P0
+**来源**: 技术总监修复完成 / 项目总监协调
+**状态**: 🔄 **等待执行**
+
+**背景**: 技术总监已完成日志埋点增强（commit 4125f40），需要执行回归测试验证修复效果。
+
+**待执行测试任务**:
+1. [ ] TOTEM-COW-001-REGRESSION 牛图腾回归测试
+2. [ ] TOTEM-BAT-001-REGRESSION 蝙蝠图腾回归测试
+3. [ ] TOTEM-WOLF-001-REGRESSION 狼图腾回归测试
+4. [ ] TOTEM-BUTTERFLY-001-REGRESSION 蝴蝶图腾回归测试
+5. [ ] TOTEM-VIPER-001-REGRESSION 毒蛇图腾回归测试
+6. [ ] TOTEM-EAGLE-001-REGRESSION 鹰图腾回归测试
+7. [ ] UNITS-COMMON-001-REGRESSION 通用单位回归测试
+
+**验证目标**:
+- [ ] 图腾攻击触发时是否有 `[图腾触发]` 日志输出
+- [ ] 资源变化（魂魄/充能/法力）是否有 `[图腾资源]` 日志
+- [ ] Buff/Debuff施加是否有 `[Buff施加]` 日志
+- [ ] 商店是否显示70%阵营单位
+- [ ] CRASH-002 是否仍然存在（非阻塞）
+
+**执行步骤**:
+1. 拉取最新 master 分支（包含 4125f40 提交）
+2. 依次执行7个测试任务
+3. 生成日志到 `logs/ai_session_[任务]_[时间戳].log`
+4. 投递日志路径至游戏策划状态机
+
+---
+
 ### ✅ 图腾机制全面测试任务链 (任务#2) - 全部完成
 
 **任务ID**: TOTEM-TEST-CHAIN-001
@@ -11,9 +45,9 @@
 **状态**: ✅ **全部完成 - 7个测试任务已结束**
 
 **Agent任务分配**:
-- AI Player: 😴 休眠 - 图腾测试任务链全部完成
-- Game Designer: ✅ 分析完成 - 所有7个测试日志已分析
-- Technical Director: ⏳ 待机 - 等待修复CRASH-002和日志埋点
+- AI Player: 🔄 执行回归测试中
+- Game Designer: ⏳ 等待回归测试日志
+- Technical Director: ⏳ 等待验证结果
 - Project Director: 🔄 监控协调
 
 **待执行任务**:
