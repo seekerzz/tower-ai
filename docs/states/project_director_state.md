@@ -2,6 +2,28 @@
 
 ## [Inbox - 待办]
 
+### 🔄 项目总监跟进记录 (2026-03-02)
+
+**跟进事项**: CRASH-002 修复进展
+**跟进时间**: 2026-03-02
+**跟进对象**: technical-director-agent
+
+**当前状态**:
+- AI Player 已完成牛图腾重新测试 (TOTEM-COW-001)
+- CRASH-002 运行时崩溃仍然存在
+- 技术总监 Agent 正在调查根本原因
+
+**已扫描风险点**:
+1. AIManager.gd:250 - `if not data is Dictionary:` (内置类型)
+2. AIManager.gd:266 - `if actions is Array:` (内置类型)
+3. ActionDispatcher.gd:25 - `if not action is Dictionary:` (内置类型)
+
+**注意**: 内置类型理论上不会导致 "Parameter t is null" 错误，需要技术总监检查所有类类型的 `is` 操作符。
+
+**等待**: 技术总监修复完成报告
+
+---
+
 ### ⚠️ 流程问题反馈 (来自游戏策划)
 
 **问题类型**: 上下游交付物缺失关键信息 - 日志埋点严重不足
