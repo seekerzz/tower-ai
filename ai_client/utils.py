@@ -42,8 +42,23 @@ def is_error_line(line: str) -> bool:
     return False
 
 
-def extract_stack_trace(lines: List[str], error_idx: int) -> str:
-    """从错误行开始提取堆栈跟踪"""
-    # 收集错误行及后续 20 行作为上下文
-    context = lines[error_idx:min(error_idx + 20, len(lines))]
-    return '\n'.join(context)
+def extract_stack_trace(
+    lines: List[str],
+    error_idx: int,
+    before: int = 50,
+    after: int = 50,
+) -> str:
+    """提取错误上下文（前后文），提高定位准确率。
+
+    说明：
+    - 仅抓取“错误行之后”在进程被快速终止时经常拿不到完整调用栈。
+    - 因此默认同时包含错误前后的输出，便于还原触发路径。
+    """
+    if not lines:
+        return ""
+
+    error_idx = max(0, min(error_idx, len(lines) - 1))
+    start = max(0, error_idx - before)
+    end = min(len(lines), error_idx + after + 1)
+    context = lines[start:end]
+    return "\n".join(context)

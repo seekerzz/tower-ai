@@ -30,6 +30,9 @@ class GodotProcess:
     - 强制终止进程
     """
 
+    # 崩溃检测到后等待进程继续吐栈信息的时长（秒）
+    CRASH_GRACE_SECONDS = 0.8
+
     def __init__(
         self,
         project_path: str,
@@ -51,6 +54,10 @@ class GodotProcess:
         self._lock = threading.Lock()
         self._crashed = False
         self._crash_info: Optional[CrashInfo] = None
+
+        # 崩溃收敛状态：先检测，再延迟收集并终止
+        self._crash_error_line: Optional[str] = None
+        self._crash_finalize_thread: Optional[threading.Thread] = None
 
     def start(self) -> bool:
         """启动 Godot 进程"""
@@ -103,20 +110,46 @@ class GodotProcess:
             # 实时打印（调试用）
             print(f"[Godot] {line}")
 
-            # 检测错误
+            # 检测错误（非阻塞）
             if is_error_line(line):
-                self._handle_crash(line)
+                self._mark_crash_detected(line)
 
-    def _handle_crash(self, error_line: str):
-        """处理崩溃检测"""
-        if self._crashed:
-            return
-
-        self._crashed = True
-
-        # 提取堆栈跟踪
+    def _mark_crash_detected(self, error_line: str):
+        """标记崩溃并启动延迟收敛线程（避免阻塞输出读取线程）。"""
         with self._lock:
+            if self._crash_error_line is not None:
+                return
+            self._crash_error_line = error_line
+
+        print(f"[GodotProcess] 检测到崩溃: {error_line}")
+
+        self._crash_finalize_thread = threading.Thread(
+            target=self._finalize_crash,
+            daemon=True,
+        )
+        self._crash_finalize_thread.start()
+
+    def _finalize_crash(self):
+        """延迟收集崩溃上下文并终止进程。"""
+        deadline = time.time() + self.CRASH_GRACE_SECONDS
+        while time.time() < deadline:
+            if self._stop_monitoring.is_set():
+                break
+            # 若进程已退出，不必继续等待
+            if not self.is_running():
+                break
+            time.sleep(0.05)
+
+        with self._lock:
+            if self._crashed:
+                return
+            self._crashed = True
+            error_line = self._crash_error_line or "UNKNOWN ERROR"
             error_idx = len(self._output_lines) - 1
+            for i in range(len(self._output_lines) - 1, -1, -1):
+                if self._output_lines[i] == error_line:
+                    error_idx = i
+                    break
             stack_trace = extract_stack_trace(self._output_lines, error_idx)
 
         self._crash_info = CrashInfo(
@@ -125,9 +158,6 @@ class GodotProcess:
             timestamp=time.time()
         )
 
-        print(f"[GodotProcess] 检测到崩溃: {error_line}")
-
-        # 回调通知
         if self.on_crash:
             self.on_crash(self._crash_info)
 
