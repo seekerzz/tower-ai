@@ -16,6 +16,26 @@
 - 提交时间: 2026-03-02
 - 自动化模式: AUTO_CREATE_PR
 
+**成功提交方法记录**:
+- 方法: Python requests 直接提交（`submit_jules_task.py` 存在代理问题）
+- 关键点: 显式设置 `proxies={"http": "http://127.0.0.1:10998", "https": "http://127.0.0.1:10998"}`
+- 参考: `jules/README.md` 中的"成功提交方法（已验证）"章节
+
+**PR 监控与合并**:
+- [x] 任务状态: IN_PROGRESS (执行中)
+- [ ] 等待 Jules 生成 PR
+- [ ] 获取 PR URL
+- [ ] 验证测试通过
+- [ ] 合并到 master
+
+**监控命令**:
+```bash
+# 查询任务状态
+curl -s "https://jules.googleapis.com/v1alpha/sessions/18084724093959403440" \
+  -H "X-Goog-Api-Key: \$JULES_API_KEY" \
+  --proxy "http://127.0.0.1:10998"
+```
+
 **任务背景**:
 当前项目在波次控制和状态管理上存在严重的职责混乱和代码冗余。GameManager、WaveSystemManager 和 SessionData 三处都在维护波次状态（wave, is_wave_active），并且 GameManager 和 WaveSystemManager 各自发射同名的波次信号。这种双重监听和多重状态是导致底层时序 Bug 和 Parameter "t" is null 崩溃的根本原因。
 

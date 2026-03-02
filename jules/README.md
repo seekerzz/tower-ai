@@ -196,6 +196,129 @@ git checkout origin/jules-task-feat-dependency-injection
 
 ---
 
+---
+
+## 成功提交方法（已验证）
+
+**重要**：`submit_jules_task.py` 脚本可能存在代理处理问题。以下是经过验证的成功提交方法：
+
+### Python 直接提交（推荐）
+
+```python
+import requests
+
+API_KEY = "your_jules_api_key"
+API_URL = "https://jules.googleapis.com/v1alpha/sessions"
+
+headers = {
+    "Content-Type": "application/json",
+    "X-Goog-Api-Key": API_KEY
+}
+
+body = {
+    "title": "your-task-id",
+    "prompt": "你的任务描述...",
+    "sourceContext": {
+        "source": "sources/github/owner/repo",
+        "githubRepoContext": {"startingBranch": "master"}
+    },
+    "automationMode": "AUTO_CREATE_PR"
+}
+
+proxies = {
+    "http": "http://127.0.0.1:10998",
+    "https": "http://127.0.0.1:10998"
+}
+
+resp = requests.post(API_URL, json=body, headers=headers, proxies=proxies, timeout=30)
+result = resp.json()
+print(f"Session ID: {result.get('id')}")
+print(f"URL: https://jules.google.com/session/{result.get('id')}")
+```
+
+### curl 命令提交
+
+```bash
+curl -X POST "https://jules.googleapis.com/v1alpha/sessions" \
+  -H "Content-Type: application/json" \
+  -H "X-Goog-Api-Key: $JULES_API_KEY" \
+  --proxy "http://127.0.0.1:10998" \
+  -d '{
+    "title": "your-task-id",
+    "prompt": "你的任务描述...",
+    "sourceContext": {
+      "source": "sources/github/owner/repo",
+      "githubRepoContext": {"startingBranch": "master"}
+    },
+    "automationMode": "AUTO_CREATE_PR"
+  }'
+```
+
+**关键要点**：
+- 必须使用 `--proxy` 参数显式设置代理
+- 代理地址：`http://127.0.0.1:10998`
+- 确保 `JULES_API_KEY` 环境变量已设置
+
+---
+
+## PR 监控与合并流程
+
+Jules 任务设置为 `AUTO_CREATE_PR` 模式时，会自动创建 Pull Request。监控和合并流程如下：
+
+### 1. 监控任务状态
+
+```bash
+# 使用 check_jules_status.py 监控
+python check_jules_status.py -s <SESSION_ID> -w
+
+# 或手动查询
+curl -s "https://jules.googleapis.com/v1alpha/sessions/<SESSION_ID>" \
+  -H "X-Goog-Api-Key: $JULES_API_KEY" \
+  --proxy "http://127.0.0.1:10998"
+```
+
+### 2. 获取 PR 信息
+
+任务完成后，通过以下方式获取 PR URL：
+- Jules 会话页面会显示生成的 PR 链接
+- GitHub 仓库会收到新的 Pull Request 通知
+
+### 3. 合并前验证
+
+在合并 PR 前，必须进行以下验证：
+
+```bash
+# 1. 获取 PR 分支（需设置代理）
+export http_proxy=http://127.0.0.1:10998
+export https_proxy=http://127.0.0.1:10998
+git fetch origin
+git checkout origin/jules-task-<TASK_ID>
+
+# 2. 运行测试（根据项目类型）
+# Godot 项目示例：
+godot --headless --script ai_client/crash002_diagnostic.py
+
+# 3. 人工验证（如需要）
+# 启动带界面的游戏进行测试
+```
+
+### 4. 合并 PR
+
+验证通过后：
+
+```bash
+# 切换回 master 分支
+git checkout master
+
+# 合并 PR
+git merge origin/jules-task-<TASK_ID>
+
+# 推送（需设置代理）
+git push origin master
+```
+
+---
+
 ## 注意事项
 
 1. **API Key 安全**：不要在代码中硬编码 API Key，建议通过环境变量传入
