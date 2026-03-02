@@ -2,33 +2,38 @@
 
 ## [Inbox - 紧急修复任务]
 
-### ✅ CRASH-002 修复完成 - 等待跑测验证
+### ❌ CRASH-002 第二轮修复验证失败
 
-**来源**: AI Player 牛图腾流派测试 (TOTEM-COW-001-RETEST)
-**时间**: 2026-03-02 08:24:35
+**任务ID**: TOTEM-COW-001-RETEST-2
+**来源**: AI Player 跑测验证
+**时间**: 2026-03-02 09:20:45
 **优先级**: P0 (阻塞所有测试)
-**状态**: ✅ 修复已提交，等待跑测验证
+**状态**: ❌ 修复未成功，崩溃仍然发生
 
 **问题描述**:
 - **错误信息**: `ERROR: Parameter "t" is null.`
 - **触发时机**: 第1波战斗开始时
-- **日志文件**: `logs/ai_session_cow_totem_20260302_082425.log`
-- **崩溃时间戳**: 08:24:35.841
+- **日志文件**: `logs/ai_session_cow_totem_20260302_092045.log`
+- **崩溃时间戳**: 09:20:45
 
-**根本原因分析**:
-深入代码审查发现以下文件存在不安全的 `is` 操作符使用：
-1. **DistanceDamageDebuff.gd:37** - `c is Timer` 缺少 `Timer != null` 前置检查
-2. **InventoryPanel.gd:27** - 逻辑错误：`ScrollContainer == null or not parent is ScrollContainer`
-3. **MainGUI.gd:205,221** - 逻辑错误：`Container == null or not top_left_panel is Container`
-
-**修复详情** (Commit 2baaa01):
+**第二轮修复尝试** (Commit 2baaa01):
 - `DistanceDamageDebuff.gd`: 添加 `Timer != null` 前置检查
 - `InventoryPanel.gd`: 修复逻辑为 `ScrollContainer != null and not (parent is ScrollContainer)`
 - `MainGUI.gd`: 修复两处逻辑为 `Container != null and not (top_left_panel is Container)`
 
+**验证结果**: ❌ 崩溃仍然发生，修复未成功
+
+**已验证机制**:
+- ✅ 牛图腾选择正常
+- ✅ 商店阵营过滤正常
+- ✅ 单位购买部署正常
+- ✅ 核心血量计算正常 (500.0 → 1000.0)
+
 **下一步**:
-- 等待 AI Player 跑测验证修复效果
-- 如仍崩溃，继续深入调查
+- 需要进一步深入调查根本原因
+- 可能涉及其他文件的 `is` 操作符使用
+- 建议检查 Godot 引擎版本兼容性问题
+- 建议添加更详细的堆栈跟踪信息
 
 ---
 
