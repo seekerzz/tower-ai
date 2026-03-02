@@ -41,6 +41,38 @@
 
 ---
 
+### ✅ CRASH-002: 时序竞争导致的空指针异常 - 已修复
+
+**任务ID**: CRASH-002
+**来源**: 团队领导根因分析
+**时间**: 2026-03-02
+**优先级**: P1
+**状态**: ✅ **已修复并提交**
+
+**问题根因**:
+- WaveSystemManager 先发射 `wave_started` 信号，后生成敌人
+- 敌人生成代码带有 `await` 延迟，第一帧场上没有敌人
+- 单位/图腾获取空敌人列表，传递给引擎底层导致 `Parameter "t" is null`
+
+**修复方案** (A+B组合):
+
+**方案A - 调整时序**:
+- 新增 `_spawn_first_batch_immediate()` - 同步立即生成第一批敌人
+- 新增 `_spawn_single_enemy()` - 同步生成单个敌人
+- 新增 `_spawn_remaining_bosses()` / `_spawn_remaining_batches()`
+- 修改 `_run_batch_sequence()` - 支持从指定批次开始
+- 确保 `wave_started` 信号发射时场上已有敌人
+
+**方案B - 防御性编程** (BaseTotemMechanic.gd 已有):
+- `get_nearest_enemies()` 包含 `enemies.is_empty()` 检查
+- 包含 `is_instance_valid()` 和 `is_node_ready()` 检查
+
+**Git提交**: `e7c634e`
+
+**验证方法**: AI Player 执行 TOTEM-COW-001 测试，确认第1波启动无崩溃
+
+---
+
 ### ✅ WAVE-REFACTOR-001: 波次状态与信号链条深度重构 - 已完成
 
 **任务ID**: WAVE-REFACTOR-001
