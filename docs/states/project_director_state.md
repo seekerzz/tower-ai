@@ -29,17 +29,17 @@ WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法
 
 **来源**: @Project_Director
 **时间**: 2026-03-02
-**状态**: ⏸️ **被CombatManager属性错误阻塞**
+**状态**: ⏸️ **被CRASH-002阻塞 - 技术总监深入调查中**
 
 **Agent Team状态**:
 | Agent | 任务 | 状态 |
 |-------|------|------|
 | AI Player | TOTEM-COW-001牛图腾测试 | ✅ 已完成 |
-| Game Designer | 分析TOTEM-COW-001日志 | 🔄 待分配 |
-| Technical Director | COMBATMANAGER-FIX-001修复 | ✅ 已完成 |
+| Game Designer | 分析TOTEM-COW-001日志 | ✅ 已完成 |
+| Technical Director | CRASH-002深入调查 | 🔄 in_progress |
 | Project Director | 监控协调 | 🔄 in_progress |
 
-**背景**: WAVE-REFACTOR-001重构已完成，CRASH-002已修复，COMBATMANAGER-FIX-001已修复。TOTEM-COW-001测试已完成，准备将日志流转给游戏策划分析。
+**背景**: COMBATMANAGER-FIX-001和SIGNAL-FIX-001已修复，但验证测试显示CRASH-002 (`Parameter "t" is null`) 仍然存在。技术总监正在进行深入调查。
 
 **待执行任务**:
 - [ ] TOTEM-COW-001 牛图腾流派测试
