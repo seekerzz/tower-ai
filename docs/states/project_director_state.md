@@ -29,17 +29,27 @@ WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法
 
 **来源**: @Project_Director
 **时间**: 2026-03-02
-**状态**: ⏸️ **被CRASH-002阻塞 - 技术总监深入调查中**
+**状态**: ⏸️ **被CRASH-002阻塞 - 调查完成，需要决策**
 
 **Agent Team状态**:
 | Agent | 任务 | 状态 |
 |-------|------|------|
 | AI Player | TOTEM-COW-001牛图腾测试 | ✅ 已完成 |
 | Game Designer | 分析TOTEM-COW-001日志 | ✅ 已完成 |
-| Technical Director | CRASH-002深入调查 | 🔄 in_progress |
+| Technical Director | CRASH-002深入调查 | ✅ 已完成 |
 | Project Director | 监控协调 | 🔄 in_progress |
 
-**背景**: COMBATMANAGER-FIX-001和SIGNAL-FIX-001已修复，但验证测试显示CRASH-002 (`Parameter "t" is null`) 仍然存在。技术总监正在进行深入调查。
+**背景**:
+- COMBATMANAGER-FIX-001和SIGNAL-FIX-001已修复
+- 技术总监已完成CRASH-002深入调查
+- 调查发现所有已知的代码级`is`操作符问题已修复
+- CRASH-002可能来自Godot引擎内部或需要更详细的运行时日志
+
+**关键发现**:
+- 崩溃发生在第1波开始时，但测试可以继续进行
+- 所有`is`操作符都已添加`Type != null`前置检查
+- 敌人列表访问都已加固
+- 崩溃可能来自引擎内部或动态加载的脚本
 
 **待执行任务**:
 - [ ] TOTEM-COW-001 牛图腾流派测试
@@ -49,6 +59,12 @@ WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法
 - [ ] TOTEM-VIPER-001 毒蛇图腾流派测试
 - [ ] TOTEM-EAGLE-001 鹰图腾流派测试
 - [ ] UNITS-COMMON-001 通用单位测试
+
+**建议**:
+考虑到崩溃后测试可以继续进行，建议：
+1. 继续进行图腾测试任务链
+2. 在测试过程中收集更详细的Godot引擎日志
+3. 如果崩溃不影响核心功能，可以将其优先级降低为P1
 
 **下游Agent**: AI Player
 
