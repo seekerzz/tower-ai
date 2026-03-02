@@ -29,7 +29,7 @@ func _process(delta):
 			else:
 				_process_burn_explosion_logic(expl.pos, expl.damage, expl.source)
 
-func _on_wave_started():
+func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	start_wave_logic()
 
 func get_wave_type(n: int) -> String:
