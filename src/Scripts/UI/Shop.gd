@@ -312,7 +312,7 @@ func _on_unit_purchased(unit_key: String, target_zone: String, target_pos: Varia
 	update_ui()
 
 	# 如果购买成功且目标是暂存区，确保暂存区UI已刷新
-	# 安全类型检查：避免 int 类型为 null 时崩溃
-	if target_zone == "bench" and int != null and target_pos is int:
+	# 安全类型检查
+	if target_zone == "bench" and target_pos is int:
 		# 暂存区会通过 SessionData.bench_updated 信号自动刷新
 		pass

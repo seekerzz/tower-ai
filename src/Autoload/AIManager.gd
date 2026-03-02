@@ -246,8 +246,8 @@ func _handle_client_message(text: String):
 		return
 
 	var data = json.get_data()
-	# 安全类型检查：避免 Dictionary 类为 null 时崩溃
-	if Dictionary == null or not data is Dictionary:
+	# 安全类型检查
+	if not data is Dictionary:
 		broadcast_text("【错误】消息必须是 JSON 对象")
 		return
 
@@ -262,8 +262,8 @@ func _handle_client_message(text: String):
 
 	if data.has("actions"):
 		var actions = data["actions"]
-		# 安全类型检查：避免 Array 类为 null 时崩溃
-		if Array != null and actions is Array:
+		# 安全类型检查
+		if actions is Array:
 			action_received.emit(actions)
 		else:
 			broadcast_text("【错误】actions 必须是数组")
