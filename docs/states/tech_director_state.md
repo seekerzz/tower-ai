@@ -46,6 +46,36 @@
 
 **影响文件数**: 20+ 个文件已完成迁移
 
+---
+
+### 🚨 紧急修复: CombatManager信号参数不匹配 (任务#7)
+
+**任务ID**: SIGNAL-FIX-001
+**来源**: AI Player跑测发现
+**时间**: 2026-03-02
+**优先级**: P0 (阻塞所有测试)
+**状态**: 🔄 待修复
+
+**问题描述**:
+AI Player执行CRASH-002验证时发现新的代码错误：
+```
+ERROR: Error calling from signal 'wave_started' to callable:
+'Node2D(CombatManager.gd)::_on_wave_started':
+Method expected 0 argument(s), but called with 3.
+```
+
+**技术详情**:
+- 错误文件: `src/Scripts/CoreMechanics/CombatManager.gd`
+- 错误方法: `_on_wave_started()`
+- 错误原因: WAVE-REFACTOR-001后，`wave_started`信号发射参数与处理方法签名不匹配
+
+**修复方案**:
+检查 `CombatManager.gd` 中的 `_on_wave_started` 方法签名，确保与信号发射参数匹配。
+
+**下一步**: 修复后通知AI Player恢复图腾测试任务链
+
+---
+
 **下一步**: 通知项目总监重构完成，可以恢复图腾机制测试任务链
 - 监控间隔: 60秒
 

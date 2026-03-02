@@ -2,13 +2,34 @@
 
 ## [Inbox - 待测分支与策略]
 
-### ❌ CRASH-002 修复验证任务 (任务#3 - 验证失败)
+### 🔄 图腾机制全面测试任务链 (任务#2)
+
+**任务ID**: TOTEM-TEST-CHAIN-001
+**类型**: 全面机制验证跑测
+**优先级**: P0
+**来源**: 项目总监 @ProjectDirector
+**状态**: 🔄 等待信号修复后启动
+
+**待执行任务**:
+1. [ ] TOTEM-COW-001 牛图腾流派测试
+2. [ ] TOTEM-BAT-001 蝙蝠图腾流派测试
+3. [ ] TOTEM-WOLF-001 狼图腾流派测试
+4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
+5. [ ] TOTEM-VIPER-001 毒蛇图腾流派测试
+6. [ ] TOTEM-EAGLE-001 鹰图腾流派测试
+7. [ ] UNITS-COMMON-001 通用单位测试
+
+**前置依赖**: 等待技术总监修复CombatManager信号参数问题
+
+---
+
+### ❌ CRASH-002 修复验证任务 (任务#3 - 发现信号问题)
 
 **任务ID**: CRASH-002-VERIFY
 **类型**: 修复验证跑测
 **优先级**: P0 (紧急)
 **来源**: 项目总监 @ProjectDirector
-**状态**: ❌ 验证失败 - 发现新错误
+**状态**: ⚠️ 发现代码问题 - 已投递技术总监修复
 
 **测试脚本**: `ai_client/crash002_diagnostic.py`
 
@@ -18,25 +39,16 @@
 | 场景 | 描述 | 结果 | 结论 |
 |------|------|------|------|
 | 场景C | 仅选择图腾 | ✅ 通过 | 选择图腾阶段不崩溃 |
-| 场景A | 无单位部署 + 启动波次 | ❌ 崩溃 | 与Taunt/单位无关 |
+| 场景A | 无单位部署 + 启动波次 | ❌ 崩溃 | 发现信号参数不匹配 |
 
 **关键发现**:
-- **场景C**: 仅选择牛图腾，不启动波次 → 不崩溃 ✅
-- **场景A**: 选择牛图腾，不部署单位，启动第1波 → 崩溃 ❌
-- **崩溃时机**: 第1波战斗正式开始时
-- **崩溃信息**: `ERROR: Error calling from signal 'wave_started' to callable: 'Node2D(CombatManager.gd)::_on_wave_started': Method expected 0 argument(s), but called with 3.`
-
-**诊断结论**:
-1. 崩溃与单位部署无关（无单位也崩溃）
-2. 崩溃与Taunt/嘲讽机制无关
-3. **新错误类型**: 信号连接参数不匹配问题
-4. **问题根源**: CombatManager.gd 的 `_on_wave_started` 方法签名与信号发射不匹配
+- **新错误类型**: `Method expected 0 argument(s), but called with 3`
+- **问题根源**: CombatManager.gd 的 `_on_wave_started` 方法签名与WAVE-REFACTOR-001后的信号不匹配
 
 **技术详情**:
 - 错误文件: `src/Scripts/CoreMechanics/CombatManager.gd`
 - 错误方法: `_on_wave_started()`
-- 错误原因: 信号 `wave_started` 发射时传递了3个参数，但处理方法期望0个参数
-- 推测原因: 波次系统重构后信号签名未同步更新
+- 修复任务: 已投递技术总监 (任务#7)
 
 **生成日志**: `logs/ai_session_diagnostic_20260302_153905.log`
 
