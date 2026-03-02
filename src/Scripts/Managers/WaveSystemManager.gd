@@ -446,13 +446,13 @@ func _spawn_enemy_at_pos(pos: Vector2, type_key: String):
 
 	# 设置敌人数据
 	enemy.setup(type_key, current_wave)
-	enemy.global_position = pos
 
 	# 应用难度缩放
 	_apply_difficulty_scaling(enemy)
 
-	# 添加到场景
+	# 添加到场景（必须先添加到场景树，再设置全局位置，避免Transform问题）
 	add_child(enemy)
+	enemy.global_position = pos
 
 	# 发射信号
 	enemy_spawned.emit(enemy, current_wave)

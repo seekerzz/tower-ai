@@ -1,23 +1,14 @@
 extends Node
 
-const ENEMY_SCENE = preload("res://src/Scenes/Game/Enemy.tscn")
-const HEALER_SCRIPT = preload("res://src/Scripts/Enemies/HealerEnemy.gd")
 const PROJECTILE_SCENE = preload("res://src/Scenes/Game/Projectile.tscn")
 const LIGHTNING_SCENE = preload("res://src/Scenes/Game/LightningArc.tscn")
 const SLASH_EFFECT_SCRIPT = preload("res://src/Scripts/Effects/SlashEffect.gd")
-
-var enemies_to_spawn: int = 0
-var total_enemies_for_wave: int = 0
-# spawn_timer removed as we use coroutines now
 
 var explosion_queue: Array = []
 const MAX_EXPLOSIONS_PER_FRAME = 10
 
 func _ready():
 	GameManager.combat_manager = self
-	# 连接 WaveSystemManager 的波次信号
-	if GameManager.wave_system_manager:
-		GameManager.wave_system_manager.wave_started.connect(_on_wave_started)
 
 func _process(delta):
 	if explosion_queue.size() > 0:
@@ -28,40 +19,6 @@ func _process(delta):
 				_process_poison_explosion_logic(expl.pos, expl.damage, expl.stacks, expl.source)
 			else:
 				_process_burn_explosion_logic(expl.pos, expl.damage, expl.source)
-
-func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
-	start_wave_logic()
-
-func get_wave_type(n: int) -> String:
-	var types = ['slime', 'wolf', 'poison', 'treant', 'yeti', 'golem']
-	if n % 10 == 0: return 'boss'
-	if n == 3: return 'healer'
-	if n % 3 == 0: return 'event'
-
-	if n == 2: return 'mutant_slime'
-
-	# Logic from ref.html: const idx = Math.min(types.length - 1, Math.floor((n-1)/2));
-	var idx = min(types.size() - 1, floor((n - 1) / 2.0))
-	return types[int(idx) % types.size()]
-
-func start_wave_logic():
-	var wave = GameManager.session_data.wave if GameManager.session_data else 1
-
-	if wave == 5:
-		spawn_boss_wave()
-		return
-
-	# Calculate total enemies (Increased difficulty logic from ref.html)
-	# const baseCount = 20 + Math.floor(game.wave * 6);
-	total_enemies_for_wave = 20 + floor(wave * 6)
-	enemies_to_spawn = total_enemies_for_wave
-
-	# Batch calculation
-	# const batchCount = 3 + Math.floor(game.wave / 2);
-	var batch_count = 3 + floor(wave / 2.0)
-	var enemies_per_batch = ceil(float(total_enemies_for_wave) / batch_count)
-
-	_run_batch_sequence(batch_count, int(enemies_per_batch))
 
 func start_meteor_shower(center_pos: Vector2, damage: float):
 	# Wave Loop: 5 Waves, 0.1s interval (using async/await)
@@ -105,7 +62,7 @@ func start_meteor_shower(center_pos: Vector2, damage: float):
 
 		await get_tree().create_timer(0.1).timeout
 
-# Inner class to act as a source unit for meteors, avoiding dictionary access errors
+# Inner class to act as a source unit for meteors
 class MeteorSource:
 	var damage: float
 	var crit_rate: float = 0.0
@@ -122,154 +79,13 @@ class MeteorSource:
 	func is_in_group(_group):
 		return false
 
-func spawn_boss_wave():
-	# Hardcoded Wave 5 Event
-	# Pick 2 different bosses from [summoner, ranger, tank]
-	var boss_options = ["summoner", "ranger", "tank"]
-	boss_options.shuffle()
-
-	var boss1 = boss_options[0]
-	var boss2 = boss_options[1]
-
-	total_enemies_for_wave = 2
-	enemies_to_spawn = 2
-
-	GameManager.spawn_floating_text(Vector2(0, -200), "DOUBLE BOSS WAVE!", Color.RED)
-
-	# Spawn Boss 1 on Left, Boss 2 on Right (Assuming standard spawn points)
-	# We need to find valid spawn points.
-	var spawn_points = []
-	if GameManager.grid_manager:
-		spawn_points = GameManager.grid_manager.get_spawn_points()
-
-	if spawn_points.is_empty():
-		spawn_points.append(Vector2(-300, 0))
-		spawn_points.append(Vector2(300, 0))
-
-	# Try to find left-most and right-most points
-	spawn_points.sort_custom(func(a, b): return a.x < b.x)
-
-	var left_point = spawn_points[0]
-	var right_point = spawn_points[spawn_points.size() - 1]
-
-	_spawn_enemy_at_pos(left_point, boss1)
-	enemies_to_spawn -= 1
-	await get_tree().create_timer(1.0).timeout
-	_spawn_enemy_at_pos(right_point, boss2)
-	enemies_to_spawn -= 1
-
-	start_win_check_loop()
-
-func _run_batch_sequence(batches_left: int, enemies_per_batch: int):
-	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
-	if !is_wave_active or batches_left <= 0:
-		return
-
-	# Determine type for this batch
-	var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
-	var wave_type = get_wave_type(current_wave)
-	var type_key = wave_type
-
-	# Logic from ref.html simplified/fixed:
-	# If it's a normal wave (not boss), we might want variation?
-	# ref.html logic: if 'normal' (which is default for non-boss/tank/fast), pick random variant.
-	# But get_wave_type returns specific types like 'slime', 'wolf'.
-	# We will respect get_wave_type unless it is 'event'.
-
-	if wave_type == 'boss':
-		type_key = 'boss'
-	elif wave_type == 'event':
-		# Random variant for event waves (or maybe mixed)
-		var variants = ['slime', 'wolf', 'poison', 'shooter']
-		type_key = variants.pick_random()
-	elif current_wave == 2:
-		# Special mix for Wave 2
-		# Mix 'mutant_slime' and 'crab'
-		if randf() < 0.3: # 30% chance for Crab
-			type_key = 'crab'
-		else:
-			type_key = 'mutant_slime'
-	else:
-		# It returned a specific type like 'slime' or 'wolf'
-		# We use that. However, ref.html seemed to fallback to random 'normal' often.
-		# To make it more interesting and match "Game Expert" role, let's keep specific types
-		# to give distinct wave feel, but maybe mix in some randoms if needed.
-		# For now, strict adherence to the returned type.
-		pass
-
-	# Spawn Batch
-	await _spawn_batch(type_key, enemies_per_batch)
-
-	# Schedule next batch
-	if batches_left > 1:
-		# Wait between batches (2s - 4s depending on wave)
-		# const nextDelay = Math.max(2000, 4000 - (game.wave * 100));
-		var delay = max(2.0, 4.0 - (current_wave * 0.1))
-		await get_tree().create_timer(delay).timeout
-		_run_batch_sequence(batches_left - 1, enemies_per_batch)
-	else:
-		# Last batch spawned, wait for clear
-		pass
-
-	# Check win condition is handled in unit death logic usually,
-	# but we need to ensure we track "enemies_to_spawn" correctly.
-	# Actually, enemies_to_spawn is decremented when we spawn.
-	# Game over/Win check should be in _process or signal based.
-	# Existing _process had: if enemies_to_spawn <= 0 and active_enemies == 0: end_wave
-	# We should keep that check but maybe optimized.
-	start_win_check_loop()
-
-func start_win_check_loop():
-	# Simple polling for win condition
-	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
-	while is_wave_active:
-		if enemies_to_spawn <= 0 and get_tree().get_nodes_in_group("enemies").size() == 0:
-			if GameManager.wave_system_manager:
-				GameManager.wave_system_manager.force_end_wave()
-			break
-		await get_tree().create_timer(0.5).timeout
-		is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
-
-func _spawn_batch(type_key: String, count: int):
-	var points = []
-	if GameManager.grid_manager:
-		points = GameManager.grid_manager.get_spawn_points()
-
-	if points.size() == 0:
-		# Fallback to map center or some default
-		points.append(Vector2.ZERO)
-
-	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
-	for i in range(count):
-		if !is_wave_active: break
-		if enemies_to_spawn <= 0: break
-
-		var spawn_point = points.pick_random()
-
-		# Spawn with slight spread around the chosen spawn point
-		var pos = spawn_point + Vector2(randf_range(-20, 20), randf_range(-20, 20))
-		_spawn_enemy_at_pos(pos, type_key)
-
-		enemies_to_spawn -= 1
-
-		# Fast spawn (0.1s)
-		await get_tree().create_timer(0.1).timeout
-
-func _spawn_enemy_at_pos(pos: Vector2, type_key: String):
-	var enemy = ENEMY_SCENE.instantiate()
-	if type_key == "healer":
-		enemy.set_script(HEALER_SCRIPT)
-	var current_wave = GameManager.session_data.wave if GameManager.session_data else 1
-	enemy.setup(type_key, current_wave)
-	enemy.global_position = pos
-	add_child(enemy)
-
 func find_nearest_enemy(pos: Vector2, range_val: float):
 	var nearest = null
 	var min_dist = range_val
 
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(enemy):
+		# 检查敌人是否有效且已完成初始化
+		if not is_instance_valid(enemy) or not enemy.is_node_ready():
 			continue
 		var dist = pos.distance_to(enemy.global_position)
 		if dist < min_dist:
@@ -281,7 +97,8 @@ func find_nearest_enemy(pos: Vector2, range_val: float):
 func get_enemies_in_range(pos: Vector2, range_val: float) -> Array:
 	var found = []
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if is_instance_valid(enemy):
+		# 检查敌人是否有效且已完成初始化
+		if is_instance_valid(enemy) and enemy.is_node_ready():
 			if pos.distance_to(enemy.global_position) <= range_val:
 				found.append(enemy)
 	return found
@@ -522,6 +339,7 @@ func deal_global_damage(damage: float, type: String):
 	var enemies = get_tree().get_nodes_in_group("enemies")
 	print("[CombatManager] Global Damage: ", damage, " Enemies found: ", enemies.size())
 	for enemy in enemies:
-		if is_instance_valid(enemy):
+		# 检查敌人是否有效且已完成初始化（避免攻击半成品敌人导致崩溃）
+		if is_instance_valid(enemy) and enemy.is_node_ready():
 			# Pass GameManager as source since it's a core effect
 			enemy.take_damage(damage, GameManager, type)

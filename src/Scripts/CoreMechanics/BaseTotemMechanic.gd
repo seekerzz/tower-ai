@@ -6,10 +6,10 @@ func get_nearest_enemies(count: int) -> Array:
     if enemies.is_empty():
         return []
 
-    # 过滤掉无效节点
+    # 过滤掉无效节点和尚未初始化完成的节点
     var valid_enemies = []
     for enemy in enemies:
-        if is_instance_valid(enemy):
+        if is_instance_valid(enemy) and enemy.is_node_ready():
             valid_enemies.append(enemy)
 
     if valid_enemies.is_empty():
@@ -31,6 +31,7 @@ func get_nearest_enemies(count: int) -> Array:
     return valid_enemies.slice(0, count)
 
 func deal_damage(enemy, amount: float):
-    if is_instance_valid(enemy):
+    # 检查敌人是否有效且已完成初始化（避免攻击半成品敌人导致崩溃）
+    if is_instance_valid(enemy) and enemy.is_node_ready():
         # Using GameManager as source since it's a global effect/totem effect managed by game
         enemy.take_damage(amount, GameManager, "physical")
