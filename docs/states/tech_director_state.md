@@ -8,12 +8,13 @@
 **来源**: 项目总监指派（Jules任务）
 **时间**: 2026-03-02
 **优先级**: P0 (架构债务清理，阻塞后续开发)
-**状态**: ✅ 已指派给技术总监执行 (Jules API 404，转本地 Agent)
+**状态**: ✅ 已提交至 Jules 执行
 
-**问题记录**:
-- Jules API 返回 404 Not Found，API Key 可能过期或端点变更
-- 尝试代理: http://192.168.123.52:11810 (无路由) 和 http://127.0.0.1:10998 (404)
-- 决策: 转由本地 AI Agent 直接执行重构任务
+**Jules 会话**:
+- Session ID: `18084724093959403440`
+- 任务 URL: https://jules.google.com/session/18084724093959403440
+- 提交时间: 2026-03-02
+- 自动化模式: AUTO_CREATE_PR
 
 **任务背景**:
 当前项目在波次控制和状态管理上存在严重的职责混乱和代码冗余。GameManager、WaveSystemManager 和 SessionData 三处都在维护波次状态（wave, is_wave_active），并且 GameManager 和 WaveSystemManager 各自发射同名的波次信号。这种双重监听和多重状态是导致底层时序 Bug 和 Parameter "t" is null 崩溃的根本原因。
