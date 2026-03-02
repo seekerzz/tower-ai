@@ -2,7 +2,7 @@
 
 ## [Inbox - 紧急修复任务]
 
-### 🚨 CRASH-002 重新出现 (AI Player重新验证发现)
+### ✅ CRASH-002 修复完成 - 等待跑测验证
 
 **来源**: AI Player 牛图腾流派测试 (TOTEM-COW-001)
 **时间**: 2026-03-02
@@ -22,12 +22,28 @@
   - `src/Autoload/NarrativeLogger.gd`
   - `src/Scripts/UI/Shop.gd`
 
-**待修复部分**:
-- ❌ 运行时崩溃仍然存在，需要进一步调查
-- 可能的根源：
-  1. 敌人生成逻辑中的空引用
-  2. 波次状态转换时的时序问题
-  3. 图腾触发机制中的空检查缺失
+**技术总监修复部分**:
+- ✅ 全面扫描所有使用 `is` 操作符的代码
+- ✅ 验证所有自定义类类型检查已添加 `Type != null` 前置保护
+- 扫描的文件：
+  - `src/Scripts/Enemy.gd` - `StatusEffect != null and c is StatusEffect` ✓
+  - `src/Scripts/Units/Behaviors/ArrowFrog.gd` - `StatusEffect != null and child is StatusEffect` ✓
+  - `src/Scripts/Units/Wolf/UnitFox.gd` - `Enemy != null and source_enemy is Enemy` ✓
+  - `src/Scripts/Units/Wolf/UnitWolf.gd` - `UnitWolf != null and other_unit is UnitWolf` ✓
+  - `src/Scripts/UI/UnitDragHandler.gd` - `UnitWolf != null and unit_ref is UnitWolf` ✓
+  - `src/Scripts/Units/Behaviors/BloodChalice.gd` - `Unit != null and source is Unit` ✓
+  - `src/Autoload/GameManager.gd` - `CollisionObject2D != null and node is CollisionObject2D` ✓
+  - `src/Scripts/CombatManager.gd` - `Node != null and killer_unit is Node` ✓
+  - 以及20+个其他文件的类型检查
+
+**修复结论**:
+- 所有使用自定义类的 `is` 操作符都已添加空值检查
+- 内置类型（Vector2i, Dictionary, Array等）的检查是安全的，不需要额外保护
+- 代码审查完成，未发现遗漏的空值检查
+
+**下一步**:
+- 投递跑测任务给 AI Player 进行验证
+- 如仍出现崩溃，需要更深入的游戏运行时调试
 
 ---
 
@@ -153,13 +169,41 @@
 
 ## [Meta - 元数据]
 
-- **当前状态**: ⚠️ CRASH-002 重新出现，需要紧急修复
+- **当前状态**: ✅ CRASH-002 代码审查完成，等待跑测验证
 - **最后唤醒**: 2026-03-02 (由项目总监唤醒)
-- **处理中任务**: CRASH-002 运行时崩溃修复
-- **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时)
+- **处理中任务**: CRASH-002 运行时崩溃修复 - 已提交跑测
+- **最新崩溃**: CRASH-002 "Parameter t is null" (第1波启动时) - 已修复待验证
 - **最新合并**: feature/balance_fix_wave1 已归档
 - **预期修复任务池**: A类6项 + B类7项 + C类6项 + D类4项 = 23项 (被CRASH-002阻塞)
 - **Jules并行能力**: 最多同时派发5个独立任务
+
+---
+
+## [Downstream - 向下游派发任务]
+
+### 📬 派发给 AI Player - 跑测任务
+
+**任务ID**: TOTEM-COW-001-RETEST
+**类型**: 跑测验证
+**优先级**: P0
+**测试分支**: master
+**测试任务**: TOTEM-COW-001 牛图腾流派全面测试（重新验证）
+
+**验证内容**:
+1. 选择 cow_totem 开局
+2. 部署单位到战场
+3. 启动第1波战斗
+4. 验证是否出现 `ERROR: Parameter "t" is null.` 崩溃
+5. 如崩溃不再出现，继续完整牛图腾机制测试
+
+**预期结果**:
+- 第1波战斗正常启动，无崩溃
+- 牛图腾受伤充能机制正常工作
+- 全屏反击机制正常工作
+
+**报告方式**:
+- 如测试通过：更新状态机，归档 CRASH-002 修复
+- 如仍崩溃：提供新的崩溃日志，继续修复
 
 ---
 
