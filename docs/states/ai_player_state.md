@@ -8,16 +8,16 @@
 **类型**: 全面机制验证跑测
 **优先级**: P0
 **来源**: 项目总监 @ProjectDirector
-**状态**: ⏸️ **阻塞 - 发现新错误COMBATMANAGER-FIX-001**
+**状态**: ⏸️ **阻塞 - 等待CRASH-002修复验证**
 
 **Agent任务分配**:
-- AI Player: 🔄 执行TOTEM-COW-001牛图腾测试
-- Game Designer: ⏳ 等待分析日志
-- Technical Director: ⏳ 等待处理提案
+- AI Player: ⏳ 等待修复验证任务
+- Game Designer: ✅ 分析完成
+- Technical Director: ✅ COMBATMANAGER-FIX-001已修复
 - Project Director: 🔄 监控协调
 
 **待执行任务**:
-1. [ ] TOTEM-COW-001 牛图腾流派测试 - COMBATMANAGER-FIX-001阻塞
+1. [ ] TOTEM-COW-001 牛图腾流派测试 - 等待修复验证任务
 2. [ ] TOTEM-BAT-001 蝙蝠图腾流派测试
 3. [ ] TOTEM-WOLF-001 狼图腾流派测试
 4. [ ] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试
@@ -30,10 +30,11 @@
 - ✅ 商店阵营过滤正常（显示yak_guardian, rock_armor_cow等牛阵营单位）
 - ✅ 单位购买部署正常（yak_guardian部署到1,0）
 - ✅ 核心血量计算正常（500.0 → 1000.0）
-- ❌ **新崩溃**: `Invalid access to property 'total_enemies_for_wave'`
+- ❌ **发现崩溃**: `Invalid access to property 'total_enemies_for_wave'`
 - 生成日志: `logs/ai_session_cow_totem_20260302_171744.log`
+- **修复状态**: ✅ 技术总监已修复COMBATMANAGER-FIX-001（提交6352297）
 
-**前置依赖**: 等待技术总监修复COMBATMANAGER-FIX-001（WAVE-REFACTOR-001后遗留的属性引用问题）
+**前置依赖**: 等待项目总监派发修复验证任务
 
 **历史记录**:
 - TOTEM-COW-001 首次执行 (15:53): 发现Shop.gd信号问题
@@ -427,15 +428,15 @@
 
 ## [Meta - 元数据]
 
-- **当前状态**: 🤖 休眠 - 等待技术总监修复COMBATMANAGER-FIX-001
+- **当前状态**: 🤖 休眠 - 等待修复验证任务
 - **最后唤醒**: 2026-03-02 (执行TOTEM-COW-001测试)
-- **完成归档**: TOTEM-COW-001执行完成，发现新错误COMBATMANAGER-FIX-001
-- **待执行任务数**: 7 (全部阻塞于 COMBATMANAGER-FIX-001)
-- **最新发现**: WAVE-REFACTOR-001后遗留问题: `Invalid access to property 'total_enemies_for_wave'`
+- **完成归档**: TOTEM-COW-001执行完成，COMBATMANAGER-FIX-001已修复
+- **待执行任务数**: 7 (等待修复验证)
+- **最新发现**: WAVE-REFACTOR-001后遗留问题已修复: `Invalid access to property 'total_enemies_for_wave'`
 - **崩溃时间**: 17:17:55 (第1波战斗正式开始时)
-- **阻塞任务**: 所有图腾流派测试被 COMBATMANAGER-FIX-001 阻塞
-- **投递状态**: ✅ 崩溃日志已投递技术总监
-- **唤醒条件**: 等待技术总监 @Technical_Director 修复COMBATMANAGER-FIX-001
+- **阻塞任务**: 所有图腾流派测试等待修复验证
+- **投递状态**: ✅ 崩溃日志已投递技术总监，修复已完成
+- **唤醒条件**: 等待项目总监 @ProjectDirector 派发修复验证任务
 
 ### 2026-03-01
 - [x] 跑测任务: 验证第1波平衡性调整和日志埋点 -- 策略: 毒蛇图腾开局 -- 来源@Tech_Director -- 2026-03-01T20:00:00+08:00
