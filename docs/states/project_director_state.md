@@ -29,13 +29,13 @@ WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法
 
 **来源**: @Project_Director / Team Lead
 **时间**: 2026-03-02
-**状态**: ✅ **6个图腾流派测试全部完成 - TOTEM-EAGLE-001分析中**
+**状态**: ✅ **6个图腾流派测试+分析全部完成 - UNITS-COMMON-001执行中**
 
 **Agent Team状态**:
 | Agent | 任务 | 状态 |
 |-------|------|------|
-| AI Player | 待机 | ⏳ pending |
-| Game Designer | TOTEM-EAGLE-001 分析 | 🔄 进行中 |
+| AI Player | UNITS-COMMON-001 | 🔄 执行中 |
+| Game Designer | 待机 | ⏳ pending |
 | Technical Director | 待机 | ⏳ pending |
 | Project Director | 监控协调 | 🔄 in_progress |
 
