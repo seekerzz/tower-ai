@@ -22,7 +22,7 @@
 3. [x] TOTEM-WOLF-001 狼图腾流派测试 - ✅ 已完成，CRASH-002仍存在
 4. [x] TOTEM-BUTTERFLY-001 蝴蝶图腾流派测试 - ✅ 已完成，CRASH-002仍存在
 5. [x] TOTEM-VIPER-001 毒蛇图腾流派测试 - ✅ 已完成，CRASH-002仍存在
-6. [ ] TOTEM-EAGLE-001 鹰图腾流派测试
+6. [x] TOTEM-EAGLE-001 鹰图腾流派测试 - ✅ 已完成，CRASH-002仍存在
 7. [ ] UNITS-COMMON-001 通用单位测试
 
 **当前批量测试任务** (来自Team Lead):

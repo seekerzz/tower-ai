@@ -35,7 +35,7 @@ WAVE-REFACTOR-001重构后，发现多个文件中`wave_ended`信号处理方法
 | Agent | 任务 | 状态 |
 |-------|------|------|
 | AI Player | TOTEM-EAGLE-001 | 🔄 执行中 |
-| Game Designer | TOTEM-BUTTERFLY-001 + TOTEM-VIPER-001 分析 | 🔄 进行中 |
+| Game Designer | TOTEM-EAGLE-001 分析等待 | ⏳ pending |
 | Technical Director | 待机 | ⏳ pending |
 | Project Director | 监控协调 | 🔄 in_progress |
 
