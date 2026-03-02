@@ -296,7 +296,11 @@ func start_wave(wave: int = -1) -> bool:
 	current_batch = 0
 	total_batches = wave_data.batch_count
 
-	# 发射信号
+	# 先生成第一批敌人（无时序延迟），确保信号发射时场上已有敌人
+	# 这修复了CRASH-002：避免单位/图腾在wave_started信号后获取空敌人列表
+	_spawn_first_batch_immediate(wave_data)
+
+	# 发射信号（此时场上已有敌人）
 	var difficulty = calculate_wave_difficulty(current_wave)
 	wave_started.emit(current_wave, wave_data.wave_type, difficulty)
 
@@ -308,7 +312,7 @@ func start_wave(wave: int = -1) -> bool:
 			var boss_count = wave_data.get("boss_count", 1)
 			boss_wave_started.emit(current_wave, boss_count)
 
-	# 开始生成敌人
+	# 继续生成剩余敌人
 	_start_wave_spawning(wave_data)
 
 	print("[WaveSystemManager] Wave %d started (Type: %s, Difficulty: %.2f)" % [
@@ -317,12 +321,109 @@ func start_wave(wave: int = -1) -> bool:
 
 	return true
 
-func _start_wave_spawning(wave_data: Dictionary):
-	"""开始波次生成序列"""
+func _spawn_first_batch_immediate(wave_data: Dictionary):
+	"""立即生成第一批敌人（无时序延迟）
+
+	修复CRASH-002: 确保wave_started信号发射时场上已有敌人，
+	避免单位/图腾获取空敌人列表导致空指针异常
+	"""
 	if current_wave_type == WaveType.BOSS:
-		_spawn_boss_wave(wave_data)
+		# Boss波：立即生成第一个Boss
+		var boss_count = wave_data.get("boss_count", 2)
+		var boss_types = wave_config.get("boss_types", ["summoner", "ranger", "tank"])
+		boss_types = boss_types.duplicate()
+		boss_types.shuffle()
+
+		var spawn_points = _get_spawn_points()
+		if spawn_points.size() < 2:
+			spawn_points = [Vector2(-300, 0), Vector2(300, 0)]
+		spawn_points.sort_custom(func(a, b): return a.x < b.x)
+
+		# 只生成第一个Boss，不等待
+		if boss_count > 0:
+			var boss_type = boss_types[0]
+			var spawn_pos = spawn_points[0]
+			_spawn_enemy_at_pos(spawn_pos, boss_type)
+			enemies_to_spawn -= 1
+			spawned_enemies_count += 1
 	else:
-		_spawn_normal_wave(wave_data)
+		# 普通波：立即生成第一批敌人（最多3个）
+		var enemy_types = _get_enemy_types_for_wave(current_wave)
+		var type_key = enemy_types.pick_random()
+
+		# 特殊波次处理
+		match current_wave_type:
+			WaveType.MUTANT:
+				type_key = "crab" if randf() < 0.3 else "mutant_slime"
+			WaveType.HEALER:
+				type_key = "healer" if randf() < 0.4 else "slime"
+			WaveType.EVENT:
+				type_key = enemy_types.pick_random()
+
+		# 立即生成第一批（最多3个），不使用await
+		var first_batch_size = min(3, wave_data.enemies_per_batch, enemies_to_spawn)
+		for i in range(first_batch_size):
+			_spawn_single_enemy(type_key)
+
+func _spawn_single_enemy(type_key: String):
+	"""生成单个敌人（同步，不等待）"""
+	if !is_wave_active or enemies_to_spawn <= 0:
+		return
+
+	var spawn_points = _get_spawn_points()
+	if spawn_points.is_empty():
+		spawn_points = [Vector2.ZERO]
+
+	var spawn_pos = spawn_points[randi() % spawn_points.size()]
+
+	# 添加随机偏移
+	spawn_pos += Vector2(randf_range(-50, 50), randf_range(-50, 50))
+
+	_spawn_enemy_at_pos(spawn_pos, type_key)
+	enemies_to_spawn -= 1
+	spawned_enemies_count += 1
+
+func _start_wave_spawning(wave_data: Dictionary):
+	"""开始波次生成序列（剩余敌人）"""
+	if current_wave_type == WaveType.BOSS:
+		# Boss波：生成剩余的Boss（第一个已在immediate中生成）
+		var boss_count = wave_data.get("boss_count", 2)
+		if boss_count > 1:
+			_spawn_remaining_bosses(wave_data, boss_count - 1)
+	else:
+		# 普通波：生成剩余批次（第一批已在immediate中生成）
+		_spawn_remaining_batches(wave_data)
+
+func _spawn_remaining_bosses(wave_data: Dictionary, remaining: int):
+	"""生成剩余的Boss"""
+	var boss_types = wave_config.get("boss_types", ["summoner", "ranger", "tank"])
+	boss_types = boss_types.duplicate()
+	boss_types.shuffle()
+
+	var spawn_points = _get_spawn_points()
+	if spawn_points.size() < 2:
+		spawn_points = [Vector2(-300, 0), Vector2(300, 0)]
+	spawn_points.sort_custom(func(a, b): return a.x < b.x)
+
+	for i in range(remaining):
+		var boss_type = boss_types[(i + 1) % boss_types.size()]
+		var spawn_pos = spawn_points[(i + 1) % spawn_points.size()]
+
+		await get_tree().create_timer(1.0).timeout
+
+		_spawn_enemy_at_pos(spawn_pos, boss_type)
+		enemies_to_spawn -= 1
+		spawned_enemies_count += 1
+
+func _spawn_remaining_batches(wave_data: Dictionary):
+	"""生成剩余的批次（第一批已生成）"""
+	var batch_count = wave_data.batch_count
+	var enemies_per_batch = wave_data.enemies_per_batch
+	var batch_delay = wave_data.batch_delay
+
+	# 第一批已生成，从第二批开始
+	if batch_count > 1:
+		_run_batch_sequence(batch_count - 1, enemies_per_batch, batch_delay, 2)
 
 func _spawn_normal_wave(wave_data: Dictionary):
 	"""生成普通波次"""
@@ -364,12 +465,23 @@ func _spawn_boss_wave(wave_data: Dictionary):
 	all_enemies_spawned.emit(current_wave)
 	_start_win_check()
 
-func _run_batch_sequence(batches_left: int, enemies_per_batch: int, batch_delay: float):
-	"""运行批次序列"""
+func _run_batch_sequence(batches_left: int, enemies_per_batch: int, batch_delay: float, start_from_batch: int = 1):
+	"""运行批次序列
+
+	Args:
+		batches_left: 剩余批次数量
+		enemies_per_batch: 每批次敌人数量
+		batch_delay: 批次间隔
+		start_from_batch: 从第几批开始（默认1，用于跳过已生成的第一批）
+	"""
 	if !is_wave_active or batches_left <= 0:
 		return
 
-	current_batch = total_batches - batches_left + 1
+	# 计算当前批次号（考虑起始偏移）
+	if start_from_batch > 1:
+		current_batch = start_from_batch - 1 + (total_batches - batches_left - start_from_batch + 2)
+	else:
+		current_batch = total_batches - batches_left + 1
 	batch_started.emit(current_batch, total_batches)
 
 	# 确定本批次敌人类型
