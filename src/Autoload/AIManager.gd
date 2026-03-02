@@ -162,7 +162,7 @@ func _connect_game_signals():
 
 # ===== 事件处理器 =====
 
-func _on_wave_started():
+func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	# NarrativeLogger handles wave started
 	pass
 

@@ -130,7 +130,7 @@ func _setup_test():
 	# Wave ended signal is emitted by WaveSystemManager after UI interaction, which we skip in headless.
 	# So we monitor is_wave_active in _process instead.
 
-func _on_wave_started():
+func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	_wave_has_started = true
 
 func _on_enemy_spawned(enemy):

@@ -254,7 +254,7 @@ func zoom_to_shop_open():
 	zoom_tween.tween_property(camera, "zoom", target_zoom, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	zoom_tween.tween_property(camera, "position", target_pos, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-func _on_wave_started():
+func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	zoom_to_fit_board()
 
 func _on_wave_ended():

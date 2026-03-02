@@ -140,7 +140,7 @@ func _on_unit_devoured(devouring_unit: Node2D, devoured_unit: Node2D):
 			GameManager.spawn_floating_text(unit.global_position, "Blood Stack: %d" % blood_stacks, Color.DARK_RED)
 			unit.spawn_buff_effect("🩸")
 
-func _on_wave_started():
+func _on_wave_started(wave_number: int = 0, wave_type: String = "", difficulty: float = 1.0):
 	# Reset blood stacks at wave start
 	blood_stacks = 0
 
