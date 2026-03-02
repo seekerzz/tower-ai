@@ -319,6 +319,18 @@
 
 ## [Archive - 归档]
 
+### 2026-03-02 (CRASH-002 修复验证 - 发现新错误)
+- [x] 跑测任务: CRASH-002 修复验证 (CRASH-002-VERIFY) -- 来源@ProjectDirector
+  - 测试分支: master
+  - 验证结果: ❌ 验证失败 - 发现新错误类型
+  - 生成日志: logs/ai_session_diagnostic_20260302_153905.log
+  - 崩溃详情: `ERROR: Error calling from signal 'wave_started' to callable: 'Node2D(CombatManager.gd)::_on_wave_started': Method expected 0 argument(s), but called with 3.`
+  - 问题分析: 波次系统重构后信号签名未同步更新
+  - 已验证机制: 牛图腾选择✅
+  - 待验证机制: 受伤充能、全屏反击、嘲讽联动、伤害转MP、减伤回血、治疗核心
+  - 崩溃日志已投递: ✅ 技术总监 ✅ 项目总监
+  - 当前状态: 休眠等待技术总监修复信号参数不匹配问题
+
 ### 2026-03-02 (第四轮修复验证)
 - [x] 跑测任务: CRASH-002 第四轮修复验证 (TOTEM-COW-001-RETEST-3) -- 来源@ProjectDirector
   - 测试分支: master (Commit 2f93927)
