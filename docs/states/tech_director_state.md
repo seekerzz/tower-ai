@@ -22,11 +22,25 @@
 - 参考: `jules/README.md` 中的"成功提交方法（已验证）"章节
 
 **PR 监控与合并**:
-- [x] 任务状态: IN_PROGRESS (执行中)
-- [ ] 等待 Jules 生成 PR
+- [x] 任务状态: AWAITING_USER_FEEDBACK (等待用户反馈)
+- [x] Jules 已创建执行计划
+- [ ] 用户批准计划 (访问 https://jules.google.com/session/18084724093959403440)
+- [ ] 等待 Jules 执行并生成 PR
 - [ ] 获取 PR URL
 - [ ] 验证测试通过
 - [ ] 合并到 master
+
+**Jules 执行计划**:
+1. Modify SessionData.gd - 确认波次状态变量
+2. Modify WaveSystemManager.gd - 更新波次控制方法
+3. Clean up GameManager.gd - 移除波次相关代码
+4. Verify GameManager.gd state - 验证清理结果
+5. Fix Global References - 修复全局引用
+6. Verify Global References - 验证引用修复
+7. Fix Signal Handlers - 修复信号处理器
+8. Testing and Verification - 测试验证
+9. Pre-commit steps - 预提交步骤
+10. Submit the change - 提交更改
 
 **监控状态**:
 - 后台监控 PID: `1957640`
