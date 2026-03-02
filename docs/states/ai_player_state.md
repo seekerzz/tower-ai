@@ -331,6 +331,16 @@
 
 ## [Archive - 归档]
 
+### 2026-03-02 (任务#2前置验证 - CRASH-002仍未修复)
+- [x] 跑测任务: 任务#2前置验证 (CRASH-002-VERIFY-2) -- 来源@AI Player
+  - 测试分支: master
+  - 验证结果: ❌ CRASH-002仍未修复，任务#2被阻塞
+  - 生成日志: logs/ai_session_diagnostic_20260302_154641.log
+  - 崩溃详情: `ERROR: Error calling from signal 'wave_started' to callable: 'Node2D(CombatManager.gd)::_on_wave_started': Method expected 0 argument(s), but called with 3.`
+  - 问题分析: 波次系统重构后信号签名未同步更新
+  - 阻塞影响: 任务#2（恢复图腾机制全面测试任务链）无法执行
+  - 当前状态: 休眠等待技术总监修复信号参数不匹配问题
+
 ### 2026-03-02 (CRASH-002 修复验证 - 发现新错误)
 - [x] 跑测任务: CRASH-002 修复验证 (CRASH-002-VERIFY) -- 来源@ProjectDirector
   - 测试分支: master
