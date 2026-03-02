@@ -13,7 +13,7 @@ func on_setup():
 
 	call_deferred("_on_wave_start")
 
-func _on_wave_start():
+func _on_wave_start(_wave_number: int = 0, _wave_type: String = "", _difficulty: float = 1.0):
 	shield_percent = 0.8 if unit.level < 2 else 1.2
 	shield_amount = unit.max_hp * shield_percent
 	unit.spawn_buff_effect("🛡️")

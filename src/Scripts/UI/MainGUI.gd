@@ -258,7 +258,7 @@ func _setup_stats_panel():
 	if stats_scroll: stats_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if stats_container: stats_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-func _update_hud_visibility():
+func _update_hud_visibility(_wave_number: int = 0, _wave_type: String = "", _difficulty: float = 1.0):
 	var is_combat = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	hp_bar.visible = is_combat
 	mana_bar.visible = is_combat
@@ -269,7 +269,7 @@ func _update_hud_visibility():
 	if soul_label:
 		soul_label.visible = is_combat
 
-func _update_sidebar_position():
+func _update_sidebar_position(_wave_number: int = 0, _wave_type: String = "", _difficulty: float = 1.0):
 	if sidebar_tween and sidebar_tween.is_valid():
 		sidebar_tween.kill()
 	sidebar_tween = create_tween()
@@ -356,7 +356,7 @@ func _update_cutin_layout():
 	var new_rect = Rect2(x_pos, top_panel_bottom, width, available_height)
 	cutin_manager.update_area(new_rect)
 
-func update_ui():
+func update_ui(_wave_number: int = 0, _wave_type: String = "", _difficulty: float = 1.0):
 	var target_hp = (GameManager.core_health / GameManager.max_core_health) * 100
 	create_tween().tween_property(hp_bar, "value", target_hp, 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
