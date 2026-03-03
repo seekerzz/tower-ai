@@ -91,3 +91,7 @@ func _apply_lifesteal(damage: float):
 		# 发射吸血信号
 		if GameManager.has_signal("lifesteal_occurred"):
 			GameManager.lifesteal_occurred.emit(unit, heal_amt)
+
+		# 广播吸血日志
+		if AIManager and AIManager.has_method("broadcast_text"):
+			AIManager.broadcast_text("【吸血效果】单位 %s 攻击流血敌人，吸血: %d，当前生命: %d/%d" % [str(unit.get_instance_id()), int(heal_amt), int(min(unit.current_hp + heal_amt, unit.max_hp)), int(unit.max_hp)])

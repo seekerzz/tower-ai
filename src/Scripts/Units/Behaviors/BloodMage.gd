@@ -71,6 +71,9 @@ func _start_pool_processing(pool_data: Dictionary):
 					enemy.take_damage(damage, unit, "magic")
 					total_damage_dealt += damage
 
+					if AIManager and AIManager.has_method("broadcast_text"):
+						AIManager.broadcast_text("【血池DOT】敌人 %s 受到血池伤害: %d，来源: blood_mage" % [str(enemy.get_instance_id()), int(damage)])
+
 				if unit.level >= 3:
 					if enemy.has_method("add_bleed_stacks"):
 						enemy.add_bleed_stacks(1, unit)

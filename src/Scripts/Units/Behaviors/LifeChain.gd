@@ -41,6 +41,9 @@ func _drain_life():
 			total_drained += drain_amount
 			GameManager.spawn_floating_text(enemy.global_position, "-%.1f" % drain_amount, Color.PURPLE)
 
+			if AIManager and AIManager.has_method("broadcast_text"):
+				AIManager.broadcast_text("【生命链条】单位 %s 与 %s 建立生命连接，偷取生命: %d" % [str(unit.get_instance_id()), str(enemy.get_instance_id()), int(drain_amount)])
+
 	if total_drained > 0:
 		GameManager.heal_core(total_drained)
 		GameManager.spawn_floating_text(unit.global_position, "+%.1f" % total_drained, Color.GREEN)

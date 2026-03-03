@@ -21,10 +21,16 @@ func _on_totem_attack():
 	# 记录蝙蝠图腾攻击触发日志
 	if AILogger and targets.size() > 0:
 		var target_names = []
+		var target_ids = []
 		for t in targets:
-			if is_instance_valid(t) and "type_key" in t:
-				target_names.append(t.type_key)
+			if is_instance_valid(t):
+				if "type_key" in t:
+					target_names.append(t.type_key)
+				if t.has_method("get_instance_id"):
+					target_ids.append(str(t.get_instance_id()))
 		AILogger.totem_triggered("蝙蝠图腾", str(target_names), "流血攻击+%d层" % bleed_stacks_per_hit)
+		if AIManager and AIManager.has_method("broadcast_text"):
+			AIManager.broadcast_text("【图腾攻击】蝙蝠图腾 触发流血攻击，目标: [%s]，伤害: 25" % [", ".join(target_ids)])
 
 	for enemy in targets:
 		if is_instance_valid(enemy) and enemy.has_method("add_bleed_stacks"):

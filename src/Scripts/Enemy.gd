@@ -605,6 +605,9 @@ func add_bleed_stacks(stacks: int, source_unit = null):
 		bleed_stack_changed.emit(bleed_stacks)
 		queue_redraw()
 
+	if AIManager and AIManager.has_method("broadcast_text"):
+		AIManager.broadcast_text("【流血施加】敌人 %s 获得流血debuff，层数: %d，持续时间: 5s" % [str(get_instance_id()), stacks])
+
 	# Track the bleed source for lifesteal
 	if source_unit and _bleed_source_unit == null:
 		_bleed_source_unit = source_unit
@@ -640,6 +643,9 @@ func _take_bleed_damage(amount: float, source_unit = null, show_text: bool = tru
 			amount *= child.get_damage_multiplier()
 
 	hp -= amount
+
+	if AIManager and AIManager.has_method("broadcast_text"):
+		AIManager.broadcast_text("【流血伤害】敌人 %s 受到流血伤害: %d，剩余层数: %d" % [str(get_instance_id()), int(amount), bleed_stacks])
 
 	# Only show floating text periodically
 	if show_text:

@@ -27,6 +27,9 @@ func _on_lifesteal(source: Node, amount: float):
 		var current_overflow = overflowed_units.get(source.get_instance_id(), 0.0)
 		overflowed_units[source.get_instance_id()] = current_overflow + overflow
 
+		if AIManager and AIManager.has_method("broadcast_text"):
+			AIManager.broadcast_text("【鲜血溢出】单位 %s 吸血溢出，转化为护盾: %d" % [str(source.get_instance_id()), int(overflow)])
+
 		# Visual effect
 		GameManager.spawn_floating_text(source.global_position, "Overflow!", Color.RED)
 
