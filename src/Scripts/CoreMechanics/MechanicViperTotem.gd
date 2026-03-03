@@ -50,12 +50,18 @@ func _on_timer_timeout():
 		targets.append(enemies[i])
 
 	# 记录图腾触发日志
-	if AILogger and targets.size() > 0:
+	if targets.size() > 0:
+		var target_ids = []
 		var target_names = []
 		for t in targets:
-			if is_instance_valid(t) and t.has_method("get"):
-				target_names.append(t.type_key if "type_key" in t else "敌人")
-		AILogger.totem_triggered("毒蛇图腾", str(target_names.size()) + "个最远敌人", "毒液攻击+3层中毒")
+			if is_instance_valid(t):
+				target_ids.append(str(t.get_instance_id()))
+				if t.has_method("get"):
+					target_names.append(t.type_key if "type_key" in t else "敌人")
+
+		if AILogger:
+			AILogger.totem_triggered("毒蛇图腾", str(target_names.size()) + "个最远敌人", "毒液攻击+3层中毒")
+			AILogger.mechanic_viper_attack(target_ids)
 
 	for target in targets:
 		if not is_instance_valid(target):

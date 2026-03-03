@@ -817,6 +817,9 @@ func _play_petrified_death_effect():
 	# 增强特效: 屏幕震动、AOE伤害显示、碎裂文字
 	_enhance_petrified_shatter_effect(global_position, damage_percent)
 
+	if AILogger:
+		AILogger.mechanic_petrified_shatter(str(get_instance_id()), max_hp * damage_percent)
+
 func _enhance_petrified_shatter_effect(pos: Vector2, damage_percent: float):
 	# 屏幕震动 - 强度8像素，持续时间0.3秒
 	if GameManager.has_signal("world_impact"):

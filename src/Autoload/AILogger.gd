@@ -188,3 +188,37 @@ func poison_effect(target: String, damage: float, stacks: int, source: String = 
 		var source_str = " (%s)" % source if source else ""
 		var msg = "[中毒效果] %s受到 %.0f 伤害, 层数: %d%s" % [target, damage, stacks, source_str]
 		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])
+
+# ===== 机制验证专用日志 (通过 AIManager 广播给黑盒测试) =====
+
+func mechanic_viper_attack(target_ids: Array):
+	if AIManager:
+		AIManager.broadcast_text("【毒液攻击】毒蛇图腾触发攻击，目标: [%s]，施加中毒" % ", ".join(target_ids))
+
+func mechanic_poison_applied(enemy_id: String, stacks: int, damage_per_sec: float):
+	if AIManager:
+		AIManager.broadcast_text("【中毒施加】敌人 %s 获得中毒debuff，层数: %d，伤害/秒: %s" % [enemy_id, stacks, str(damage_per_sec)])
+
+func mechanic_poison_stacked(enemy_id: String, current_stacks: int, max_stacks: int):
+	if AIManager:
+		AIManager.broadcast_text("【中毒叠加】敌人 %s 中毒层数增加，当前: %d层，最大: %d层" % [enemy_id, current_stacks, max_stacks])
+
+func mechanic_poison_damage(enemy_id: String, damage: float, remaining_stacks: int):
+	if AIManager:
+		AIManager.broadcast_text("【中毒伤害】敌人 %s 受到中毒伤害: %d，剩余层数: %d" % [enemy_id, int(damage), remaining_stacks])
+
+func mechanic_execute_trigger(enemy_id: String, stacks: int):
+	if AIManager:
+		AIManager.broadcast_text("【斩杀触发】敌人 %s 生命值低于15%%，触发斩杀，层数: %d" % [enemy_id, stacks])
+
+func mechanic_plague_spread(enemy_id: String, affect_count: int):
+	if AIManager:
+		AIManager.broadcast_text("【瘟疫传播】中毒敌人 %s 死亡，传播中毒给周围敌人，范围: 3格，影响: %d个敌人" % [enemy_id, affect_count])
+
+func mechanic_petrify_gaze(unit_id: String, enemy_id: String, duration: float):
+	if AIManager:
+		AIManager.broadcast_text("【石化凝视】美杜莎 %s 触发石化凝视，敌人 %s 石化%d秒" % [unit_id, enemy_id, int(duration)])
+
+func mechanic_petrified_shatter(enemy_id: String, damage: float):
+	if AIManager:
+		AIManager.broadcast_text("【石块破碎】石化敌人 %s 破碎，造成范围伤害: %d" % [enemy_id, int(damage)])

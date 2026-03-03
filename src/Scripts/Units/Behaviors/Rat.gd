@@ -36,15 +36,20 @@ func _on_plagued_enemy_died(enemy):
 	var level = unit.level
 	var spread_stacks = 2 if level < 2 else 4
 	var nearby = _get_enemies_in_radius(enemy.global_position, 120.0)
+	var spread_count = 0
 
 	for e in nearby:
 		if e == enemy: continue
 
 		if e.has_method("add_poison_stacks"):
 			e.add_poison_stacks(spread_stacks)
+			spread_count += 1
 
 		if level >= 3:
 			_spread_additional_debuff(e)
+
+	if spread_count > 0 and AILogger:
+		AILogger.mechanic_plague_spread(str(enemy.get_instance_id()), spread_count)
 
 func _spread_additional_debuff(enemy):
 	var debuffs = ["burn", "bleed", "slow"]

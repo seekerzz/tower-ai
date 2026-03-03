@@ -25,6 +25,7 @@ func setup(target: Node, source: Object, params: Dictionary):
 				source_name = "图腾"
 		var target_name = target.type_key if "type_key" in target else "目标"
 		AILogger.status_applied(source_name, target_name, "中毒", duration)
+		AILogger.mechanic_poison_applied(str(target.get_instance_id()), 1, base_damage)
 
 	_call_deferred_setup_visuals()
 
@@ -134,6 +135,11 @@ func stack(params: Dictionary):
 	# Update visual indicator when stacks change
 	_update_stack_visuals()
 
+	if AILogger:
+		var host = get_parent()
+		if host:
+			AILogger.mechanic_poison_stacked(str(host.get_instance_id()), stacks, MAX_STACKS)
+
 func _deal_damage():
 	var host = get_parent()
 	if host and host.has_method("take_damage"):
@@ -144,6 +150,7 @@ func _deal_damage():
 		if AILogger:
 			var target_name = host.type_key if "type_key" in host else "目标"
 			AILogger.status_damage("中毒", target_name, dmg)
+			AILogger.mechanic_poison_damage(str(host.get_instance_id()), dmg, stacks)
 
 		# Emit signal for test logging
 		if GameManager.has_signal("poison_damage"):

@@ -32,6 +32,11 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 		# Execute!
 		if GameManager.has_method("spawn_floating_text"):
 			GameManager.spawn_floating_text(target.global_position, "Execute!", Color.RED)
+
+		# 斩杀日志
+		if AILogger:
+			AILogger.mechanic_execute_trigger(str(target.get_instance_id()), debuff_stacks)
+
 		# 播放斩杀特效
 		_play_execute_effect(target)
 		target.die(unit)
