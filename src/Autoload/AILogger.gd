@@ -159,6 +159,59 @@ func core_heal(amount: float, current_hp: float, max_hp: float, source: String =
 		var msg = "[核心治疗] 回复 %.0f HP%s, 当前: %.0f/%.0f" % [amount, source_str, current_hp, max_hp]
 		print_rich("%s%s%s%s" % [_timestamp(), COLOR_COMBAT, msg, COLOR_RESET])
 
+# ===== 蝴蝶图腾及相关单位机制日志 =====
+
+## 1. 法球生成日志
+func totem_orb_spawned(orb_count: int, unit_id: String):
+	if AIManager:
+		AIManager.broadcast_text("【法球生成】蝴蝶图腾生成环绕法球，数量: %d，环绕单位: %s" % [orb_count, unit_id])
+
+## 2. 法球伤害日志
+func totem_orb_damage(enemy_id: String, damage: float, pierce_count: int):
+	if AIManager:
+		AIManager.broadcast_text("【法球伤害】法球命中敌人 %s，伤害: %.0f，穿透: %d个目标" % [enemy_id, damage, pierce_count])
+
+## 3. 法力回复日志
+func totem_mana_recovery(mana_recovered: float, current_mana: float, max_mana: float):
+	if AIManager:
+		AIManager.broadcast_text("【法力回复】法球命中回复法力: %.0f，当前法力: %.0f/%.0f" % [mana_recovered, current_mana, max_mana])
+
+## 4. 蝴蝶增伤日志
+func butterfly_damage_bonus(unit_id: String, mana_cost: float, bonus_percent: float):
+	if AIManager:
+		AIManager.broadcast_text("【蝴蝶增伤】单位 %s 消耗法力: %.0f，附加伤害: %.0f%%" % [unit_id, mana_cost, bonus_percent])
+
+## 5. 冻结效果日志
+func ice_butterfly_freeze(enemy_id: String, duration: float):
+	if AIManager:
+		AIManager.broadcast_text("【冻结效果】冰晶蝶攻击触发冻结，敌人 %s 冻结%.1f秒" % [enemy_id, duration])
+
+## 6. 传送触发日志
+func fairy_dragon_teleport(unit_id: String, prob_percent: float, target_x: float, target_y: float):
+	if AIManager:
+		AIManager.broadcast_text("【传送触发】仙女龙 %s 触发传送，概率: %.0f%%，目标位置: (%.0f,%.0f)" % [unit_id, prob_percent, target_x, target_y])
+
+## 7. 相位崩塌日志
+func fairy_dragon_phase_collapse(damage: float):
+	if AIManager:
+		AIManager.broadcast_text("【相位崩塌】仙女龙传送后触发相位崩塌，范围伤害: %.0f" % damage)
+
+## 8. 火雨召唤日志
+func phoenix_fire_rain(unit_id: String, range_tiles: float, duration: float, total_damage: float):
+	if AIManager:
+		AIManager.broadcast_text("【火雨召唤】凤凰 %s 召唤火雨，范围: %.1f格，持续: %.1f秒，总伤害: %.0f" % [unit_id, range_tiles, duration, total_damage])
+
+## 9. 闪电链日志
+func eel_lightning_chain(unit_id: String, jumps: int, total_damage: float):
+	if AIManager:
+		AIManager.broadcast_text("【闪电链】电鳗 %s 触发闪电链，跳跃: %d次，总伤害: %.0f" % [unit_id, jumps, total_damage])
+
+## 10. 黑洞生成日志
+func dragon_black_hole(unit_id: String, radius_tiles: float, duration: float):
+	if AIManager:
+		AIManager.broadcast_text("【黑洞生成】龙 %s 生成黑洞，吸引范围: %.1f格，持续: %.1f秒" % [unit_id, radius_tiles, duration])
+
+
 # ===== Buff日志 =====
 
 ## Buff施加日志

@@ -80,6 +80,7 @@ func _spawn_orbs():
 	# 记录法球生成日志
 	if AILogger:
 		AILogger.totem_triggered("蝴蝶图腾", "环绕法球", "生成%d个法球，伤害%.0f" % [ORB_COUNT, ORB_DAMAGE])
+		AILogger.totem_orb_spawned(ORB_COUNT, "核心图腾")
 
 	for i in range(ORB_COUNT):
 		var angle = (TAU / ORB_COUNT) * i
@@ -113,6 +114,19 @@ func calculate_damage_against(_target):
 # 回蓝逻辑
 func on_projectile_hit(target, damage, projectile):
 	GameManager.add_resource("mana", MANA_GAIN)
+
+	var pierce_count = 1
+	if projectile and "hit_list" in projectile:
+		pierce_count = projectile.hit_list.size()
+
+	var target_id = target.name if target and "name" in target else "未知敌人"
+	if target and "type_key" in target:
+		target_id = target.type_key
+
+	if AILogger:
+		AILogger.totem_orb_damage(target_id, damage, pierce_count)
+		AILogger.totem_mana_recovery(MANA_GAIN, GameManager.mana, GameManager.max_mana)
+
 	# 记录法力回复日志
 	if AILogger and target and "type_key" in target:
 		AILogger.mana_changed(MANA_GAIN, GameManager.mana, GameManager.max_mana, "蝴蝶法球命中 %s" % target.type_key)

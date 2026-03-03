@@ -23,3 +23,8 @@ func _freeze_enemy(enemy: Node2D):
 	var duration = 1.5 if unit.level < 2 else 2.0
 	if enemy.has_method("apply_freeze"):
 		enemy.apply_freeze(duration)
+		if AILogger:
+			var enemy_id = enemy.name if enemy and "name" in enemy else "未知敌人"
+			if enemy and "type_key" in enemy:
+				enemy_id = enemy.type_key
+			AILogger.ice_butterfly_freeze(enemy_id, duration)

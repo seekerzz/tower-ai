@@ -31,3 +31,22 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 		target.global_position = target_pos
 
 		GameManager.spawn_floating_text(target.global_position, "Warp!", Color.VIOLET)
+
+		if AILogger:
+			var unit_id = unit.name if unit and "name" in unit else "未知单位"
+			if unit and "type_key" in unit:
+				unit_id = unit.type_key
+			AILogger.fairy_dragon_teleport(unit_id, final_chance * 100, target_pos.x, target_pos.y)
+
+		if unit.level >= 3:
+			# Only logic related to phase collapse needed for logs
+			var aoe_damage = 50.0
+			var enemies = unit.get_tree().get_nodes_in_group("enemies")
+			for e in enemies:
+				if e != target and e.global_position.distance_to(target_pos) <= 1.5 * Constants.TILE_SIZE:
+					if e.has_method("take_damage"):
+						e.take_damage(aoe_damage, unit, "magic")
+			if target.has_method("take_damage"):
+				target.take_damage(aoe_damage, unit, "magic")
+			if AILogger:
+				AILogger.fairy_dragon_phase_collapse(aoe_damage)

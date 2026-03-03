@@ -28,6 +28,12 @@ func _create_black_hole(pos: Vector2):
 		"type": "black_hole_field"
 	}
 
+	if AILogger:
+		var unit_id = unit.name if unit and "name" in unit else "未知单位"
+		if unit and "type_key" in unit:
+			unit_id = unit.type_key
+		AILogger.dragon_black_hole(unit_id, radius / Constants.TILE_SIZE, duration)
+
 	var projectile = null
 	if GameManager.combat_manager:
 		projectile = GameManager.combat_manager.spawn_projectile(unit, pos, null, extra_stats)
