@@ -33,6 +33,11 @@ func broadcast_buffs():
 			neighbor.active_buffs.append("crit_chance")
 			neighbor.buff_sources["crit_chance"] = unit
 
+			if AILogger:
+				var unit_name = unit.name if unit and "name" in unit else "未知"
+				var neighbor_name = neighbor.name if neighbor and "name" in neighbor else "未知"
+				AILogger.mechanic_log("【暴击率加成】猫头鹰 %s 为 %s 增加暴击率: +%.0f%%，持续: 10秒" % [unit_name, neighbor_name, bonus * 100])
+
 func _get_units_in_range(r: int) -> Array:
 	if not GameManager.grid_manager: return []
 	var list = []

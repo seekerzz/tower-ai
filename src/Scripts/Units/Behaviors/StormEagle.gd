@@ -51,18 +51,24 @@ func _trigger_lightning_storm():
 	var enemies = unit.get_tree().get_nodes_in_group("enemies")
 	if enemies.is_empty(): return
 
+	var total_dmg: float = 0.0
+
 	# 对每个敌人降下雷击
 	for enemy in enemies:
 		if not is_instance_valid(enemy): continue
 
 		# 创建闪电效果
-		_spawn_lightning_on_enemy(enemy)
+		total_dmg += _spawn_lightning_on_enemy(enemy)
 
 	# 显示雷暴特效文字
 	GameManager.spawn_floating_text(unit.global_position, "THUNDER STORM!", Color.CYAN)
 
-func _spawn_lightning_on_enemy(enemy: Node2D):
-	if not is_instance_valid(enemy): return
+	if AILogger:
+		var unit_name = unit.name if unit and "name" in unit else "未知"
+		AILogger.mechanic_log("【雷暴召唤】风暴鹰 %s 召唤雷暴，范围: 5格，持续: 5秒，总伤害: %.0f" % [unit_name, total_dmg])
+
+func _spawn_lightning_on_enemy(enemy: Node2D) -> float:
+	if not is_instance_valid(enemy): return 0.0
 
 	# 使用CombatManager的闪电攻击
 	if GameManager.combat_manager:
@@ -82,6 +88,9 @@ func _spawn_lightning_on_enemy(enemy: Node2D):
 
 		# 造成伤害
 		enemy.take_damage(dmg, unit, "lightning")
+		return dmg
+
+	return 0.0
 
 func on_cleanup():
 	# 断开信号连接

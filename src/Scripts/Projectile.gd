@@ -355,6 +355,11 @@ func _handle_hit(target_node):
 				GameManager.crit_occurred.emit(source_unit, target_node, damage, false)
 			if GameManager.current_mechanic and GameManager.current_mechanic.has_method("on_projectile_crit"):
 				GameManager.current_mechanic.on_projectile_crit(self, target_node)
+			# 记录暴击触发日志
+			if AILogger:
+				var unit_id = source_unit.name if source_unit and "name" in source_unit else "未知"
+				var crit_rate = source_unit.crit_rate if source_unit and "crit_rate" in source_unit else 0.0
+				AILogger.mechanic_log("【暴击触发】单位 %s 触发暴击，伤害: %.0f，暴击率: %.0f%%" % [unit_id, damage, crit_rate * 100])
 			# Emit global crit signal for units like Storm Eagle
 			if GameManager.has_signal("projectile_crit"):
 				GameManager.projectile_crit.emit(source_unit, target_node, damage)

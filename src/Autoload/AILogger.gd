@@ -188,3 +188,10 @@ func poison_effect(target: String, damage: float, stacks: int, source: String = 
 		var source_str = " (%s)" % source if source else ""
 		var msg = "[中毒效果] %s受到 %.0f 伤害, 层数: %d%s" % [target, damage, stacks, source_str]
 		print_rich("%s%s%s%s" % [_timestamp(), COLOR_STATUS, msg, COLOR_RESET])
+
+## 机制黑盒测试日志（验证输出）
+func mechanic_log(msg: String):
+	if SHOW_TOTEM:
+		print_rich("%s%s[机制] %s%s" % [_timestamp(), COLOR_TOTEM, msg, COLOR_RESET])
+	if AIManager and AIManager.has_method("broadcast_text"):
+		AIManager.broadcast_text(msg)

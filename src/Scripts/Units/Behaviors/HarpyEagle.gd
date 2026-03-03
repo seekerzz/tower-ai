@@ -9,6 +9,9 @@ var third_claw_bleed: bool = false
 var _current_claw: int = 0
 var _combo_target: Node2D = null
 
+var _combo_total_damage: float = 0.0
+var _last_target_id: String = ""
+
 func _init(target_unit: Node2D):
 	super._init(target_unit)
 
@@ -59,6 +62,9 @@ func _calculate_damage(target: Node2D) -> float:
 			if target.has_method("add_bleed_stacks"):
 				target.add_bleed_stacks(2, unit)
 			GameManager.spawn_floating_text(target.global_position, "BLEED!", Color.RED)
+
+	_combo_total_damage += dmg
+	_last_target_id = target.name if target and "name" in target else "未知"
 
 	return dmg
 
@@ -195,6 +201,13 @@ func _enter_claw_landing(t_landing):
 		_finish_combo()
 
 func _finish_combo():
+	if AILogger and _current_claw > 0:
+		var unit_name = unit.name if unit and "name" in unit else "未知"
+		AILogger.mechanic_log("【三连爪击】角雕 %s 触发三连爪击，目标: %s，总伤害: %.0f" % [unit_name, _last_target_id, _combo_total_damage])
+
+	_combo_total_damage = 0.0
+	_last_target_id = ""
+
 	state = State.IDLE
 	_combo_target = null
 	_current_claw = 0
