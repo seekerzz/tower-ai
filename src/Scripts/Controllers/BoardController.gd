@@ -138,14 +138,32 @@ func refresh_shop() -> Dictionary:
 
 	# 获取可用单位池
 	var player_faction = GameManager.core_type if GameManager.core_type else ""
-	var available_units = _get_units_for_faction(player_faction)
+
+	var faction_units = []
+	var universal_units = []
+
+	for unit_key in Constants.UNIT_TYPES.keys():
+		var unit_data = Constants.UNIT_TYPES[unit_key]
+		var unit_faction = unit_data.get("faction", "universal")
+
+		if unit_faction == player_faction:
+			faction_units.append(unit_key)
+		elif unit_faction == "universal":
+			universal_units.append(unit_key)
 
 	var new_shop = [null, null, null, null]
 	for i in range(4):
 		if session_data.is_shop_slot_locked(i):
 			new_shop[i] = session_data.get_shop_unit(i)
 		else:
-			new_shop[i] = available_units.pick_random()
+			if faction_units.size() > 0 and randf() < 0.7:
+				new_shop[i] = faction_units.pick_random()
+			elif universal_units.size() > 0:
+				new_shop[i] = universal_units.pick_random()
+			elif faction_units.size() > 0:
+				new_shop[i] = faction_units.pick_random()
+			else:
+				new_shop[i] = Constants.UNIT_TYPES.keys().pick_random()
 
 	# 更新商店状态
 	for i in range(4):
