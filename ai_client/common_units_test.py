@@ -1,0 +1,234 @@
+#!/usr/bin/env python3
+"""
+通用单位Buff叠加流测试脚本 (UNITS-COMMON-001)
+"""
+
+import asyncio
+import json
+import time
+import sys
+from pathlib import Path
+from datetime import datetime
+from typing import List, Dict, Any, Optional
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+import aiohttp
+
+
+class CommonUnitsTester:
+    def __init__(self, http_port: int = 8080):
+        self.http_port = http_port
+        self.base_url = f"http://127.0.0.1:{http_port}"
+        self.session: Optional[aiohttp.ClientSession] = None
+        self.log_file: Optional[Path] = None
+
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.log_file = Path(f"logs/ai_session_common_units_{timestamp}.log")
+        self.log_file.parent.mkdir(exist_ok=True)
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+
+    def log(self, message: str, event_type: str = "INFO"):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        log_line = f"[{timestamp}] [{event_type}] {message}"
+        print(log_line)
+        if self.log_file:
+            with open(self.log_file, "a", encoding="utf-8") as f:
+                f.write(log_line + "\n")
+
+    async def send_actions(self, actions: List[Dict[str, Any]]) -> Dict[str, Any]:
+        try:
+            async with self.session.post(
+                f"{self.base_url}/action",
+                json={"actions": actions},
+                timeout=aiohttp.ClientTimeout(total=5)
+            ) as resp:
+                return await resp.json()
+        except Exception as e:
+            self.log(f"发送动作失败: {e}", "ERROR")
+            return {"status": "error", "message": str(e)}
+
+    async def get_observations(self) -> List[str]:
+        try:
+            async with self.session.get(
+                f"{self.base_url}/observations",
+                timeout=aiohttp.ClientTimeout(total=5)
+            ) as resp:
+                data = await resp.json()
+                return data.get("observations", [])
+        except Exception as e:
+            self.log(f"获取观测失败: {e}", "ERROR")
+            return []
+
+    async def poll_observations(self, duration: float = 2.0) -> List[str]:
+        all_obs = []
+        start = time.time()
+        while time.time() - start < duration:
+            obs = await self.get_observations()
+            all_obs.extend(obs)
+            for o in obs:
+                self.log(o, "GAME")
+            await asyncio.sleep(0.2)
+        return all_obs
+
+    async def wait_for_game_ready(self, timeout: float = 30.0) -> bool:
+        self.log("等待游戏就绪...", "SYSTEM")
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                async with self.session.get(
+                    f"{self.base_url}/status",
+                    timeout=aiohttp.ClientTimeout(total=2)
+                ) as resp:
+                    data = await resp.json()
+                    if data.get("godot_running") and data.get("ws_connected"):
+                        self.log("游戏已就绪", "SYSTEM")
+                        return True
+            except:
+                pass
+            await asyncio.sleep(0.5)
+        return False
+
+    def extract_core_health(self, observations: List[str]) -> Optional[int]:
+        """从观测中提取核心血量"""
+        import re
+        for obs in observations:
+            if "核心血量" in obs or "HP" in obs:
+                match = re.search(r'[:：]\s*(\d+)\s*/\s*(\d+)', obs)
+                if match:
+                    return int(match.group(1))
+        return None
+
+    def extract_wave_number(self, observations: List[str]) -> Optional[int]:
+        """从观测中提取当前波次"""
+        import re
+        for obs in observations:
+            if "第" in obs and "波" in obs:
+                match = re.search(r'第\s*(\d+)\s*波', obs)
+                if match:
+                    return int(match.group(1))
+        return None
+
+    async def check_and_reset_game(self) -> bool:
+        """检查游戏状态，如果已结束则重置"""
+        self.log("=" * 60, "SYSTEM")
+        self.log("检查游戏状态", "SYSTEM")
+        self.log("=" * 60, "SYSTEM")
+
+        # 获取当前观测
+        obs = await self.poll_observations(2.0)
+        health = self.extract_core_health(obs)
+        wave = self.extract_wave_number(obs)
+
+        # 检查是否需要重置
+        need_reset = False
+        if health is not None and health <= 0:
+            self.log(f"⚠️ 游戏已结束 (核心血量: {health})，需要重置", "WARNING")
+            need_reset = True
+        elif wave is not None and wave > 1:
+            self.log(f"⚠️ 游戏不在初始状态 (当前波次: {wave})，需要重置", "WARNING")
+            need_reset = True
+
+        if need_reset:
+            # 发送新游戏动作
+            self.log("发送 new_game 动作重置游戏...", "ACTION")
+            await self.send_actions([{"type": "new_game"}])
+            await asyncio.sleep(2.0)
+
+            # 等待游戏重置完成
+            reset_timeout = 30.0
+            start_time = time.time()
+            while time.time() - start_time < reset_timeout:
+                obs = await self.poll_observations(2.0)
+                health = self.extract_core_health(obs)
+
+                if health and health > 0:
+                    self.log(f"✅ 游戏已重置，核心血量: {health}", "VALIDATION")
+                    return True
+
+                # 检查是否收到游戏开始的消息
+                for o in obs:
+                    if "选择图腾" in o or "totem" in o.lower():
+                        self.log("✅ 游戏已重置，进入图腾选择阶段", "VALIDATION")
+                        return True
+
+            self.log("❌ 游戏重置超时", "ERROR")
+            return False
+        else:
+            if health:
+                self.log(f"✅ 游戏状态正常 (核心血量: {health}, 波次: {wave or 1})", "VALIDATION")
+            return True
+
+    async def run_test(self):
+        self.log("=" * 60, "SYSTEM")
+        self.log("开始通用单位Buff叠加流测试 (UNITS-COMMON-001)", "SYSTEM")
+        self.log("=" * 60, "SYSTEM")
+
+        if not await self.wait_for_game_ready():
+            self.log("游戏未就绪", "ERROR")
+            return False
+
+        # 检查并重置游戏状态
+        if not await self.check_and_reset_game():
+            self.log("游戏状态重置失败", "ERROR")
+            return False
+
+        # 选择牛图腾（任意图腾均可）
+        self.log("选择牛图腾开局...", "ACTION")
+        await self.send_actions([{"type": "select_totem", "totem_id": "cow_totem"}])
+        await asyncio.sleep(1.0)
+        await self.poll_observations(2.0)
+
+        # 购买通用单位
+        self.log("购买通用单位...", "ACTION")
+        await self.send_actions([{"type": "buy_unit", "shop_index": 0}])
+        await asyncio.sleep(0.5)
+        await self.poll_observations(1.0)
+
+        # 部署单位
+        self.log("部署单位到战场...", "ACTION")
+        await self.send_actions([
+            {"type": "move_unit", "from_zone": "bench", "to_zone": "grid",
+             "from_pos": 0, "to_pos": {"x": 1, "y": 0}}
+        ])
+        await asyncio.sleep(0.5)
+        await self.poll_observations(1.0)
+
+        # 开始第1波
+        self.log("开始第1波...", "ACTION")
+        await self.send_actions([{"type": "start_wave"}])
+        obs = await self.poll_observations(10.0)
+
+        # 检查Buff相关日志
+        for o in obs:
+            if "Buff" in o or "buff" in o.lower():
+                self.log("✅ 发现Buff机制日志", "VALIDATION")
+            if "产金" in o or "产蓝" in o or "gold" in o.lower() or "mana" in o.lower():
+                self.log("✅ 发现资源产出机制日志", "VALIDATION")
+
+        # 继续波次
+        for wave in range(2, 5):
+            self.log(f"开始第{wave}波...", "ACTION")
+            await self.send_actions([{"type": "start_wave"}])
+            await asyncio.sleep(1.0)
+            await self.poll_observations(8.0)
+
+        self.log("测试完成", "SYSTEM")
+        return True
+
+
+async def main():
+    http_port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
+    async with CommonUnitsTester(http_port) as tester:
+        success = await tester.run_test()
+        print(f"\n日志文件: {tester.log_file}")
+        sys.exit(0 if success else 1)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

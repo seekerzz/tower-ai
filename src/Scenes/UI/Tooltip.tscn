@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3 uid="uid://tooltip12345"]
+
+[ext_resource type="Script" path="res://src/Scripts/UI/Tooltip.gd" id="1_tooltip"]
+
+[node name="Tooltip" type="PanelContainer"]
+offset_right = 200.0
+offset_bottom = 100.0
+script = ExtResource("1_tooltip")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="HeaderContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="IconRect" type="TextureRect" parent="VBoxContainer/HeaderContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="RichTextLabel" parent="VBoxContainer/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+text = "[b]Unit Name[/b]"
+fit_content = true
+
+[node name="StatsLabel" type="RichTextLabel" parent="VBoxContainer"]
+layout_mode = 2
+bbcode_enabled = true
+text = "Stats..."
+fit_content = true
+
+[node name="BuffLabel" type="RichTextLabel" parent="VBoxContainer"]
+layout_mode = 2
+bbcode_enabled = true
+text = "Buffs..."
+fit_content = true

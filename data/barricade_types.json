@@ -1,0 +1,45 @@
+{
+	"BARRICADE_TYPES": {
+		"mucus": {
+			"hp": 500,
+			"type": "slow",
+			"strength": 0.3,
+			"color": "#00cec9",
+			"width": 8,
+			"name": "粘液网",
+			"is_solid": false,
+			"icon": "🕸️"
+		},
+		"poison": {
+			"hp": 10,
+			"type": "poison",
+			"strength": 200,
+			"color": "#2ecc71",
+			"width": 20,
+			"name": "毒雾",
+			"immune": true,
+			"is_solid": false,
+			"icon": "☠️"
+		},
+		"fang": {
+			"hp": 800,
+			"type": "reflect",
+			"strength": 100,
+			"color": "#e74c3c",
+			"width": 6,
+			"name": "荆棘",
+			"is_solid": false,
+			"icon": "🦷"
+		},
+		"snowball_trap": {
+			"hp": 10,
+			"type": "trap_freeze",
+			"color": "#74b9ff",
+			"width": 10,
+			"name": "雪球陷阱",
+			"is_solid": false,
+			"icon": "❄️",
+			"desc": "放置3秒后爆炸，冻结周围3x3范围敌人，无伤害"
+		}
+	}
+}

@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://passiveskillbar01"]
+
+[ext_resource type="Script" path="res://src/Scripts/UI/PassiveSkillBar.gd" id="1_passivesb"]
+
+[node name="PassiveSkillBar" type="MarginContainer"]
+offset_right = 300.0
+offset_bottom = 80.0
+size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("1_passivesb")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2

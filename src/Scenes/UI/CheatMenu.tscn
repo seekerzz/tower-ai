@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3 uid="uid://cheatmenu123"]
+
+[ext_resource type="Script" path="res://src/Scripts/UI/CheatMenu.gd" id="1_script"]
+
+[node name="CheatMenu" type="CanvasLayer"]
+layer = 100
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="PanelContainer" type="PanelContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -100.0
+offset_right = 150.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Debug Menu"
+horizontal_alignment = 1
+
+[node name="AddGoldButton" type="Button" parent="Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Add 1000 Gold"
+
+[node name="SkipWaveButton" type="Button" parent="Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Skip Wave"
+
+[node name="SetHPButton" type="Button" parent="Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Set HP 999999"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="OptionButton" type="OptionButton" parent="Control/PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="SpawnButton" type="Button" parent="Control/PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Spawn Unit"
+
+[connection signal="pressed" from="Control/PanelContainer/VBoxContainer/AddGoldButton" to="Control" method="_on_add_gold_pressed"]
+[connection signal="pressed" from="Control/PanelContainer/VBoxContainer/SkipWaveButton" to="Control" method="_on_skip_wave_pressed"]
+[connection signal="pressed" from="Control/PanelContainer/VBoxContainer/SetHPButton" to="Control" method="_on_set_hp_pressed"]
+[connection signal="pressed" from="Control/PanelContainer/VBoxContainer/HBoxContainer/SpawnButton" to="Control" method="_on_spawn_unit_pressed"]

@@ -1,0 +1,38 @@
+{
+	"CORE_TYPES": {
+		"wolf_totem": {
+			"name": "狼图腾",
+			"desc": "敌人阵亡获得1魂魄，单位吞噬获得10魂魄。图腾每5秒攻击附带魂魄数伤害",
+			"attack_interval": 5.0,
+			"base_damage": 15,
+			"soul_per_enemy": 1,
+			"soul_per_merge": 10
+		},
+		"cow_totem": {
+			"name": "牛图腾",
+			"desc": "受伤充能，5秒一次全屏反击"
+		},
+		"bat_totem": {
+			"name": "蝙蝠图腾",
+			"desc": "每5秒攻击3个最近敌人施加流血。攻击流血敌人按层数回复核心生命",
+			"attack_interval": 5.0,
+			"bleed_stacks": 1,
+			"lifesteal_ratio": 0.4
+		},
+		"viper_totem": {
+			"name": "毒蛇图腾",
+			"desc": "每5秒对距离最远的3个敌人降下毒液，造成伤害并施加3层中毒。",
+			"wave_item": "poison"
+		},
+		"butterfly_totem": {
+			"name": "蝴蝶图腾",
+			"desc": "生成3颗环绕法球，无限穿透。命中敌人造成20伤害并恢复20法力。"
+		},
+		"eagle_totem": {
+			"name": "鹰之图腾",
+			"desc": "暴击时有30%概率触发一次回响，造成等额伤害并施加攻击特效。",
+			"crit_echo_chance": 0.3,
+			"crit_echo_mult": 1.0
+		}
+	}
+}

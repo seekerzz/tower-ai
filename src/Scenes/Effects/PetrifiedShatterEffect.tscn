@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://petrified_shatter_effect"]
+
+[ext_resource type="Script" path="res://src/Scripts/Effects/PetrifiedShatterEffect.gd" id="1_script"]
+
+[node name="PetrifiedShatterEffect" type="Node2D"]
+script = ExtResource("1_script")

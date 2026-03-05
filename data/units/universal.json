@@ -1,0 +1,666 @@
+{
+	"spiderling": {
+		"name": "小蜘蛛",
+		"type": "summoned",
+		"damage": 8,
+		"atkSpeed": 1.5,
+		"range": 80,
+		"hp": 30,
+		"lifetime": 25,
+		"icon": "🕷️",
+		"size": [
+			1,
+			1
+		],
+		"attackType": "melee",
+		"damageType": "physical",
+		"levels": {
+			"1": {
+				"damage": 8,
+				"hp": 30,
+				"cost": 0,
+				"desc": "Summoned Spiderling"
+			}
+		},
+		"type_key": "spiderling",
+		"faction": "universal"
+	},
+	"enemy_clone": {
+		"name": "克隆体",
+		"type": "summoned_clone",
+		"inherit_stats": [
+			"damage",
+			"attack_speed",
+			"range"
+		],
+		"lifetime": -1,
+		"icon": "👥",
+		"size": [
+			1,
+			1
+		],
+		"attackType": "melee",
+		"damageType": "physical",
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 0,
+				"cost": 0,
+				"desc": "Clone of a unit"
+			}
+		},
+		"type_key": "enemy_clone",
+		"faction": "universal"
+	},
+	"squirrel": {
+		"name": "松鼠",
+		"icon": "🐿️",
+		"size": [
+			1,
+			1
+		],
+		"range": 250,
+		"atkSpeed": 0.15,
+		"manaCost": 0,
+		"attackType": "ranged",
+		"proj": "pinecone",
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 30,
+				"hp": 100,
+				"cost": 15,
+				"desc": "远程: 快速投掷松果",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 45,
+				"hp": 150,
+				"cost": 30,
+				"desc": "远程: 快速投掷松果",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 67,
+				"hp": 225,
+				"cost": 60,
+				"desc": "远程: 快速投掷松果",
+				"mechanics": {
+					"crit_rate_bonus": 0.2,
+					"multi_shot_chance": 0.3
+				}
+			}
+		},
+		"type_key": "squirrel",
+		"faction": "universal"
+	},
+	"octopus": {
+		"name": "八爪鱼",
+		"icon": "🐙",
+		"size": [
+			1,
+			1
+		],
+		"range": 180,
+		"atkSpeed": 1.5,
+		"manaCost": 0,
+		"attackType": "ranged",
+		"proj": "ink",
+		"projCount": 5,
+		"spread": 0.5,
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"has_interaction": true,
+		"buff_id": "multishot",
+		"levels": {
+			"1": {
+				"damage": 120,
+				"hp": 150,
+				"cost": 60,
+				"desc": "散射: 同时喷射多道墨汁",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 180,
+				"hp": 225,
+				"cost": 120,
+				"desc": "散射: 同时喷射多道墨汁",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 270,
+				"hp": 337,
+				"cost": 240,
+				"desc": "散射: 同时喷射多道墨汁",
+				"mechanics": {
+					"crit_rate_bonus": 0.2,
+					"multi_shot_chance": 0.3
+				}
+			}
+		},
+		"type_key": "octopus",
+		"faction": "universal"
+	},
+	"bee": {
+		"name": "蜜蜂",
+		"icon": "🐝",
+		"size": [
+			1,
+			1
+		],
+		"range": 250,
+		"atkSpeed": 0.8,
+		"manaCost": 0,
+		"attackType": "ranged",
+		"proj": "stinger",
+		"pierce": 3,
+		"damageType": "physical",
+		"crit_rate": 0.2,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 250,
+				"hp": 180,
+				"cost": 80,
+				"desc": "穿透: 尖锐的蜂刺穿透敌人",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 375,
+				"hp": 270,
+				"cost": 160,
+				"desc": "穿透: 尖锐的蜂刺穿透敌人",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 562,
+				"hp": 405,
+				"cost": 320,
+				"desc": "穿透: 尖锐的蜂刺穿透敌人",
+				"mechanics": {
+					"crit_rate_bonus": 0.2,
+					"multi_shot_chance": 0.3
+				}
+			}
+		},
+		"type_key": "bee",
+		"faction": "universal"
+	},
+	"drum": {
+		"name": "战鼓",
+		"icon": "🥁",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0,
+		"manaCost": 0,
+		"attackType": "none",
+		"buffProvider": "speed",
+		"crit_rate": 0.0,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 100,
+				"cost": 40,
+				"desc": "邻接:攻速+20%",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 150,
+				"cost": 80,
+				"desc": "邻接:攻速+20%",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 225,
+				"cost": 160,
+				"desc": "邻接:攻速+20%",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "drum",
+		"faction": "universal"
+	},
+	"mirror": {
+		"name": "反射魔镜",
+		"icon": "🪞",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0,
+		"manaCost": 0,
+		"attackType": "none",
+		"buffProvider": "bounce",
+		"crit_rate": 0.0,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 100,
+				"cost": 50,
+				"desc": "邻接:子弹弹射+1",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 150,
+				"cost": 100,
+				"desc": "邻接:子弹弹射+1",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 225,
+				"cost": 200,
+				"desc": "邻接:子弹弹射+1",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "mirror",
+		"faction": "universal"
+	},
+	"splitter": {
+		"name": "多重棱镜",
+		"icon": "💠",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0,
+		"manaCost": 0,
+		"attackType": "none",
+		"buffProvider": "split",
+		"crit_rate": 0.0,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 100,
+				"cost": 55,
+				"desc": "邻接:子弹分裂+1",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 150,
+				"cost": 110,
+				"desc": "邻接:子弹分裂+1",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 225,
+				"cost": 220,
+				"desc": "邻接:子弹分裂+1",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "splitter",
+		"faction": "universal"
+	},
+	"meat": {
+		"name": "五花肉",
+		"icon": "🥓",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0,
+		"manaCost": 0,
+		"isFood": true,
+		"xp": 50,
+		"attackType": "none",
+		"crit_rate": 0.0,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 10,
+				"cost": 10,
+				"desc": "喂食获得大量Buff",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 15,
+				"cost": 20,
+				"desc": "喂食获得大量Buff",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 22,
+				"cost": 40,
+				"desc": "喂食获得大量Buff",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "meat",
+		"faction": "universal"
+	},
+	"rabbit": {
+		"name": "兔子",
+		"icon": "🐇",
+		"size": [
+			1,
+			1
+		],
+		"range": 80,
+		"atkSpeed": 1.2,
+		"manaCost": 0,
+		"attackType": "none",
+		"has_interaction": true,
+		"buff_id": "bounce",
+		"damageType": "physical",
+		"crit_rate": 0.2,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 150,
+				"cost": 35,
+				"desc": "邻接：使单位子弹获得物理弹射+1。多个兔子可叠加。",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 225,
+				"cost": 70,
+				"desc": "邻接：使单位子弹获得物理弹射+1。多个兔子可叠加。",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 337,
+				"cost": 140,
+				"desc": "邻接：使单位子弹获得物理弹射+1。多个兔子可叠加。",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "rabbit",
+		"faction": "universal"
+	},
+	"lucky_cat": {
+		"name": "招财猫",
+		"icon": "🐱",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 1.0,
+		"attackType": "none",
+		"behavior_script": "res://src/Scripts/Units/Behaviors/LuckyCatBehavior.gd",
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 100,
+				"cost": 100,
+				"desc": "产金：每波获得15金币",
+				"mechanics": {
+					"gold_per_wave": 15
+				}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 150,
+				"cost": 200,
+				"desc": "产金：每波获得30金币",
+				"mechanics": {
+					"gold_per_wave": 30
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 225,
+				"cost": 400,
+				"desc": "产金：每波获得45金币",
+				"mechanics": {
+					"gold_per_wave": 45
+				}
+			}
+		},
+		"type_key": "lucky_cat",
+		"faction": "universal"
+	},
+	"shell": {
+		"name": "贝壳",
+		"icon": "🐚",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0,
+		"manaCost": 0,
+		"attackType": "none",
+		"crit_rate": 0.0,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 200,
+				"cost": 40,
+				"desc": "珍珠:承受5次以下伤害，波次结束获得50金币",
+				"mechanics": {
+					"hit_threshold": 5,
+					"pearl_value": 50
+				}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 300,
+				"cost": 80,
+				"desc": "珍珠:承受8次以下伤害，波次结束获得75金币",
+				"mechanics": {
+					"hit_threshold": 8,
+					"pearl_value": 75
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 450,
+				"cost": 160,
+				"desc": "珍珠:承受8次以下伤害，波次结束获得100金币。邻接单位减伤5%",
+				"mechanics": {
+					"hit_threshold": 8,
+					"pearl_value": 100,
+					"damage_reduction_aura": 0.05
+				}
+			}
+		},
+		"type_key": "shell",
+		"faction": "universal"
+	},
+	"rage_bear": {
+		"name": "暴怒熊",
+		"icon": "🐻",
+		"size": [
+			1,
+			1
+		],
+		"range": 80,
+		"atkSpeed": 1.2,
+		"manaCost": 300,
+		"attackType": "melee",
+		"skill": "ground_slam",
+		"skillCd": 15,
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 80,
+				"hp": 400,
+				"cost": 65,
+				"desc": "近战:15%概率眩晕1秒，对眩晕敌人+50%伤害。技能:地面猛击眩晕范围敌人",
+				"mechanics": {
+					"stun_chance": 0.15,
+					"stun_duration": 1.0,
+					"bonus_vs_stunned": 0.5,
+					"skill_stun_duration": 1.5
+				}
+			},
+			"2": {
+				"damage": 120,
+				"hp": 600,
+				"cost": 130,
+				"desc": "近战:22%概率眩晕1.2秒，对眩晕敌人+75%伤害",
+				"mechanics": {
+					"stun_chance": 0.22,
+					"stun_duration": 1.2,
+					"bonus_vs_stunned": 0.75,
+					"skill_stun_duration": 2.0
+				}
+			},
+			"3": {
+				"damage": 180,
+				"hp": 900,
+				"cost": 260,
+				"desc": "近战:30%概率眩晕1.5秒，对眩晕敌人+100%伤害。击杀眩晕敌人重置技能CD",
+				"mechanics": {
+					"stun_chance": 0.3,
+					"stun_duration": 1.5,
+					"bonus_vs_stunned": 1.0,
+					"skill_stun_duration": 2.5,
+					"kill_reset_cd": true
+				}
+			}
+		},
+		"type_key": "rage_bear",
+		"faction": "universal"
+	},
+	"sunflower": {
+		"name": "向日葵",
+		"icon": "🌻",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0,
+		"manaCost": 0,
+		"attackType": "none",
+		"crit_rate": 0.0,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 80,
+				"cost": 20,
+				"desc": "产出:每5秒生成10法力",
+				"mechanics": {
+					"mana_per_tick": 10,
+					"tick_interval": 5.0
+				}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 120,
+				"cost": 40,
+				"desc": "产出:每4秒生成18法力",
+				"mechanics": {
+					"mana_per_tick": 18,
+					"tick_interval": 4.0
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 180,
+				"cost": 80,
+				"desc": "产出:每4秒生成36法力(双头向日葵)",
+				"mechanics": {
+					"mana_per_tick": 36,
+					"tick_interval": 4.0,
+					"double_headed": true
+				}
+			}
+		},
+		"type_key": "sunflower",
+		"faction": "universal"
+	},
+	"bear": {
+		"name": "暴怒熊",
+		"icon": "🐻",
+		"size": [
+			1,
+			1
+		],
+		"range": 80,
+		"atkSpeed": 1.2,
+		"manaCost": 0,
+		"attackType": "melee",
+		"skill": "stun",
+		"skillCd": 15,
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 350,
+				"hp": 400,
+				"cost": 65,
+				"desc": "近战:重击晕眩\n技能:震慑(300💧)",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 525,
+				"hp": 600,
+				"cost": 130,
+				"desc": "近战:重击晕眩\n技能:震慑(300💧)",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 787,
+				"hp": 900,
+				"cost": 260,
+				"desc": "近战:重击晕眩\n技能:震慑(300💧)",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "bear",
+		"faction": "universal"
+	}
+}

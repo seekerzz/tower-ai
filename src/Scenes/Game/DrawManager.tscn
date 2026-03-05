@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://drawmanager_v1"]
+
+[ext_resource type="Script" path="res://src/Scripts/DrawManager.gd" id="1_draw"]
+
+[node name="DrawManager" type="Node2D"]
+script = ExtResource("1_draw")
+
+[node name="PreviewLine" type="Line2D" parent="."]
+top_level = true
+z_index = 100

@@ -1,0 +1,282 @@
+{
+	"wolf": {
+		"name": "野狼",
+		"icon": "🐺",
+		"size": [
+			1,
+			1
+		],
+		"range": 100,
+		"atkSpeed": 1.0,
+		"manaCost": 0,
+		"attackType": "melee",
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 100,
+				"hp": 300,
+				"cost": 100,
+				"desc": "吞噬单位继承属性",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 150,
+				"hp": 450,
+				"cost": 200,
+				"desc": "吞噬单位继承属性",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			}
+		},
+		"type_key": "wolf",
+		"faction": "wolf_totem"
+	},
+	"tiger": {
+		"name": "猛虎",
+		"icon": "🐯",
+		"size": [
+			1,
+			1
+		],
+		"range": 250,
+		"atkSpeed": 1.5,
+		"manaCost": 0,
+		"attackType": "ranged",
+		"proj": "pinecone",
+		"damageType": "physical",
+		"skill": "meteor_fall",
+		"skillCd": 15,
+		"skillDuration": 5.0,
+		"levels": {
+			"1": {
+				"damage": 300,
+				"hp": 500,
+				"cost": 250,
+				"desc": "主动：流星雨轰炸",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 450,
+				"hp": 750,
+				"cost": 500,
+				"desc": "主动：流星雨轰炸",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 675,
+				"hp": 1125,
+				"cost": 1000,
+				"desc": "主动：流星雨轰炸",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "tiger",
+		"faction": "wolf_totem"
+	},
+	"lion": {
+		"name": "狮子",
+		"icon": "🦁",
+		"size": [
+			1,
+			1
+		],
+		"range": 200,
+		"atkSpeed": 2.0,
+		"manaCost": 0,
+		"attackType": "shockwave",
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 150,
+				"hp": 200,
+				"cost": 90,
+				"desc": "声波:狮吼对范围内所有敌人造成伤害",
+				"mechanics": {
+					"shockwave_radius": 150
+				}
+			},
+			"2": {
+				"damage": 225,
+				"hp": 300,
+				"cost": 180,
+				"desc": "声波:范围扩大，20%概率击退",
+				"mechanics": {
+					"shockwave_radius": 180,
+					"knockback_chance": 0.2
+				}
+			},
+			"3": {
+				"damage": 337,
+				"hp": 450,
+				"cost": 360,
+				"desc": "声波:范围200，每3次攻击产生延迟冲击波",
+				"mechanics": {
+					"shockwave_radius": 200,
+					"knockback_chance": 0.3,
+					"secondary_shockwave": true
+				}
+			}
+		},
+		"type_key": "lion",
+		"faction": "wolf_totem"
+	},
+	"dog": {
+		"name": "恶霸犬",
+		"icon": "🐕",
+		"size": [
+			1,
+			1
+		],
+		"range": 100,
+		"atkSpeed": 0.8,
+		"manaCost": 0,
+		"attackType": "melee",
+		"splash": 60,
+		"skill": "rage",
+		"skillCd": 10,
+		"skillDuration": 5.0,
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 200,
+				"hp": 300,
+				"cost": 30,
+				"desc": "近战: 凶猛撕咬 (范围伤害)",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 300,
+				"hp": 450,
+				"cost": 60,
+				"desc": "近战: 凶猛撕咬 (范围伤害)",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 450,
+				"hp": 675,
+				"cost": 120,
+				"desc": "近战: 凶猛撕咬 (范围伤害)",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "dog",
+		"faction": "wolf_totem"
+	},
+	"fox": {
+		"name": "灵狐",
+		"icon": "🦊",
+		"size": [
+			1,
+			1
+		],
+		"range": 200,
+		"atkSpeed": 1.0,
+		"manaCost": 0,
+		"attackType": "ranged",
+		"proj": "spirit_orb",
+		"damageType": "magic",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 50,
+				"hp": 200,
+				"cost": 60,
+				"desc": "魅惑：被攻击时20%概率魅惑敌人",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 75,
+				"hp": 300,
+				"cost": 120,
+				"desc": "魅惑：被攻击时30%概率魅惑敌人",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 112,
+				"hp": 450,
+				"cost": 240,
+				"desc": "魅惑：可同时魅惑2个敌人",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "fox",
+		"faction": "wolf_totem"
+	},
+	"blood_meat": {
+		"name": "血食",
+		"icon": "🥩",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0,
+		"manaCost": 50,
+		"attackType": "none",
+		"skill": "sacrifice",
+		"skillCd": 20,
+		"crit_rate": 0.0,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 150,
+				"cost": 50,
+				"desc": "邻接狼族+10%攻击。技能:牺牲自己治疗核心5%，所有狼族+25%攻击5秒",
+				"mechanics": {
+					"adjacent_wolf_buff": 0.1,
+					"sacrifice_heal": 0.05,
+					"sacrifice_buff": 0.25,
+					"sacrifice_duration": 5.0
+				}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 225,
+				"cost": 100,
+				"desc": "邻接狼族+15%攻击。技能:牺牲治疗核心8%，所有狼族+30%攻击6秒",
+				"mechanics": {
+					"adjacent_wolf_buff": 0.15,
+					"sacrifice_heal": 0.08,
+					"sacrifice_buff": 0.3,
+					"sacrifice_duration": 6.0
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 337,
+				"cost": 200,
+				"desc": "邻接狼族+20%攻击，吞噬叠加层数。技能:牺牲治疗核心10%，所有狼族+40%攻击8秒",
+				"mechanics": {
+					"adjacent_wolf_buff": 0.2,
+					"sacrifice_heal": 0.1,
+					"sacrifice_buff": 0.4,
+					"sacrifice_duration": 8.0,
+					"blood_stacks": true
+				}
+			}
+		},
+		"type_key": "blood_meat",
+		"faction": "wolf_totem"
+	}
+}

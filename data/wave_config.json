@@ -1,0 +1,604 @@
+{
+  "version": "2.0",
+  "description": "波次系统配置文件 - 四季轮回 1-24波配置",
+  "seasons": {
+    "spring": {
+      "name": "春之觉醒",
+      "name_en": "Spring",
+      "waves": [1, 2, 3, 4, 5, 6],
+      "theme_color": "#2ecc71",
+      "enemy_pool": ["slime", "mutant_slime", "healer", "wolf"],
+      "boss_type": "spring_guardian",
+      "environment_effect": "bloom"
+    },
+    "summer": {
+      "name": "夏之炎阳",
+      "name_en": "Summer",
+      "waves": [7, 8, 9, 10, 11, 12],
+      "theme_color": "#e74c3c",
+      "enemy_pool": ["crab", "wolf", "poison", "mutant_slime"],
+      "boss_type": "summer_dragon",
+      "environment_effect": "heat_wave"
+    },
+    "autumn": {
+      "name": "秋之凋零",
+      "name_en": "Autumn",
+      "waves": [13, 14, 15, 16, 17, 18],
+      "theme_color": "#d35400",
+      "enemy_pool": ["treant", "poison", "wolf", "golem"],
+      "boss_type": "autumn_lord",
+      "environment_effect": "falling_leaves"
+    },
+    "winter": {
+      "name": "冬之严寒",
+      "name_en": "Winter",
+      "waves": [19, 20, 21, 22, 23, 24],
+      "theme_color": "#3498db",
+      "enemy_pool": ["yeti", "golem", "treant", "healer"],
+      "boss_type": "winter_queen",
+      "environment_effect": "snow_storm"
+    }
+  },
+  "enemy_types": [
+    "slime",
+    "mutant_slime",
+    "crab",
+    "wolf",
+    "poison",
+    "treant",
+    "yeti",
+    "golem",
+    "healer"
+  ],
+  "boss_types": [
+    "summoner",
+    "ranger",
+    "tank",
+    "spring_guardian",
+    "summer_dragon",
+    "autumn_lord",
+    "winter_queen"
+  ],
+  "waves": {
+    "1": {
+      "wave_number": 1,
+      "wave_type": "normal",
+      "difficulty": 0.2,
+      "enemy_count": 1,
+      "batch_count": 1,
+      "enemies_per_batch": 1,
+      "batch_delay": 5.0,
+      "spawn_interval": 1.5,
+      "enemy_types": ["slime"],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 45,
+        "exp": 30
+      },
+      "_comment": "SEASON-BALANCE-001: 难度调整 2→1个slime，间隔1.2→1.5s，奖励40→45，确保玩家能到达第6波Boss"
+    },
+    "2": {
+      "wave_number": 2,
+      "wave_type": "normal",
+      "difficulty": 0.4,
+      "enemy_count": 3,
+      "batch_count": 2,
+      "enemies_per_batch": 2,
+      "batch_delay": 4.0,
+      "spawn_interval": 1.2,
+      "enemy_types": ["slime"],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 45,
+        "exp": 35
+      },
+      "_comment": "SEASON-BALANCE-001: 难度调整 4→3个slime，间隔1.0→1.2s，奖励40→45，确保玩家能到达第6波Boss"
+    },
+    "3": {
+      "wave_number": 3,
+      "wave_type": "healer",
+      "difficulty": 4.56,
+      "enemy_count": 38,
+      "batch_count": 4,
+      "enemies_per_batch": 10,
+      "batch_delay": 3.0,
+      "spawn_interval": 0.1,
+      "enemy_types": ["healer", "slime"],
+      "enemy_weights": [0.4, 0.6],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 35,
+        "exp": 30
+      }
+    },
+    "4": {
+      "wave_number": 4,
+      "wave_type": "normal",
+      "difficulty": 6.99,
+      "enemy_count": 44,
+      "batch_count": 5,
+      "enemies_per_batch": 9,
+      "batch_delay": 2.8,
+      "spawn_interval": 0.1,
+      "enemy_types": ["wolf"],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 40,
+        "exp": 35
+      }
+    },
+    "5": {
+      "wave_number": 5,
+      "wave_type": "elite",
+      "difficulty": 15.09,
+      "enemy_count": 50,
+      "batch_count": 5,
+      "enemies_per_batch": 10,
+      "batch_delay": 2.5,
+      "spawn_interval": 0.1,
+      "enemy_types": ["slime", "wolf", "crab"],
+      "enemy_weights": [0.4, 0.4, 0.2],
+      "is_elite": true,
+      "is_boss": false,
+      "elite_modifiers": {
+        "hp_multiplier": 1.3,
+        "speed_multiplier": 1.2,
+        "damage_multiplier": 1.25
+      },
+      "rewards": {
+        "gold": 100,
+        "exp": 50,
+        "special": "elite_bonus"
+      }
+    },
+    "6": {
+      "wave_number": 6,
+      "wave_type": "season_boss",
+      "difficulty": 50.0,
+      "enemy_count": 1,
+      "batch_count": 1,
+      "enemies_per_batch": 1,
+      "batch_delay": 1.0,
+      "spawn_interval": 1.0,
+      "enemy_types": ["boss"],
+      "is_elite": false,
+      "is_boss": true,
+      "boss_count": 1,
+      "boss_pool": ["spring_guardian", "thorn_queen", "spring_spirit"],
+      "boss_selection": "random",
+      "boss_hp_multiplier": 1.0,
+      "season": "spring",
+      "rewards": {
+        "gold": 50,
+        "exp": 40,
+        "special": "season_boss_bonus"
+      },
+      "_comment": "春季Boss波 - 从3个Boss中随机选择1个"
+    },
+    "7": {
+      "wave_number": 7,
+      "wave_type": "normal",
+      "difficulty": 18.56,
+      "enemy_count": 62,
+      "batch_count": 6,
+      "enemies_per_batch": 11,
+      "batch_delay": 2.3,
+      "spawn_interval": 0.1,
+      "enemy_types": ["treant"],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 65,
+        "exp": 50
+      }
+    },
+    "8": {
+      "wave_number": 8,
+      "wave_type": "event",
+      "difficulty": 24.38,
+      "enemy_count": 68,
+      "batch_count": 7,
+      "enemies_per_batch": 10,
+      "batch_delay": 2.2,
+      "spawn_interval": 0.1,
+      "enemy_types": ["yeti", "wolf"],
+      "enemy_weights": [0.6, 0.4],
+      "is_elite": false,
+      "is_boss": false,
+      "event_type": "rush",
+      "speed_bonus": 1.3,
+      "rewards": {
+        "gold": 70,
+        "exp": 55
+      }
+    },
+    "9": {
+      "wave_number": 9,
+      "wave_type": "normal",
+      "difficulty": 31.58,
+      "enemy_count": 74,
+      "batch_count": 7,
+      "enemies_per_batch": 11,
+      "batch_delay": 2.1,
+      "spawn_interval": 0.1,
+      "enemy_types": ["golem"],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 75,
+        "exp": 60
+      }
+    },
+    "10": {
+      "wave_number": 10,
+      "wave_type": "boss",
+      "difficulty": 80.94,
+      "enemy_count": 2,
+      "batch_count": 2,
+      "enemies_per_batch": 1,
+      "batch_delay": 1.0,
+      "spawn_interval": 1.0,
+      "enemy_types": ["boss"],
+      "is_elite": false,
+      "is_boss": true,
+      "boss_count": 2,
+      "boss_composition": ["tank", "random"],
+      "boss_hp_multiplier": 1.0,
+      "rewards": {
+        "gold": 200,
+        "exp": 100,
+        "special": "boss_bonus"
+      }
+    },
+    "11": {
+      "wave_number": 11,
+      "wave_type": "normal",
+      "difficulty": 46.54,
+      "enemy_count": 86,
+      "batch_count": 8,
+      "enemies_per_batch": 11,
+      "batch_delay": 2.0,
+      "spawn_interval": 0.1,
+      "enemy_types": ["poison", "treant", "yeti"],
+      "enemy_weights": [0.4, 0.3, 0.3],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 85,
+        "exp": 70
+      }
+    },
+    "12": {
+      "wave_number": 12,
+      "wave_type": "season_boss",
+      "difficulty": 120.0,
+      "enemy_count": 1,
+      "batch_count": 1,
+      "enemies_per_batch": 1,
+      "batch_delay": 1.0,
+      "spawn_interval": 1.0,
+      "enemy_types": ["boss"],
+      "is_elite": false,
+      "is_boss": true,
+      "boss_count": 1,
+      "boss_pool": ["summer_dragon", "magma_giant", "sun_cheetah"],
+      "boss_selection": "random",
+      "boss_hp_multiplier": 1.2,
+      "season": "summer",
+      "rewards": {
+        "gold": 75,
+        "exp": 80,
+        "special": "season_boss_bonus"
+      },
+      "_comment": "夏季Boss波 - 从3个Boss中随机选择1个"
+    },
+    "13": {
+      "wave_number": 13,
+      "wave_type": "normal",
+      "difficulty": 69.88,
+      "enemy_count": 98,
+      "batch_count": 9,
+      "enemies_per_batch": 11,
+      "batch_delay": 1.8,
+      "spawn_interval": 0.1,
+      "enemy_types": ["mutant_slime", "wolf", "poison"],
+      "enemy_weights": [0.3, 0.4, 0.3],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 95,
+        "exp": 80
+      }
+    },
+    "14": {
+      "wave_number": 14,
+      "wave_type": "event",
+      "difficulty": 84.62,
+      "enemy_count": 104,
+      "batch_count": 9,
+      "enemies_per_batch": 12,
+      "batch_delay": 1.7,
+      "spawn_interval": 0.1,
+      "enemy_types": ["slime", "mutant_slime", "wolf", "crab"],
+      "enemy_weights": [0.3, 0.3, 0.2, 0.2],
+      "is_elite": false,
+      "is_boss": false,
+      "event_type": "swarm",
+      "enemy_count_mult": 1.5,
+      "hp_mult": 0.7,
+      "rewards": {
+        "gold": 100,
+        "exp": 85
+      }
+    },
+    "15": {
+      "wave_number": 15,
+      "wave_type": "elite",
+      "difficulty": 183.35,
+      "enemy_count": 110,
+      "batch_count": 10,
+      "enemies_per_batch": 11,
+      "batch_delay": 1.5,
+      "spawn_interval": 0.1,
+      "enemy_types": ["golem", "yeti", "treant"],
+      "enemy_weights": [0.4, 0.3, 0.3],
+      "is_elite": true,
+      "is_boss": false,
+      "elite_modifiers": {
+        "hp_multiplier": 1.3,
+        "speed_multiplier": 1.2,
+        "damage_multiplier": 1.25
+      },
+      "rewards": {
+        "gold": 200,
+        "exp": 100,
+        "special": "elite_bonus"
+      }
+    },
+    "16": {
+      "wave_number": 16,
+      "wave_type": "normal",
+      "difficulty": 146.87,
+      "enemy_count": 116,
+      "batch_count": 10,
+      "enemies_per_batch": 12,
+      "batch_delay": 1.4,
+      "spawn_interval": 0.1,
+      "enemy_types": ["healer", "golem", "poison"],
+      "enemy_weights": [0.2, 0.4, 0.4],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 110,
+        "exp": 95
+      }
+    },
+    "17": {
+      "wave_number": 17,
+      "wave_type": "event",
+      "difficulty": 174.2,
+      "enemy_count": 122,
+      "batch_count": 11,
+      "enemies_per_batch": 12,
+      "batch_delay": 1.3,
+      "spawn_interval": 0.1,
+      "enemy_types": ["wolf", "yeti", "mutant_slime"],
+      "enemy_weights": [0.4, 0.3, 0.3],
+      "is_elite": false,
+      "is_boss": false,
+      "event_type": "rush",
+      "speed_bonus": 1.3,
+      "rewards": {
+        "gold": 115,
+        "exp": 100
+      }
+    },
+    "18": {
+      "wave_number": 18,
+      "wave_type": "season_boss",
+      "difficulty": 280.0,
+      "enemy_count": 1,
+      "batch_count": 1,
+      "enemies_per_batch": 1,
+      "batch_delay": 1.0,
+      "spawn_interval": 1.0,
+      "enemy_types": ["boss"],
+      "is_elite": false,
+      "is_boss": true,
+      "boss_count": 1,
+      "boss_pool": ["autumn_lord", "death_reaper", "withered_prophet"],
+      "boss_selection": "random",
+      "boss_hp_multiplier": 1.5,
+      "season": "autumn",
+      "rewards": {
+        "gold": 100,
+        "exp": 120,
+        "special": "season_boss_bonus"
+      },
+      "_comment": "秋季Boss波 - 从3个Boss中随机选择1个"
+    },
+    "19": {
+      "wave_number": 19,
+      "wave_type": "normal",
+      "difficulty": 242.3,
+      "enemy_count": 134,
+      "batch_count": 12,
+      "enemies_per_batch": 12,
+      "batch_delay": 1.1,
+      "spawn_interval": 0.1,
+      "enemy_types": ["poison", "healer", "wolf"],
+      "enemy_weights": [0.4, 0.2, 0.4],
+      "is_elite": false,
+      "is_boss": false,
+      "rewards": {
+        "gold": 125,
+        "exp": 110
+      }
+    },
+    "20": {
+      "wave_number": 20,
+      "wave_type": "normal",
+      "difficulty": 545.0,
+      "enemy_count": 3,
+      "batch_count": 3,
+      "enemies_per_batch": 1,
+      "batch_delay": 1.0,
+      "spawn_interval": 1.0,
+      "enemy_types": ["boss"],
+      "is_elite": false,
+      "is_boss": true,
+      "boss_count": 3,
+      "boss_composition": ["tank", "summoner", "ranger"],
+      "boss_hp_multiplier": 1.5,
+      "rewards": {
+        "gold": 400,
+        "exp": 200,
+        "special": "major_boss_bonus"
+      }
+    },
+    "21": {
+      "wave_number": 21,
+      "wave_type": "event",
+      "difficulty": 620.0,
+      "enemy_count": 140,
+      "batch_count": 12,
+      "enemies_per_batch": 12,
+      "batch_delay": 1.0,
+      "spawn_interval": 0.1,
+      "enemy_types": ["golem", "yeti", "treant", "poison"],
+      "enemy_weights": [0.3, 0.3, 0.2, 0.2],
+      "is_elite": false,
+      "is_boss": false,
+      "event_type": "swarm",
+      "enemy_count_mult": 1.3,
+      "hp_mult": 0.8,
+      "rewards": {
+        "gold": 130,
+        "exp": 115
+      }
+    },
+    "22": {
+      "wave_number": 22,
+      "wave_type": "elite",
+      "difficulty": 750.0,
+      "enemy_count": 146,
+      "batch_count": 12,
+      "enemies_per_batch": 13,
+      "batch_delay": 0.9,
+      "spawn_interval": 0.1,
+      "enemy_types": ["healer", "golem", "wolf"],
+      "enemy_weights": [0.3, 0.4, 0.3],
+      "is_elite": true,
+      "is_boss": false,
+      "elite_modifiers": {
+        "hp_multiplier": 1.4,
+        "speed_multiplier": 1.3,
+        "damage_multiplier": 1.35
+      },
+      "rewards": {
+        "gold": 250,
+        "exp": 130,
+        "special": "elite_bonus"
+      }
+    },
+    "23": {
+      "wave_number": 23,
+      "wave_type": "event",
+      "difficulty": 850.0,
+      "enemy_count": 152,
+      "batch_count": 13,
+      "enemies_per_batch": 12,
+      "batch_delay": 0.8,
+      "spawn_interval": 0.1,
+      "enemy_types": ["mutant_slime", "crab", "poison", "yeti"],
+      "enemy_weights": [0.25, 0.25, 0.25, 0.25],
+      "is_elite": false,
+      "is_boss": false,
+      "event_type": "rush",
+      "speed_bonus": 1.4,
+      "rewards": {
+        "gold": 140,
+        "exp": 125
+      }
+    },
+    "24": {
+      "wave_number": 24,
+      "wave_type": "season_boss",
+      "difficulty": 1200.0,
+      "enemy_count": 1,
+      "batch_count": 1,
+      "enemies_per_batch": 1,
+      "batch_delay": 1.0,
+      "spawn_interval": 1.0,
+      "enemy_types": ["boss"],
+      "is_elite": false,
+      "is_boss": true,
+      "boss_count": 1,
+      "boss_pool": ["winter_queen", "frost_troll", "snow_commander"],
+      "boss_selection": "random",
+      "boss_hp_multiplier": 2.0,
+      "season": "winter",
+      "rewards": {
+        "gold": 500,
+        "exp": 300,
+        "special": "season_final_boss"
+      },
+      "_comment": "冬季Boss波 - 从3个Boss中随机选择1个"
+    }
+  },
+  "event_wave_types": {
+    "mixed": {
+      "desc": "混合敌人",
+      "composition": ["slime", "wolf", "poison"],
+      "weights": [0.5, 0.3, 0.2]
+    },
+    "rush": {
+      "desc": "快速冲锋",
+      "composition": ["wolf", "mutant_slime"],
+      "speed_bonus": 1.3,
+      "reward_bonus": 1.2
+    },
+    "tank": {
+      "desc": "重装波次",
+      "composition": ["golem", "treant"],
+      "hp_bonus": 1.5,
+      "reward_bonus": 1.3
+    },
+    "swarm": {
+      "desc": "数量压制",
+      "enemy_count_mult": 1.5,
+      "hp_mult": 0.7,
+      "reward_bonus": 1.1
+    }
+  },
+  "difficulty_settings": {
+    "easy": {
+      "difficulty_multiplier": 0.7,
+      "enemy_hp_multiplier": 0.8,
+      "enemy_damage_multiplier": 0.7,
+      "reward_multiplier": 0.8
+    },
+    "normal": {
+      "difficulty_multiplier": 1.0,
+      "enemy_hp_multiplier": 1.0,
+      "enemy_damage_multiplier": 1.0,
+      "reward_multiplier": 1.0
+    },
+    "hard": {
+      "difficulty_multiplier": 1.3,
+      "enemy_hp_multiplier": 1.2,
+      "enemy_damage_multiplier": 1.3,
+      "reward_multiplier": 1.2
+    },
+    "nightmare": {
+      "difficulty_multiplier": 1.8,
+      "enemy_hp_multiplier": 1.5,
+      "enemy_damage_multiplier": 1.5,
+      "reward_multiplier": 1.5
+    }
+  }
+}

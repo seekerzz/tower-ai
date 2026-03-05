@@ -1,0 +1,567 @@
+{
+	"parrot": {
+		"name": "鹦鹉",
+		"icon": "🦜",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 0.08,
+		"manaCost": 0,
+		"attackType": "mimic",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 100,
+				"cost": 0,
+				"desc": "学习邻居子弹\n上限:5发",
+				"mechanics": {
+					"max_ammo": 5
+				}
+			},
+			"2": {
+				"damage": 0,
+				"hp": 150,
+				"cost": 0,
+				"desc": "学习邻居子弹\n上限:7发",
+				"mechanics": {
+					"max_ammo": 7
+				}
+			},
+			"3": {
+				"damage": 0,
+				"hp": 225,
+				"cost": 0,
+				"desc": "学习邻居子弹\n上限:10发",
+				"mechanics": {
+					"max_ammo": 10
+				}
+			}
+		},
+		"type_key": "parrot",
+		"faction": "eagle_totem"
+	},
+	"peacock": {
+		"name": "孔雀",
+		"icon": "🦚",
+		"size": [
+			1,
+			1
+		],
+		"range": 300,
+		"atkSpeed": 1.2,
+		"attackType": "ranged",
+		"proj": "feather",
+		"max_quills": 3,
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 60,
+				"hp": 200,
+				"cost": 40,
+				"desc": "远程: 发射羽毛, 第4次收回拉扯敌人",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 90,
+				"hp": 300,
+				"cost": 80,
+				"desc": "远程: 发射羽毛, 第4次收回拉扯敌人",
+				"mechanics": {
+					"pull_strength": 600,
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 135,
+				"hp": 450,
+				"cost": 160,
+				"desc": "远程: 发射羽毛, 第4次收回拉扯敌人",
+				"mechanics": {
+					"pull_strength": 1000,
+					"multi_shot_chance": 0.2,
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "peacock",
+		"faction": "eagle_totem"
+	},
+	"oxpecker": {
+		"name": "牛椋鸟",
+		"icon": "🐦",
+		"size": [
+			1,
+			1
+		],
+		"range": 300,
+		"atkSpeed": 1.0,
+		"attackType": "ranged",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 10,
+				"hp": 100,
+				"cost": 50,
+				"desc": "可附身于其他单位，协助宿主攻击",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 20,
+				"hp": 150,
+				"cost": 100,
+				"desc": "可附身于其他单位，协助宿主攻击",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 40,
+				"hp": 225,
+				"cost": 200,
+				"desc": "可附身于其他单位，协助宿主攻击",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "oxpecker",
+		"faction": "eagle_totem"
+	},
+	"woodpecker": {
+		"name": "啄木鸟",
+		"icon": "🐦",
+		"size": [
+			1,
+			1
+		],
+		"range": 250,
+		"atkSpeed": 0.5,
+		"attackType": "ranged",
+		"proj": "stinger",
+		"damageType": "physical",
+		"levels": {
+			"1": {
+				"damage": 8,
+				"hp": 80,
+				"cost": 40,
+				"desc": "被动：对同一目标的连续攻击伤害逐渐增加 (每次+10%)",
+				"mechanics": {
+					"stack_bonus": 0.1
+				}
+			},
+			"2": {
+				"damage": 12,
+				"hp": 120,
+				"cost": 80,
+				"desc": "被动：对同一目标的连续攻击伤害逐渐增加 (每次+10%)",
+				"mechanics": {
+					"stack_bonus": 0.1,
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 18,
+				"hp": 180,
+				"cost": 160,
+				"desc": "被动：对同一目标的连续攻击伤害逐渐增加 (每次+10%)",
+				"mechanics": {
+					"stack_bonus": 0.1,
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "woodpecker",
+		"faction": "eagle_totem"
+	},
+	"eagle": {
+		"name": "老鹰",
+		"icon": "🦅",
+		"size": [
+			1,
+			1
+		],
+		"range": 400,
+		"atkSpeed": 1.2,
+		"manaCost": 0,
+		"attackType": "melee",
+		"damageType": "physical",
+		"crit_rate": 0.2,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 100,
+				"hp": 250,
+				"cost": 70,
+				"desc": "极速突进: 优先攻击最远敌人。满血敌人受到双倍伤害。",
+				"mechanics": {}
+			},
+			"2": {
+				"damage": 150,
+				"hp": 375,
+				"cost": 140,
+				"desc": "极速突进: 优先攻击最远敌人。满血敌人受到双倍伤害。",
+				"mechanics": {
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 225,
+				"hp": 562,
+				"cost": 280,
+				"desc": "极速突进: 优先攻击最远敌人。满血敌人受到双倍伤害。",
+				"mechanics": {
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "eagle",
+		"faction": "eagle_totem"
+	},
+	"storm_eagle": {
+		"name": "风暴鹰",
+		"icon": "⚡",
+		"size": [
+			1,
+			1
+		],
+		"range": 300,
+		"atkSpeed": 1.5,
+		"manaCost": 0,
+		"attackType": "ranged",
+		"proj": "lightning",
+		"damageType": "lightning",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 80,
+				"hp": 200,
+				"cost": 80,
+				"desc": "雷暴召唤: 友方暴击时积累电荷，满5层召唤全场雷击",
+				"mechanics": {
+					"charges_needed": 5,
+					"lightning_can_crit": false
+				}
+			},
+			"2": {
+				"damage": 120,
+				"hp": 300,
+				"cost": 160,
+				"desc": "雷暴召唤: 友方暴击时积累电荷，满4层召唤全场雷击",
+				"mechanics": {
+					"charges_needed": 4,
+					"lightning_can_crit": false
+				}
+			},
+			"3": {
+				"damage": 180,
+				"hp": 450,
+				"cost": 320,
+				"desc": "雷暴召唤: 友方暴击时积累电荷，满3层召唤全场雷击，雷击可暴击",
+				"mechanics": {
+					"charges_needed": 3,
+					"lightning_can_crit": true
+				}
+			}
+		},
+		"type_key": "storm_eagle",
+		"faction": "eagle_totem"
+	},
+	"gale_eagle": {
+		"name": "疾风鹰",
+		"icon": "💨",
+		"size": [
+			1,
+			1
+		],
+		"range": 250,
+		"atkSpeed": 1.2,
+		"manaCost": 0,
+		"attackType": "ranged",
+		"proj": "feather",
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 50,
+				"hp": 180,
+				"cost": 70,
+				"desc": "风刃连击: 每次攻击发射2道风刃，每道60%伤害",
+				"mechanics": {
+					"wind_blade_count": 2,
+					"damage_per_blade": 0.6
+				}
+			},
+			"2": {
+				"damage": 75,
+				"hp": 270,
+				"cost": 140,
+				"desc": "风刃连击: 每次攻击发射3道风刃，每道70%伤害",
+				"mechanics": {
+					"wind_blade_count": 3,
+					"damage_per_blade": 0.7
+				}
+			},
+			"3": {
+				"damage": 112,
+				"hp": 405,
+				"cost": 280,
+				"desc": "风刃连击: 每次攻击发射4道风刃，每道80%伤害",
+				"mechanics": {
+					"wind_blade_count": 4,
+					"damage_per_blade": 0.8
+				}
+			}
+		},
+		"type_key": "gale_eagle",
+		"faction": "eagle_totem"
+	},
+	"harpy_eagle": {
+		"name": "角雕",
+		"icon": "🦅",
+		"size": [
+			1,
+			1
+		],
+		"range": 120,
+		"atkSpeed": 1.0,
+		"manaCost": 0,
+		"attackType": "melee",
+		"damageType": "physical",
+		"crit_rate": 0.15,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 60,
+				"hp": 250,
+				"cost": 75,
+				"desc": "三连爪击: 快速进行3次爪击，每次60%伤害",
+				"mechanics": {
+					"claw_count": 3,
+					"damage_per_claw": 0.6,
+					"third_claw_bleed": false
+				}
+			},
+			"2": {
+				"damage": 90,
+				"hp": 375,
+				"cost": 150,
+				"desc": "三连爪击: 快速进行3次爪击，每次70%伤害",
+				"mechanics": {
+					"claw_count": 3,
+					"damage_per_claw": 0.7,
+					"third_claw_bleed": false
+				}
+			},
+			"3": {
+				"damage": 135,
+				"hp": 562,
+				"cost": 300,
+				"desc": "三连爪击: 快速进行3次爪击，每次80%伤害，第三次附带流血",
+				"mechanics": {
+					"claw_count": 3,
+					"damage_per_claw": 0.8,
+					"third_claw_bleed": true
+				}
+			}
+		},
+		"type_key": "harpy_eagle",
+		"faction": "eagle_totem"
+	},
+	"vulture": {
+		"name": "秃鹫",
+		"icon": "🦅",
+		"size": [
+			1,
+			1
+		],
+		"range": 100,
+		"atkSpeed": 1.0,
+		"manaCost": 0,
+		"attackType": "melee",
+		"damageType": "physical",
+		"crit_rate": 0.05,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 70,
+				"hp": 300,
+				"cost": 65,
+				"desc": "腐食增益: 周围有敌人死亡时，自身攻击+5%持续5秒",
+				"mechanics": {
+					"damage_bonus_percent": 0.05,
+					"lifesteal_percent": 0.0,
+					"detection_range": 300
+				}
+			},
+			"2": {
+				"damage": 105,
+				"hp": 450,
+				"cost": 130,
+				"desc": "腐食增益: 周围有敌人死亡时，自身攻击+10%持续5秒",
+				"mechanics": {
+					"damage_bonus_percent": 0.1,
+					"lifesteal_percent": 0.0,
+					"detection_range": 300
+				}
+			},
+			"3": {
+				"damage": 157,
+				"hp": 675,
+				"cost": 260,
+				"desc": "腐食增益: 周围有敌人死亡时，自身攻击+10%持续5秒，且吸血+20%",
+				"mechanics": {
+					"damage_bonus_percent": 0.1,
+					"lifesteal_percent": 0.2,
+					"detection_range": 300
+				}
+			}
+		},
+		"type_key": "vulture",
+		"faction": "eagle_totem"
+	},
+	"kestrel": {
+		"name": "红隼",
+		"icon": "🐦",
+		"size": [
+			1,
+			1
+		],
+		"range": 250,
+		"atkSpeed": 1.0,
+		"attackType": "ranged",
+		"damageType": "physical",
+		"type_key": "kestrel",
+		"levels": {
+			"1": {
+				"damage": 40,
+				"hp": 150,
+				"cost": 120,
+				"desc": "攻击概率眩晕敌人"
+			},
+			"2": {
+				"damage": 60,
+				"hp": 225,
+				"cost": 240,
+				"desc": "眩晕概率和时间增加"
+			},
+			"3": {
+				"damage": 90,
+				"hp": 337,
+				"cost": 480,
+				"desc": "眩晕时触发音爆伤害"
+			}
+		},
+		"faction": "eagle_totem"
+	},
+	"owl": {
+		"name": "猫头鹰",
+		"icon": "🦉",
+		"size": [
+			1,
+			1
+		],
+		"range": 0,
+		"atkSpeed": 1.0,
+		"attackType": "none",
+		"buffProvider": "crit",
+		"type_key": "owl",
+		"levels": {
+			"1": {
+				"damage": 0,
+				"hp": 120,
+				"cost": 100,
+				"desc": "邻接友军暴击率+12%"
+			},
+			"2": {
+				"damage": 0,
+				"hp": 180,
+				"cost": 200,
+				"desc": "周围2格友军暴击率+20%"
+			},
+			"3": {
+				"damage": 0,
+				"hp": 270,
+				"cost": 400,
+				"desc": "友军触发回响时增加攻速"
+			}
+		},
+		"faction": "eagle_totem"
+	},
+	"magpie": {
+		"name": "喜鹊",
+		"icon": "🐧",
+		"size": [
+			1,
+			1
+		],
+		"range": 200,
+		"atkSpeed": 1.2,
+		"attackType": "ranged",
+		"damageType": "physical",
+		"type_key": "magpie",
+		"levels": {
+			"1": {
+				"damage": 35,
+				"hp": 120,
+				"cost": 100,
+				"desc": "攻击概率偷取敌人属性"
+			},
+			"2": {
+				"damage": 50,
+				"hp": 180,
+				"cost": 200,
+				"desc": "偷取属性效果提升"
+			},
+			"3": {
+				"damage": 75,
+				"hp": 270,
+				"cost": 400,
+				"desc": "偷取成功回复核心HP或金币"
+			}
+		},
+		"faction": "eagle_totem"
+	},
+	"pigeon": {
+		"name": "鸽子",
+		"icon": "🕊️",
+		"size": [
+			1,
+			1
+		],
+		"range": 200,
+		"atkSpeed": 1.0,
+		"attackType": "ranged",
+		"damageType": "physical",
+		"type_key": "pigeon",
+		"levels": {
+			"1": {
+				"damage": 30,
+				"hp": 100,
+				"cost": 80,
+				"desc": "有几率闪避敌人攻击"
+			},
+			"2": {
+				"damage": 45,
+				"hp": 150,
+				"cost": 160,
+				"desc": "闪避后短暂无敌"
+			},
+			"3": {
+				"damage": 67,
+				"hp": 225,
+				"cost": 320,
+				"desc": "闪避时反击并增加友军暴击"
+			}
+		},
+		"faction": "eagle_totem"
+	}
+}

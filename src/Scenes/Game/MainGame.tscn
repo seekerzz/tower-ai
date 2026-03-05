@@ -1,0 +1,35 @@
+[gd_scene load_steps=9 format=3 uid="uid://maingame123"]
+
+[ext_resource type="Script" uid="uid://yevi5jhibo13" path="res://src/Scripts/MainGame.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://grid123456" path="res://src/Scenes/Game/GridManager.tscn" id="2_grid"]
+[ext_resource type="PackedScene" uid="uid://combat123" path="res://src/Scenes/Game/CombatManager.tscn" id="3_combat"]
+[ext_resource type="PackedScene" uid="uid://shop123" path="res://src/Scenes/UI/Shop.tscn" id="4_shop"]
+[ext_resource type="PackedScene" uid="uid://gui123" path="res://src/Scenes/UI/MainGUI.tscn" id="5_gui"]
+[ext_resource type="PackedScene" path="res://src/Scenes/Game/DrawManager.tscn" id="6_draw"]
+[ext_resource type="Texture2D" path="res://assets/images/UI/bg_battle.png" id="7_bg"]
+[ext_resource type="PackedScene" uid="uid://cheatmenu123" path="res://src/Scenes/UI/CheatMenu.tscn" id="8_cheat"]
+
+[node name="MainGame" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -100
+texture = ExtResource("7_bg")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+
+[node name="GridManager" parent="." instance=ExtResource("2_grid")]
+position = Vector2(640, 300)
+
+[node name="CombatManager" parent="." instance=ExtResource("3_combat")]
+
+[node name="DrawManager" parent="." instance=ExtResource("6_draw")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Shop" parent="CanvasLayer" instance=ExtResource("4_shop")]
+
+[node name="MainGUI" parent="CanvasLayer" instance=ExtResource("5_gui")]
+
+[node name="CheatMenu" parent="." instance=ExtResource("8_cheat")]

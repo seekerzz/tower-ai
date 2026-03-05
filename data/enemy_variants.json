@@ -1,0 +1,904 @@
+{
+	"ENEMY_VARIANTS": {
+		"crab": {
+			"name": "巨鳌蟹",
+			"icon": "🦀",
+			"color": "#e67e22",
+			"radius": 25,
+			"shape": "rect",
+			"size_grid": [
+				2,
+				1
+			],
+			"hpMod": 8.0,
+			"spdMod": 0.4,
+			"attackType": "melee",
+			"range": 40,
+			"dmg": 150,
+			"atkSpeed": 1.5,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.05,
+				"base_freq": 2.0
+			}
+		},
+		"slime": {
+			"name": "史莱姆",
+			"icon": "💧",
+			"color": "#00cec9",
+			"radius": 10,
+			"hpMod": 0.8,
+			"spdMod": 0.7,
+			"attackType": "melee",
+			"range": 30,
+			"dmg": 30,
+			"atkSpeed": 1.0,
+			"anim_config": {
+				"style": "squash",
+				"amplitude": 0.2,
+				"base_freq": 4.0
+			},
+			"_comment": "第1波平衡调整：伤害从50降至30，配合6个敌人总伤害180"
+		},
+		"mutant_slime": {
+			"name": "变异母体",
+			"icon": "🦠",
+			"color": "#00cec9",
+			"radius": 12,
+			"hpMod": 5.0,
+			"spdMod": 0.6,
+			"split_limit": 2,
+			"split_trigger_hits": 5,
+			"attackType": "melee",
+			"range": 30,
+			"dmg": 50,
+			"atkSpeed": 1.0,
+			"anim_config": {
+				"style": "squash",
+				"amplitude": 0.2,
+				"base_freq": 4.0
+			}
+		},
+		"poison": {
+			"name": "毒怪",
+			"icon": "🤢",
+			"color": "#2ecc71",
+			"radius": 12,
+			"hpMod": 1.2,
+			"spdMod": 0.8,
+			"attackType": "melee",
+			"range": 30,
+			"dmg": 80,
+			"atkSpeed": 1.0,
+			"anim_config": {
+				"style": "squash",
+				"amplitude": 0.25,
+				"base_freq": 3.5
+			}
+		},
+		"wolf": {
+			"name": "狼群",
+			"icon": "🐺",
+			"color": "#e74c3c",
+			"radius": 14,
+			"hpMod": 1.0,
+			"spdMod": 1.5,
+			"attackType": "melee",
+			"range": 30,
+			"dmg": 120,
+			"atkSpeed": 0.8,
+			"anim_config": {
+				"style": "bob",
+				"amplitude": 4.0,
+				"base_freq": 10.0
+			}
+		},
+		"treant": {
+			"name": "树人",
+			"icon": "🌳",
+			"color": "#d35400",
+			"radius": 18,
+			"hpMod": 2.5,
+			"spdMod": 0.5,
+			"attackType": "melee",
+			"range": 30,
+			"dmg": 200,
+			"atkSpeed": 2.0,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.05,
+				"base_freq": 2.0
+			}
+		},
+		"yeti": {
+			"name": "雪怪",
+			"icon": "❄️",
+			"color": "#74b9ff",
+			"radius": 20,
+			"hpMod": 3.0,
+			"spdMod": 0.6,
+			"attackType": "melee",
+			"range": 40,
+			"dmg": 250,
+			"atkSpeed": 2.0,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.08,
+				"base_freq": 2.5
+			}
+		},
+		"golem": {
+			"name": "石头人",
+			"icon": "🗿",
+			"color": "#95a5a6",
+			"radius": 22,
+			"hpMod": 4.0,
+			"spdMod": 0.4,
+			"attackType": "melee",
+			"range": 40,
+			"dmg": 300,
+			"atkSpeed": 2.5,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.05,
+				"base_freq": 2.0
+			}
+		},
+		"shooter": {
+			"name": "投矛手",
+			"icon": "🏹",
+			"color": "#16a085",
+			"radius": 14,
+			"hpMod": 0.8,
+			"spdMod": 0.8,
+			"attackType": "ranged",
+			"proj": "pinecone",
+			"rangedAnimType": "lunge",
+			"range": 200,
+			"dmg": 80,
+			"atkSpeed": 2.0,
+			"projectileSpeed": 150,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.05,
+				"base_freq": 4.0
+			}
+		},
+		"archer_rat": {
+			"name": "神射鼠",
+			"icon": "🏹🐭",
+			"color": "#16a085",
+			"radius": 14,
+			"hpMod": 0.8,
+			"spdMod": 0.8,
+			"attackType": "ranged",
+			"proj": "pinecone",
+			"rangedAnimType": "elastic_shoot",
+			"range": 200,
+			"dmg": 80,
+			"atkSpeed": 2.0,
+			"projectileSpeed": 150,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.05,
+				"base_freq": 4.0
+			}
+		},
+		"boss": {
+			"name": "虚空领主",
+			"icon": "👹",
+			"color": "#2c3e50",
+			"radius": 32,
+			"hpMod": 15.0,
+			"spdMod": 0.4,
+			"attackType": "melee",
+			"range": 50,
+			"dmg": 500,
+			"atkSpeed": 3.0,
+			"is_boss": true,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.1,
+				"base_freq": 1.5
+			}
+		},
+		"minion": {
+			"name": "鼠小兵",
+			"icon": "🐭",
+			"color": "#95a5a6",
+			"radius": 8,
+			"hpMod": 0.5,
+			"spdMod": 1.1,
+			"attackType": "melee",
+			"range": 20,
+			"dmg": 20,
+			"atkSpeed": 1.0,
+			"anim_config": {
+				"style": "bob",
+				"amplitude": 2.0,
+				"base_freq": 12.0
+			}
+		},
+		"bullet_entity": {
+			"name": "滚地雷鼠",
+			"icon": "💣",
+			"color": "#000000",
+			"radius": 6,
+			"hpMod": 0.1,
+			"spdMod": 3.0,
+			"attackType": "melee",
+			"range": 20,
+			"dmg": 300,
+			"atkSpeed": 10.0,
+			"is_suicide": true,
+			"anim_config": {
+				"style": "squash",
+				"amplitude": 0.3,
+				"base_freq": 15.0
+			}
+		},
+		"summoner": {
+			"name": "鼠祭司",
+			"icon": "🧙",
+			"color": "#8e44ad",
+			"radius": 24,
+			"hpMod": 8.0,
+			"spdMod": 0.3,
+			"attackType": "ranged",
+			"proj": "ink",
+			"rangedAnimType": "elastic_slash",
+			"range": 150,
+			"dmg": 50,
+			"atkSpeed": 2.0,
+			"stationary_time": 8.0,
+			"boss_skill": "summon",
+			"is_boss": true,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.08,
+				"base_freq": 2.0
+			}
+		},
+		"ranger": {
+			"name": "鼠弩车",
+			"icon": "🚜",
+			"color": "#d35400",
+			"radius": 28,
+			"hpMod": 6.0,
+			"spdMod": 0.4,
+			"attackType": "ranged",
+			"proj": "stinger",
+			"rangedAnimType": "recoil",
+			"range": 300,
+			"dmg": 80,
+			"atkSpeed": 1.5,
+			"stationary_time": 5.0,
+			"boss_skill": "shoot_enemy",
+			"is_boss": true,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.05,
+				"base_freq": 3.0
+			}
+		},
+		"tank": {
+			"name": "鼠将军",
+			"icon": "🐗",
+			"color": "#7f8c8d",
+			"radius": 32,
+			"hpMod": 12.0,
+			"spdMod": 0.35,
+			"attackType": "melee",
+			"range": 60,
+			"dmg": 200,
+			"atkSpeed": 1.2,
+			"stationary_time": 0.0,
+			"is_boss": true,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.03,
+				"base_freq": 2.0
+			}
+		},
+		"spring_guardian": {
+			"name": "春之守护者",
+			"icon": "🌸",
+			"color": "#2ecc71",
+			"radius": 35,
+			"hpMod": 20.0,
+			"spdMod": 0.3,
+			"attackType": "melee",
+			"range": 50,
+			"dmg": 400,
+			"atkSpeed": 2.5,
+			"is_boss": true,
+			"boss_skill": "spring_awakening",
+			"stationary_time": 10.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.15,
+				"base_freq": 1.2
+			},
+			"_comment": "春季Boss：召唤+恢复机制"
+		},
+		"summer_dragon": {
+			"name": "炎阳巨龙",
+			"icon": "🐉",
+			"color": "#e74c3c",
+			"radius": 40,
+			"hpMod": 25.0,
+			"spdMod": 0.5,
+			"attackType": "ranged",
+			"proj": "fireball",
+			"rangedAnimType": "lunge",
+			"range": 200,
+			"dmg": 600,
+			"atkSpeed": 2.0,
+			"is_boss": true,
+			"boss_skill": "summer_inferno",
+			"stationary_time": 8.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.2,
+				"base_freq": 1.0
+			},
+			"_comment": "夏季Boss：AOE火焰+涅槃重生"
+		},
+		"autumn_lord": {
+			"name": "瘟疫领主",
+			"icon": "💀",
+			"color": "#d35400",
+			"radius": 38,
+			"hpMod": 30.0,
+			"spdMod": 0.35,
+			"attackType": "melee",
+			"range": 60,
+			"dmg": 500,
+			"atkSpeed": 2.2,
+			"is_boss": true,
+			"boss_skill": "autumn_decay",
+			"stationary_time": 12.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.12,
+				"base_freq": 1.5
+			},
+			"_comment": "秋季Boss：Debuff光环+召唤"
+		},
+		"winter_queen": {
+			"name": "冬之女王",
+			"icon": "❄️👑",
+			"color": "#3498db",
+			"radius": 42,
+			"hpMod": 40.0,
+			"spdMod": 0.4,
+			"attackType": "ranged",
+			"proj": "ice_shard",
+			"rangedAnimType": "elastic_shoot",
+			"range": 180,
+			"dmg": 800,
+			"atkSpeed": 2.0,
+			"is_boss": true,
+			"boss_skill": "winter_frost",
+			"stationary_time": 15.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.18,
+				"base_freq": 0.8
+			},
+			"_comment": "冬季Boss：控制+护盾+狂暴"
+		},
+		"thorn_queen": {
+			"name": "荆棘女王",
+			"icon": "🌹",
+			"color": "#e74c3c",
+			"radius": 35,
+			"hpMod": 18.0,
+			"spdMod": 0.25,
+			"attackType": "melee",
+			"range": 50,
+			"dmg": 350,
+			"atkSpeed": 2.8,
+			"is_boss": true,
+			"boss_skill": "thorn_trap",
+			"stationary_time": 12.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.12,
+				"base_freq": 1.3
+			},
+			"_comment": "春季BossB：荆棘陷阱+控制"
+		},
+		"spring_spirit": {
+			"name": "春风之灵",
+			"icon": "🍃",
+			"color": "#2ecc71",
+			"radius": 30,
+			"hpMod": 15.0,
+			"spdMod": 1.8,
+			"attackType": "melee",
+			"range": 40,
+			"dmg": 280,
+			"atkSpeed": 3.0,
+			"is_boss": true,
+			"boss_skill": "wind_dance",
+			"stationary_time": 8.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.25,
+				"base_freq": 2.0
+			},
+			"_comment": "春季BossC：高速+分身"
+		},
+		"magma_giant": {
+			"name": "熔岩巨人",
+			"icon": "🌋",
+			"color": "#c0392b",
+			"radius": 45,
+			"hpMod": 30.0,
+			"spdMod": 0.2,
+			"attackType": "melee",
+			"range": 70,
+			"dmg": 700,
+			"atkSpeed": 3.0,
+			"is_boss": true,
+			"boss_skill": "magma_eruption",
+			"stationary_time": 15.0,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.08,
+				"base_freq": 0.8
+			},
+			"_comment": "夏季BossB：高血量+爆炸"
+		},
+		"sun_cheetah": {
+			"name": "烈日猎豹",
+			"icon": "🐆",
+			"color": "#f39c12",
+			"radius": 32,
+			"hpMod": 12.0,
+			"spdMod": 2.5,
+			"attackType": "melee",
+			"range": 45,
+			"dmg": 320,
+			"atkSpeed": 2.2,
+			"is_boss": true,
+			"boss_skill": "solar_charge",
+			"stationary_time": 6.0,
+			"anim_config": {
+				"style": "bob",
+				"amplitude": 0.2,
+				"base_freq": 2.5
+			},
+			"_comment": "夏季BossC：极速+流血"
+		},
+		"death_reaper": {
+			"name": "凋零死神",
+			"icon": "💀",
+			"color": "#8e44ad",
+			"radius": 38,
+			"hpMod": 22.0,
+			"spdMod": 0.6,
+			"attackType": "melee",
+			"range": 55,
+			"dmg": 550,
+			"atkSpeed": 2.0,
+			"is_boss": true,
+			"boss_skill": "soul_harvest",
+			"stationary_time": 10.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.15,
+				"base_freq": 1.0
+			},
+			"_comment": "秋季BossB：收割+复活"
+		},
+		"withered_prophet": {
+			"name": "枯萎先知",
+			"icon": "🔮",
+			"color": "#d35400",
+			"radius": 36,
+			"hpMod": 16.0,
+			"spdMod": 0.4,
+			"attackType": "ranged",
+			"proj": "shadow_orb",
+			"rangedAnimType": "elastic_shoot",
+			"range": 220,
+			"dmg": 450,
+			"atkSpeed": 2.5,
+			"is_boss": true,
+			"boss_skill": "withering_curse",
+			"stationary_time": 12.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.1,
+				"base_freq": 1.2
+			},
+			"_comment": "秋季BossC：诅咒+远程"
+		},
+		"frost_troll": {
+			"name": "冰霜巨魔",
+			"icon": "👹",
+			"color": "#2980b9",
+			"radius": 42,
+			"hpMod": 28.0,
+			"spdMod": 0.5,
+			"attackType": "melee",
+			"range": 65,
+			"dmg": 650,
+			"atkSpeed": 2.5,
+			"is_boss": true,
+			"boss_skill": "frost_slash",
+			"stationary_time": 14.0,
+			"anim_config": {
+				"style": "stiff",
+				"amplitude": 0.1,
+				"base_freq": 0.9
+			},
+			"_comment": "冬季BossB：狂暴+控制"
+		},
+		"snow_commander": {
+			"name": "雪原指挥官",
+			"icon": "⛄",
+			"color": "#ecf0f1",
+			"radius": 40,
+			"hpMod": 20.0,
+			"spdMod": 0.45,
+			"attackType": "ranged",
+			"proj": "ice_shard",
+			"rangedAnimType": "elastic_shoot",
+			"range": 200,
+			"dmg": 480,
+			"atkSpeed": 2.2,
+			"is_boss": true,
+			"boss_skill": "snow_legion",
+			"stationary_time": 10.0,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.12,
+				"base_freq": 1.1
+			},
+			"_comment": "冬季BossC：召唤+指挥"
+		},
+		"healer": {
+			"name": "治疗者",
+			"icon": "⚕️",
+			"color": "#2ecc71",
+			"radius": 14,
+			"hpMod": 1.0,
+			"spdMod": 0.8,
+			"attackType": "melee",
+			"range": 30,
+			"dmg": 20,
+			"atkSpeed": 1.0,
+			"heal_power": 30.0,
+			"heal_range": 250.0,
+			"heal_cooldown": 4.0,
+			"cast_time": 0.5,
+			"anim_config": {
+				"style": "float",
+				"amplitude": 0.1,
+				"base_freq": 3.0
+			}
+		},
+		"hyena": {
+			"name": "豺狼",
+			"icon": "🐕",
+			"size": [
+				1,
+				1
+			],
+			"range": 100,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "melee",
+			"damageType": "physical",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 120,
+					"hp": 350,
+					"cost": 80,
+					"desc": "撕咬: 攻击HP<25%敌人时触发1次额外攻击，造成20%伤害",
+					"mechanics": {
+						"execute_threshold": 0.25,
+						"extra_attacks": 1,
+						"execute_damage_ratio": 0.2
+					}
+				},
+				"2": {
+					"damage": 180,
+					"hp": 525,
+					"cost": 160,
+					"desc": "撕咬: 攻击HP<25%敌人时触发1次额外攻击，造成40%伤害",
+					"mechanics": {
+						"execute_threshold": 0.25,
+						"extra_attacks": 1,
+						"execute_damage_ratio": 0.4,
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 270,
+					"hp": 787,
+					"cost": 320,
+					"desc": "撕咬: 攻击HP<25%敌人时触发2次额外攻击，每次造成40%伤害",
+					"mechanics": {
+						"execute_threshold": 0.25,
+						"extra_attacks": 2,
+						"execute_damage_ratio": 0.4,
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "hyena",
+			"faction": "wolf_totem"
+		},
+		"sheep_spirit": {
+			"name": "羊灵",
+			"icon": "🐑",
+			"size": [
+				1,
+				1
+			],
+			"range": 150,
+			"atkSpeed": 0.8,
+			"manaCost": 0,
+			"attackType": "ranged",
+			"proj": "spirit_orb",
+			"damageType": "magic",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 50,
+					"hp": 200,
+					"cost": 60,
+					"desc": "灵魂召唤: 敌人死亡时召唤1个克隆体，继承40%属性",
+					"mechanics": {
+						"clone_count": 1,
+						"inherit_ratio": 0.4
+					}
+				},
+				"2": {
+					"damage": 75,
+					"hp": 300,
+					"cost": 120,
+					"desc": "灵魂召唤: 敌人死亡时召唤1个克隆体，继承40%属性",
+					"mechanics": {
+						"clone_count": 1,
+						"inherit_ratio": 0.4,
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 112,
+					"hp": 450,
+					"cost": 240,
+					"desc": "灵魂召唤: 敌人死亡时召唤2个克隆体，继承60%属性",
+					"mechanics": {
+						"clone_count": 2,
+						"inherit_ratio": 0.6,
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "sheep_spirit",
+			"faction": "wolf_totem"
+		},
+		"blood_food": {
+			"name": "血食",
+			"icon": "🩸",
+			"size": [
+				1,
+				1
+			],
+			"range": 0,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "none",
+			"damageType": "physical",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 300,
+					"cost": 50,
+					"desc": "魂魄共鸣: 每魂魄提供+0.5%全局伤害加成",
+					"mechanics": {
+						"damage_per_soul": 0.005
+					}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 450,
+					"cost": 100,
+					"desc": "魂魄共鸣: 每魂魄提供+0.5%全局伤害加成",
+					"mechanics": {
+						"damage_per_soul": 0.005,
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 675,
+					"cost": 200,
+					"desc": "魂魄共鸣: 每魂魄提供+0.8%全局伤害加成",
+					"mechanics": {
+						"damage_per_soul": 0.008,
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "blood_food",
+			"faction": "wolf_totem"
+		},
+		"blood_ritualist": {
+			"name": "血祭术士",
+			"icon": "🔮",
+			"size": [
+				1,
+				1
+			],
+			"range": 250,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "ranged",
+			"proj": "blood_orb",
+			"damageType": "magic",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"skill": "blood_ritual",
+			"skillCd": 12.0,
+			"levels": {
+				"1": {
+					"damage": 60,
+					"hp": 220,
+					"cost": 70,
+					"desc": "血祭仪式: 消耗20%核心生命，对范围内敌人施加流血",
+					"mechanics": {
+						"health_cost_ratio": 0.2,
+						"bleed_stacks": 2,
+						"aoe_range": 150
+					}
+				},
+				"2": {
+					"damage": 90,
+					"hp": 330,
+					"cost": 140,
+					"desc": "血祭仪式: 消耗20%核心生命，对范围内敌人施加流血",
+					"mechanics": {
+						"health_cost_ratio": 0.2,
+						"bleed_stacks": 3,
+						"aoe_range": 180,
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 135,
+					"hp": 495,
+					"cost": 280,
+					"desc": "血祭仪式: 消耗20%核心生命，4秒内全体吸血x2",
+					"mechanics": {
+						"health_cost_ratio": 0.2,
+						"bleed_stacks": 4,
+						"aoe_range": 200,
+						"lifesteal_multiplier": 2.0,
+						"buff_duration": 4.0,
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "blood_ritualist",
+			"faction": "bat_totem"
+		},
+		"blood_chalice": {
+			"name": "鲜血圣杯",
+			"icon": "🏆",
+			"size": [
+				1,
+				1
+			],
+			"range": 0,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "none",
+			"damageType": "physical",
+			"crit_rate": 0.0,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 0,
+					"hp": 400,
+					"cost": 60,
+					"desc": "鲜血储存: 吸血溢出部分储存，持续治疗核心",
+					"mechanics": {
+						"storage_ratio": 0.5,
+						"heal_per_second": 5
+					}
+				},
+				"2": {
+					"damage": 0,
+					"hp": 600,
+					"cost": 120,
+					"desc": "鲜血储存: 吸血溢出部分储存，持续治疗核心",
+					"mechanics": {
+						"storage_ratio": 0.7,
+						"heal_per_second": 8,
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 0,
+					"hp": 900,
+					"cost": 240,
+					"desc": "鲜血储存: 吸血溢出部分储存，持续治疗核心",
+					"mechanics": {
+						"storage_ratio": 1.0,
+						"heal_per_second": 12,
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "blood_chalice",
+			"faction": "bat_totem"
+		},
+		"life_chain": {
+			"name": "生命链接",
+			"icon": "⛓️",
+			"size": [
+				1,
+				1
+			],
+			"range": 200,
+			"atkSpeed": 1.0,
+			"manaCost": 0,
+			"attackType": "ranged",
+			"proj": "chain_link",
+			"damageType": "magic",
+			"crit_rate": 0.1,
+			"crit_dmg": 1.5,
+			"levels": {
+				"1": {
+					"damage": 40,
+					"hp": 250,
+					"cost": 65,
+					"desc": "生命抽取: 链接敌人持续抽取生命",
+					"mechanics": {
+						"chain_count": 2,
+						"drain_per_second": 10,
+						"heal_efficiency": 0.5
+					}
+				},
+				"2": {
+					"damage": 60,
+					"hp": 375,
+					"cost": 130,
+					"desc": "生命抽取: 链接敌人持续抽取生命",
+					"mechanics": {
+						"chain_count": 3,
+						"drain_per_second": 15,
+						"heal_efficiency": 0.6,
+						"crit_rate_bonus": 0.1
+					}
+				},
+				"3": {
+					"damage": 90,
+					"hp": 562,
+					"cost": 260,
+					"desc": "生命抽取: 链接敌人持续抽取生命",
+					"mechanics": {
+						"chain_count": 4,
+						"drain_per_second": 20,
+						"heal_efficiency": 0.7,
+						"crit_rate_bonus": 0.2
+					}
+				}
+			},
+			"type_key": "life_chain",
+			"faction": "bat_totem"
+		}
+	}
+}
