@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# Tower-AI 项目的 pre-commit 钩子
-# 用于限制各个角色在 docs 目录下的提交权限
-
-# 调用 Python 检查脚本
-exec python3 /home/zhangzhan/tower-ai/scripts/pre_commit_check.py

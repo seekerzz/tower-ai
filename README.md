@@ -87,34 +87,3 @@ tower-ai/
 5. **归档与清理 (Archive & Cleanup)**：将已完成的 Inbox 条目移入 `[Archive]` 区域。为保持状态文件可读性，**强制要求**仅保留最近 **10条** 未完成任务；将已完成的任务条目移动到对应的 `docs/states/[ROLE]_state_archive.md` 归档文件中。
 6. **休眠 (Sleep)**：进程自杀释放内存，等待下一次被信箱投递唤醒。
 
-------
-
-## 🛡️ 五、 提交检查机制 (Pre-Commit Checks)
-
-为了确保各角色严格遵守其职责范围，项目实现了提交检查机制。该机制通过 Git 的 `pre-commit` 钩子来实现，会在每次提交前检查提交的文件是否符合角色的权限范围。
-
-### 1. 安装方法
-
-在项目根目录下执行以下命令，将钩子脚本安装到 Git 的 hooks 目录：
-
-```bash
-ln -sf ../../hooks/pre-commit .git/hooks/pre-commit
-chmod +x hooks/pre-commit scripts/pre_commit_check.py
-```
-
-### 2. 工作原理
-
-- 钩子会检查提交的文件是否符合当前角色的权限范围
-- 角色信息通过 `ROLE` 环境变量传递（例如：`ROLE=game_designer git commit`）
-- 如果没有设置角色信息，钩子会发出警告并允许提交
-- 如果提交了不符合角色权限的文件，钩子会阻止提交并显示错误信息
-
-### 3. 角色权限范围
-
-各角色的权限范围已在 `scripts/pre_commit_check.py` 文件中定义，严格遵循 README.md 中描述的职责范围。
-
-### 4. 注意事项
-
-- 钩子脚本仅在本地提交时生效，不会影响远程仓库的提交
-- 如果需要绕过检查，可以使用 `--no-verify` 选项（不推荐）
-- 钩子脚本依赖 Python 3，请确保已安装 Python 3
