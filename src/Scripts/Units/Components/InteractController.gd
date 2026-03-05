@@ -20,6 +20,74 @@ func on_drag_start(event: InputEvent):
 func on_drag_end():
 	is_dragging = false
 
+func start_drag(mouse_pos_global):
+	if !is_instance_valid(unit): return
+	is_dragging = true
+	unit.start_position = unit.position
+	drag_offset = unit.global_position - mouse_pos_global
+	unit.z_index = 100
+	create_ghost()
+
+func end_drag():
+	if !is_instance_valid(unit): return
+	is_dragging = false
+	unit.z_index = 0
+	remove_ghost()
+
+	var GameManager = unit.get_node_or_null("/root/GameManager")
+	if GameManager and GameManager.grid_manager:
+		if GameManager.grid_manager.handle_unit_drop(unit):
+			return
+
+		# Check if dropped in bench area (bottom of screen)
+		var viewport_rect = unit.get_viewport_rect()
+		var mouse_pos = unit.get_global_mouse_position()
+		if mouse_pos.y > (viewport_rect.size.y - 200):
+			# Try to move unit from grid to bench using BoardController
+			var bench_index = _find_empty_bench_slot(GameManager)
+			if bench_index >= 0 and unit.grid_pos != null:
+				var BoardController = unit.get_node_or_null("/root/BoardController")
+				if BoardController:
+					var result = BoardController.try_move_unit("grid", unit.grid_pos, "bench", bench_index)
+					if result.success:
+						return
+			return_to_start()
+			return
+
+	return_to_start()
+
+func create_ghost():
+	if ghost_node: return
+	if !is_instance_valid(unit): return
+	ghost_node = Node2D.new()
+
+	if unit.get("visual_holder") and unit.visual_holder:
+		var dup_visual = unit.visual_holder.duplicate(7)
+		ghost_node.add_child(dup_visual)
+
+	unit.get_parent().add_child(ghost_node)
+	ghost_node.position = unit.start_position
+	ghost_node.modulate.a = 0.5
+	ghost_node.z_index = -1
+
+func remove_ghost():
+	if ghost_node:
+		ghost_node.queue_free()
+		ghost_node = null
+
+func return_to_start():
+	if !is_instance_valid(unit): return
+	unit.position = unit.start_position
+
+func _find_empty_bench_slot(GameManager) -> int:
+	"""Find an empty bench slot, returns -1 if full"""
+	if not GameManager or not GameManager.session_data:
+		return -1
+	for i in range(5): # Constants.BENCH_SIZE
+		if GameManager.session_data.get_bench_unit(i) == null:
+			return i
+	return -1
+
 func _on_area_2d_input_event(viewport, event, shape_idx):
 	var GameManager = unit.get_node_or_null("/root/GameManager")
 	var is_wave_active = false

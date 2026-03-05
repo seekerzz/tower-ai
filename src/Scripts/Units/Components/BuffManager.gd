@@ -83,3 +83,12 @@ func remove_buff(buff_type: String):
 
 func has_buff(buff_type: String) -> bool:
 	return buff_type in active_buffs
+
+func modify_damage_taken(amount: float, source: Node2D) -> float:
+	var final_amount = amount
+	if "guardian_shield" in active_buffs:
+		var buff_source = buff_sources.get("guardian_shield")
+		if buff_source and is_instance_valid(buff_source) and buff_source.behavior:
+			var reduction = buff_source.behavior.get_damage_reduction() if buff_source.behavior.has_method("get_damage_reduction") else 0.05
+			final_amount *= (1.0 - reduction)
+	return final_amount
