@@ -10,8 +10,12 @@ var level: int = 1
 var stats_multiplier: float = 1.0
 var cooldown: float = 0.0
 var skill_cooldown: float = 0.0
-var active_buffs: Array = []
-var buff_sources: Dictionary = {} # Key: buff_type, Value: source_unit (Node2D)
+var active_buffs: Array:
+	get: return buff_manager.active_buffs if buff_manager else []
+	set(value): if buff_manager: buff_manager.active_buffs = value
+var buff_sources: Dictionary:
+	get: return buff_manager.buff_sources if buff_manager else {}
+	set(value): if buff_manager: buff_manager.buff_sources = value
 var temporary_buffs: Array = [] # Array of {stat, amount, duration, source}
 var traits: Array = []
 var unit_data: Dictionary
@@ -21,22 +25,55 @@ var behavior: UnitBehavior
 var attachment: Node2D = null
 var host: Node2D = null
 
-# Stats
-var damage: float
-var range_val: float
-var atk_speed: float
-var attack_cost_mana: float = 0.0
-var skill_mana_cost: float = 30.0
+const BuffManager = preload("res://src/Scripts/Units/Components/BuffManager.gd")
+const UnitStats = preload("res://src/Scripts/Units/Components/UnitStats.gd")
+const CombatController = preload("res://src/Scripts/Units/Components/CombatController.gd")
+const VisualController = preload("res://src/Scripts/Units/Components/VisualController.gd")
+const InteractController = preload("res://src/Scripts/Units/Components/InteractController.gd")
 
-var max_hp: float = 0.0
-var current_hp: float = 0.0
+var buff_manager: BuffManager
+var stats: UnitStats
+var combat: CombatController
+var visual: VisualController
+var interact: InteractController
+
+# Legacy Properties
+var damage: float:
+	get: return stats.damage if stats else 0.0
+	set(value): if stats: stats.damage = value
+var range_val: float:
+	get: return stats.range_val if stats else 0.0
+	set(value): if stats: stats.range_val = value
+var atk_speed: float:
+	get: return stats.atk_speed if stats else 0.0
+	set(value): if stats: stats.atk_speed = value
+var attack_cost_mana: float:
+	get: return stats.attack_cost_mana if stats else 0.0
+	set(value): if stats: stats.attack_cost_mana = value
+var skill_mana_cost: float:
+	get: return stats.skill_mana_cost if stats else 0.0
+	set(value): if stats: stats.skill_mana_cost = value
+
+var max_hp: float:
+	get: return stats.max_hp if stats else 0.0
+	set(value): if stats: stats.max_hp = value
+var current_hp: float:
+	get: return stats.current_hp if stats else 0.0
+	set(value): if stats: stats.current_hp = value
+var hp: float:
+	get: return stats.current_hp if stats else 0.0
+	set(value): if stats: stats.current_hp = value
 
 # Visual Holder for animations and structure
 var visual_holder: Node2D = null
 
 var is_no_mana: bool = false
-var crit_rate: float = 0.0
-var crit_dmg: float = 1.5
+var crit_rate: float:
+	get: return stats.crit_rate if stats else 0.0
+	set(value): if stats: stats.crit_rate = value
+var crit_dmg: float:
+	get: return stats.crit_dmg if stats else 1.5
+	set(value): if stats: stats.crit_dmg = value
 var bounce_count: int = 0
 var split_count: int = 0
 
@@ -51,12 +88,24 @@ var interaction_target_pos = null # Vector2i or null
 var associated_traps: Array = [] # Stores references to traps placed by this unit
 
 # Dragging
-var is_dragging: bool = false
-var drag_offset: Vector2 = Vector2.ZERO
-var ghost_node: Node2D = null
-var is_hovered: bool = false
-var focus_target: Node2D = null
-var focus_stacks: int = 0
+var is_dragging: bool:
+	get: return interact.is_dragging if interact else false
+	set(value): if interact: interact.is_dragging = value
+var drag_offset: Vector2:
+	get: return interact.drag_offset if interact else Vector2.ZERO
+	set(value): if interact: interact.drag_offset = value
+var ghost_node: Node2D:
+	get: return interact.ghost_node if interact else null
+	set(value): if interact: interact.ghost_node = value
+var is_hovered: bool:
+	get: return interact.is_hovered if interact else false
+	set(value): if interact: interact.is_hovered = value
+var focus_target: Node2D:
+	get: return interact.focus_target if interact else null
+	set(value): if interact: interact.focus_target = value
+var focus_stacks: int:
+	get: return interact.focus_stacks if interact else 0
+	set(value): if interact: interact.focus_stacks = value
 
 # Highlighting
 var _is_skill_highlight_active: bool = false
@@ -93,10 +142,25 @@ func setup(key: String):
 	type_key = key
 	unit_data = Constants.UNIT_TYPES[key].duplicate()
 
+	buff_manager = BuffManager.new()
+	buff_manager.unit = self
+
+	stats = UnitStats.new()
+	stats.unit = self
+
+	combat = CombatController.new()
+	combat.unit = self
+
+	visual = VisualController.new()
+	visual.unit = self
+
+	interact = InteractController.new()
+	interact.unit = self
+
 	_load_behavior()
 
 	reset_stats()
-	current_hp = max_hp
+	stats.current_hp = stats.max_hp
 	behavior.on_setup()
 
 	update_visuals()
@@ -156,8 +220,8 @@ func take_damage(amount: float, source_enemy = null):
 	var original_amount = amount
 
 	# 检查是否有guardian_shield buff，应用减伤
-	if "guardian_shield" in active_buffs:
-		var source = buff_sources.get("guardian_shield")
+	if "guardian_shield" in buff_manager.active_buffs:
+		var source = buff_manager.buff_sources.get("guardian_shield")
 		if source and is_instance_valid(source) and source.behavior:
 			var reduction = source.behavior.get_damage_reduction() if source.behavior.has_method("get_damage_reduction") else 0.05
 			amount = amount * (1.0 - reduction)
@@ -320,27 +384,7 @@ func set_force_highlight(active: bool):
 	queue_redraw()
 
 func execute_skill_at(grid_pos: Vector2i):
-	if skill_cooldown > 0: return
-	if not unit_data.has("skill"): return
-
-	var final_cost = skill_mana_cost
-	var cost_reduction = GameManager.get_global_buff("skill_mana_cost_reduction", 0.0)
-	if cost_reduction > 0:
-		final_cost *= (1.0 - cost_reduction)
-
-	if GameManager.consume_resource("mana", final_cost):
-		is_no_mana = false
-		_start_skill_cooldown(unit_data.get("skillCd", 10.0))
-
-		var skill_name = unit_data.skill
-		GameManager.spawn_floating_text(global_position, skill_name.capitalize() + "!", Color.CYAN)
-		GameManager.skill_activated.emit(self)
-
-		behavior.on_skill_executed_at(grid_pos)
-
-	else:
-		is_no_mana = true
-		GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
+	if combat: combat.execute_skill_at(grid_pos)
 
 func add_crit_stacks(amount: int):
 	guaranteed_crit_stacks += amount
@@ -350,38 +394,7 @@ func _on_skill_ended():
 	set_highlight(false)
 
 func activate_skill():
-	if !unit_data.has("skill"): return
-	if skill_cooldown > 0: return
-
-	behavior.on_skill_activated()
-
-	if unit_data.get("skillType") == "point":
-		# Behavior handles targeting initiation
-		return
-
-	var final_cost = skill_mana_cost
-	if GameManager.skill_cost_reduction > 0:
-		final_cost *= (1.0 - GameManager.skill_cost_reduction)
-
-	if GameManager.consume_resource("mana", final_cost):
-		is_no_mana = false
-		_start_skill_cooldown(unit_data.get("skillCd", 10.0))
-
-		var skill_name = unit_data.skill
-		GameManager.spawn_floating_text(global_position, skill_name.capitalize() + "!", Color.CYAN)
-		GameManager.skill_activated.emit(self)
-		# 中文技能日志
-		if AILogger:
-			AILogger.action("[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [type_key, level, skill_name, final_cost])
-
-		if visual_holder:
-			var tween = create_tween()
-			tween.tween_property(visual_holder, "scale", Vector2(1.2, 1.2), 0.1)
-			tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.1)
-
-	else:
-		is_no_mana = true
-		GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
+	if combat: combat.activate_skill()
 
 func update_visuals():
 	_ensure_visual_hierarchy()
@@ -518,164 +531,24 @@ func _process_combat(delta):
 		return
 
 	if attack_cost_mana > 0:
-		if !GameManager.check_resource("mana", attack_cost_mana):
+		var GameManager = get_node_or_null("/root/GameManager")
+		if GameManager and !GameManager.check_resource("mana", attack_cost_mana):
 			is_no_mana = true
 			return
 		else:
 			is_no_mana = false
 
-	var combat_manager = GameManager.combat_manager
+	var GameManager = get_node_or_null("/root/GameManager")
+	var combat_manager = GameManager.combat_manager if GameManager else null
 	if !combat_manager: return
 
-	var target = combat_manager.find_nearest_enemy(global_position, range_val)
+	var target = combat_manager.find_nearest_enemy(global_position, stats.range_val)
 	if !target: return
 
 	if unit_data.attackType == "melee":
-		_do_melee_attack(target)
+		if combat: combat._do_melee_attack(target)
 	else:
-		_do_standard_ranged_attack(target)
-
-func _do_melee_attack(target):
-	var target_last_pos = target.global_position
-
-	if attack_cost_mana > 0:
-		GameManager.consume_resource("mana", attack_cost_mana)
-
-	cooldown = atk_speed * GameManager.get_stat_modifier("attack_interval")
-
-	play_attack_anim("melee", target_last_pos)
-
-	await get_tree().create_timer(Constants.ANIM_WINDUP_TIME).timeout
-	if !is_instance_valid(self): return
-
-	if is_instance_valid(target):
-		_spawn_melee_projectiles(target)
-		attack_performed.emit(target)
-		# 记录近战攻击日志
-		if AILogger:
-			var target_name = target.type_key if target and "type_key" in target else "目标"
-			var damage = unit_data.get("damage", 0)
-			var wave_info = GameManager.session_data.wave if GameManager.session_data else 1
-			AILogger.unit_attack(type_key, target_name, damage)
-			AILogger.event("[单位攻击] 波次%d | %s 攻击 %s，伤害 %.0f" % [
-				wave_info, type_key, target_name, damage
-			])
-			if AIManager:
-				AIManager.broadcast_text("【单位攻击】波次%d | %s 攻击 %s，伤害 %.0f" % [
-					wave_info, type_key, target_name, damage
-				])
-	else:
-		_spawn_melee_projectiles_blind(target_last_pos)
-		attack_performed.emit(null)
-
-func _spawn_melee_projectiles_blind(target_pos: Vector2):
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	var swing_hit_list = []
-	var attack_dir = (target_pos - global_position).normalized()
-
-	var proj_speed = 600.0
-	var proj_life = (range_val + 30.0) / proj_speed
-	var count = 5
-	var spread = PI / 2.0
-
-	var base_angle = attack_dir.angle()
-	var start_angle = base_angle - spread / 2.0
-	var step = spread / max(1, count - 1)
-
-	for i in range(count):
-		var angle = start_angle + (i * step)
-		var stats = {
-			"pierce": 100,
-			"hide_visuals": true,
-			"life": proj_life,
-			"angle": angle,
-			"speed": proj_speed,
-			"shared_hit_list": swing_hit_list
-		}
-		combat_manager.spawn_projectile(self, global_position, null, stats)
-
-func _spawn_melee_projectiles(target: Node2D):
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	var swing_hit_list = []
-	var attack_dir = (target.global_position - global_position).normalized()
-
-	var proj_speed = 600.0
-	var proj_life = (range_val + 30.0) / proj_speed
-	var count = 5
-	var spread = PI / 2.0
-
-	var base_angle = attack_dir.angle()
-	var start_angle = base_angle - spread / 2.0
-	var step = spread / max(1, count - 1)
-
-	for i in range(count):
-		var angle = start_angle + (i * step)
-		var stats = {
-			"pierce": 100,
-			"hide_visuals": true,
-			"life": proj_life,
-			"angle": angle,
-			"speed": proj_speed,
-			"shared_hit_list": swing_hit_list
-		}
-		combat_manager.spawn_projectile(self, global_position, null, stats)
-
-func _do_standard_ranged_attack(target):
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	if attack_cost_mana > 0:
-		GameManager.consume_resource("mana", attack_cost_mana)
-
-	cooldown = atk_speed * GameManager.get_stat_modifier("attack_interval")
-
-	if unit_data.get("proj") == "lightning":
-		play_attack_anim("lightning", target.global_position)
-		combat_manager.perform_lightning_attack(self, global_position, target, unit_data.get("chain", 0))
-		return
-
-	play_attack_anim("ranged", target.global_position)
-
-	var proj_count = unit_data.get("projCount", 1)
-	var spread = unit_data.get("spread", 0.5)
-
-	if "multishot" in active_buffs:
-		proj_count += 2
-		spread = max(spread, 0.5)
-
-	if proj_count == 1:
-		combat_manager.spawn_projectile(self, global_position, target)
-		attack_performed.emit(target)
-	else:
-		var base_angle = (target.global_position - global_position).angle()
-		var start_angle = base_angle - spread / 2.0
-		var step = spread / max(1, proj_count - 1)
-
-		for i in range(proj_count):
-			var angle = start_angle + (i * step)
-			combat_manager.spawn_projectile(self, global_position, target, {"angle": angle})
-
-	attack_performed.emit(target)
-
-	# 记录单位攻击日志（包含波次信息）
-	if AILogger:
-		var target_name = target.type_key if target and "type_key" in target else "目标"
-		var damage = unit_data.get("damage", 0)
-		var wave_info = GameManager.session_data.wave if GameManager.session_data else 1
-		AILogger.unit_attack(type_key, target_name, damage)
-		# 额外记录详细攻击信息
-		AILogger.event("[单位攻击] 波次%d | %s 攻击 %s，伤害 %.0f" % [
-			wave_info, type_key, target_name, damage
-		])
-		# 同时通过AIManager广播，确保测试脚本能检测到
-		if AIManager:
-			AIManager.broadcast_text("【单位攻击】波次%d | %s 攻击 %s，伤害 %.0f" % [
-				wave_info, type_key, target_name, damage
-			])
+		if combat: combat._do_standard_ranged_attack(target)
 
 func play_attack_anim(attack_type: String, target_pos: Vector2, duration: float = -1.0):
 	if !visual_holder: return
@@ -764,10 +637,11 @@ func merge_with(other_unit):
 	merged.emit(other_unit)
 	level += 1
 	reset_stats()
-	current_hp = max_hp # Full heal on level up
+	stats.heal(stats.max_hp) # Full heal on level up using component
 
-	GameManager.unit_upgraded.emit(self, old_level, level)
-	GameManager.spawn_floating_text(global_position, "Level Up!", Color.GOLD)
+	if get_tree().root.has_node("GameManager"):
+		get_node("/root/GameManager").unit_upgraded.emit(self, old_level, level)
+		get_node("/root/GameManager").spawn_floating_text(global_position, "Level Up!", Color.GOLD)
 	if visual_holder:
 		var tween = create_tween()
 		tween.tween_property(visual_holder, "scale", Vector2(1.5, 1.5), 0.2).set_trans(Tween.TRANS_BOUNCE)
@@ -776,52 +650,20 @@ func merge_with(other_unit):
 func devour(food_unit):
 	var old_level = level
 	level += 1
-	damage += 5
+	stats.damage += 5 # Update through component
 	stats_multiplier += 0.2
 	update_visuals()
-	GameManager.unit_upgraded.emit(self, old_level, level)
+	if get_tree().root.has_node("GameManager"):
+		get_node("/root/GameManager").unit_upgraded.emit(self, old_level, level)
 
 func _on_area_2d_input_event(viewport, event, shape_idx):
-	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
-	if !is_wave_active:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			unit_clicked.emit(self)
+	if interact: interact._on_area_2d_input_event(viewport, event, shape_idx)
 
 func _on_area_2d_mouse_entered():
-	is_hovered = true
-	queue_redraw()
-
-	for buff_type in buff_sources:
-		var source = buff_sources[buff_type]
-		if is_instance_valid(source) and source.has_method("set_force_highlight"):
-			source.set_force_highlight(true)
-
-	if GameManager.grid_manager and GameManager.grid_manager.has_method("show_provider_icons"):
-		GameManager.grid_manager.show_provider_icons(self)
-
-	var current_stats = {
-		"level": level,
-		"damage": damage,
-		"range": range_val,
-		"atk_speed": atk_speed,
-		"crit_rate": crit_rate,
-		"crit_dmg": crit_dmg
-	}
-	GameManager.show_tooltip.emit(unit_data, current_stats, active_buffs, global_position)
+	if interact: interact._on_area_2d_mouse_entered()
 
 func _on_area_2d_mouse_exited():
-	is_hovered = false
-	queue_redraw()
-
-	for buff_type in buff_sources:
-		var source = buff_sources[buff_type]
-		if is_instance_valid(source) and source.has_method("set_force_highlight"):
-			source.set_force_highlight(false)
-
-	if GameManager.grid_manager and GameManager.grid_manager.has_method("hide_provider_icons"):
-		GameManager.grid_manager.hide_provider_icons()
-
-	GameManager.hide_tooltip.emit()
+	if interact: interact._on_area_2d_mouse_exited()
 
 func _draw():
 	if is_hovered:
@@ -1051,3 +893,8 @@ func get_units_in_cell_range(center_unit: Node2D, cell_range: int) -> Array:
 				result.append(tile.unit)
 
 	return result
+func add_buff(buff_type: String, source_unit: Node2D):
+	if buff_manager: buff_manager.add_buff(buff_type, source_unit)
+
+func remove_buff(buff_type: String):
+	if buff_manager: buff_manager.remove_buff(buff_type)

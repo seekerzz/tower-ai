@@ -29,7 +29,9 @@ func broadcast_buffs():
 		if neighbor == unit: continue
 		neighbor.crit_rate += bonus
 		# Add to active buffs for UI if not present
-		if not ("crit_chance" in neighbor.active_buffs):
+		if neighbor.get("buff_manager") != null and neighbor.buff_manager.has_method("add_buff"):
+			neighbor.buff_manager.add_buff("crit_chance", unit)
+		elif not ("crit_chance" in neighbor.active_buffs):
 			neighbor.active_buffs.append("crit_chance")
 			neighbor.buff_sources["crit_chance"] = unit
 

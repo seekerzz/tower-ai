@@ -1,0 +1,17 @@
+<<<<<<< SEARCH
+	var target = combat_manager.find_nearest_enemy(global_position, range_val)
+	if !target: return
+
+	if unit_data.attackType == "melee":
+		_do_melee_attack(target)
+	else:
+		_do_standard_ranged_attack(target)
+=======
+	var target = combat_manager.find_nearest_enemy(global_position, stats.range_val)
+	if !target: return
+
+	if unit_data.attackType == "melee":
+		if combat: combat._do_melee_attack(target)
+	else:
+		if combat: combat._do_standard_ranged_attack(target)
+>>>>>>> REPLACE
