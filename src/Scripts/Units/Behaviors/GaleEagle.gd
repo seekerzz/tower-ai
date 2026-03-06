@@ -28,7 +28,7 @@ func on_combat_tick(delta: float) -> bool:
 		unit.cooldown -= delta
 		return true
 
-	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
+	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.stats.range_val)
 	if target:
 		_do_wind_blade_attack(target)
 	return true
@@ -36,17 +36,17 @@ func on_combat_tick(delta: float) -> bool:
 func _do_wind_blade_attack(target):
 	var target_last_pos = target.global_position
 
-	if unit.attack_cost_mana > 0:
-		if not GameManager.check_resource("mana", unit.attack_cost_mana):
+	if unit.stats.attack_cost_mana > 0:
+		if not GameManager.check_resource("mana", unit.stats.attack_cost_mana):
 			unit.is_no_mana = true
 			return
-		GameManager.consume_resource("mana", unit.attack_cost_mana)
+		GameManager.consume_resource("mana", unit.stats.attack_cost_mana)
 		unit.is_no_mana = false
 
-	var anim_duration = clamp(unit.atk_speed * 0.8, 0.1, 0.6)
-	unit.cooldown = unit.atk_speed * GameManager.get_stat_modifier("attack_interval")
+	var anim_duration = clamp(unit.stats.atk_speed * 0.8, 0.1, 0.6)
+	unit.cooldown = unit.stats.atk_speed * GameManager.get_stat_modifier("attack_interval")
 
-	unit.play_attack_anim("bow", target_last_pos, anim_duration)
+	unit.visual.play_attack_anim("bow", target_last_pos, anim_duration)
 
 	var pull_time = anim_duration * 0.6
 	await unit.get_tree().create_timer(pull_time).timeout
@@ -63,14 +63,14 @@ func _fire_wind_blades(target_pos: Vector2):
 
 	for i in range(wind_blade_count):
 		var angle = start_angle + spread_angle * i
-		var blade_damage = unit.damage * damage_per_blade
+		var blade_damage = unit.stats.damage * damage_per_blade
 
 		# Lv3 Logic: Can Crit, Trigger Echo
 		var is_crit = false
 		if unit.level >= 3:
-			if randf() < unit.crit_rate:
+			if randf() < unit.stats.crit_rate:
 				is_crit = true
-				blade_damage *= unit.crit_dmg
+				blade_damage *= unit.stats.crit_dmg
 
 		var extra_stats = {
 			"angle": angle,
@@ -100,7 +100,7 @@ func _spawn_extra_wind_blade(pos: Vector2):
 	if not GameManager.combat_manager: return
 
 	var angle = randf() * TAU
-	var blade_damage = unit.damage * damage_per_blade
+	var blade_damage = unit.stats.damage * damage_per_blade
 
 	var extra_stats = {
 		"angle": angle,

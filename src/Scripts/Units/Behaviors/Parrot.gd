@@ -24,8 +24,8 @@ func update_range():
 			has_ranged = true
 			if u.range_val < min_range: min_range = u.range_val
 
-	if has_ranged: unit.range_val = min_range
-	else: unit.range_val = 0.0
+	if has_ranged: unit.stats.range_val = min_range
+	else: unit.stats.range_val = 0.0
 
 func capture_bullet(bullet_snapshot: Dictionary):
 	if is_discharging: return
@@ -41,7 +41,7 @@ func on_combat_tick(delta: float) -> bool:
 	if !is_discharging:
 		# Check Start Condition: Full Ammo AND Enemy in Range
 		if ammo_queue.size() >= max_ammo:
-			var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
+			var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.stats.range_val)
 			if target:
 				is_discharging = true
 
@@ -51,13 +51,13 @@ func on_combat_tick(delta: float) -> bool:
 			return true
 
 		if ammo_queue.size() > 0:
-			var aim_target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
+			var aim_target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.stats.range_val)
 			if aim_target:
-				if unit.attack_cost_mana > 0: GameManager.consume_resource("mana", unit.attack_cost_mana)
-				unit.cooldown = unit.atk_speed
+				if unit.stats.attack_cost_mana > 0: GameManager.consume_resource("mana", unit.stats.attack_cost_mana)
+				unit.cooldown = unit.stats.atk_speed
 
 				var bullet_data = ammo_queue.pop_front()
-				unit.play_attack_anim("ranged", aim_target.global_position)
+				unit.visual.play_attack_anim("ranged", aim_target.global_position)
 
 				var extra = bullet_data.duplicate()
 				extra["mimic_damage"] = bullet_data.get("damage", 10.0)

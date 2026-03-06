@@ -44,7 +44,7 @@ func on_attack(target: Node2D) -> float:
 	if not is_instance_valid(target):
 		return 0.0
 
-	var total_damage = unit.damage
+	var total_damage = unit.stats.damage
 
 	# Check if target is stunned and apply bonus damage
 	if target.is_in_group("enemies") and target.get("stun_timer") and target.stun_timer > 0:

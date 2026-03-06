@@ -2,7 +2,7 @@ extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 class_name Firefly
 
 func on_stats_updated():
-	unit.damage = 0.0
+	unit.stats.damage = 0.0
 
 func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	super.on_projectile_hit(target, damage, projectile)

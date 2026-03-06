@@ -5,18 +5,18 @@ func on_combat_tick(delta: float) -> bool:
 		unit.cooldown -= delta
 		return true
 
-	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
+	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.stats.range_val)
 	if target:
-		if unit.attack_cost_mana > 0:
-			if !GameManager.check_resource("mana", unit.attack_cost_mana):
+		if unit.stats.attack_cost_mana > 0:
+			if !GameManager.check_resource("mana", unit.stats.attack_cost_mana):
 				unit.is_no_mana = true
 				return true
-			GameManager.consume_resource("mana", unit.attack_cost_mana)
+			GameManager.consume_resource("mana", unit.stats.attack_cost_mana)
 			unit.is_no_mana = false
 
-		unit.cooldown = unit.atk_speed * GameManager.get_stat_modifier("attack_interval")
+		unit.cooldown = unit.stats.atk_speed * GameManager.get_stat_modifier("attack_interval")
 
-		unit.play_attack_anim("lightning", target.global_position)
+		unit.visual.play_attack_anim("lightning", target.global_position)
 		var hit_list = []
 		var chain_count = unit.unit_data.get("chain", 0)
 		GameManager.combat_manager.perform_lightning_attack(unit, unit.global_position, target, chain_count, hit_list)

@@ -14,7 +14,7 @@ func on_setup():
 	# Re-apply permanent growth - directly modify max_hp
 	var growth = unit.get_meta("permanent_hp_growth", 0.0)
 	if growth > 0:
-		unit.max_hp *= (1.0 + growth)
+		unit.stats.max_hp *= (1.0 + growth)
 
 func on_tick(delta: float):
 	production_timer -= delta
@@ -35,7 +35,7 @@ func _on_wave_end(wave_number: int = 0, stats: Dictionary = {}):
 	var current = unit.get_meta("permanent_hp_growth", 0.0)
 	unit.set_meta("permanent_hp_growth", current + growth)
 
-	unit.max_hp *= (1.0 + growth)
+	unit.stats.max_hp *= (1.0 + growth)
 	unit.spawn_buff_effect("🌱")
 
 func broadcast_buffs():

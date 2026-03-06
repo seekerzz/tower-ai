@@ -29,7 +29,7 @@ func on_skill_executed_at(grid_pos: Vector2i):
 
 func on_skill_activated():
 	# If called without target (e.g. auto skill), pick a random position in range
-	var r = unit.range_val
+	var r = unit.stats.range_val
 	var offset = Vector2(randf_range(-r, r), randf_range(-r, r))
 	_spawn_trap(unit.global_position + offset)
 

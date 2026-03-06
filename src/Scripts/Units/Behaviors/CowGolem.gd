@@ -15,7 +15,7 @@ var base_damage: float = 0.0
 
 func on_setup():
 	# 保存基础攻击力
-	base_damage = unit.damage if unit else 0.0
+	base_damage = unit.stats.damage if unit else 0.0
 	# 根据等级初始化机制参数
 	_update_mechanics()
 
@@ -78,7 +78,7 @@ func _update_attack_damage():
 
 	# 计算加成后的伤害
 	var bonus_multiplier = 1.0 + (current_attack_bonus / 100.0)
-	unit.damage = base_damage * bonus_multiplier
+	unit.stats.damage = base_damage * bonus_multiplier
 
 func _apply_vulnerable_debuff(attacker: Node2D):
 	"""给攻击者叠加瘟疫易伤Debuff"""
@@ -119,13 +119,13 @@ func on_stats_updated():
 func on_attack(target: Node2D) -> float:
 	"""攻击时返回加成后的伤害"""
 	if not is_instance_valid(target):
-		return unit.damage if unit else 0.0
+		return unit.stats.damage if unit else 0.0
 
 	# 如果有怒火中烧加成，显示特效
 	if current_attack_bonus > 0:
 		unit.spawn_buff_effect("🔥")
 
-	return unit.damage if unit else 0.0
+	return unit.stats.damage if unit else 0.0
 
 # 获取当前攻击加成百分比（用于UI显示）
 func get_current_attack_bonus() -> int:

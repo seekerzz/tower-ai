@@ -6,8 +6,9 @@ extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 var gold_per_wave: int = 15
 var wave_counter: int = 0
 
-func _ready():
-	super._ready()
+func on_setup():
+	if super.has_method("on_setup"):
+		super.on_setup()
 	# 连接波次结束信号
 	if GameManager.has_signal("wave_ended"):
 		GameManager.wave_ended.connect(_on_wave_ended)
@@ -32,7 +33,8 @@ func on_cleanup():
 	if GameManager.has_signal("wave_ended"):
 		if GameManager.wave_ended.is_connected(_on_wave_ended):
 			GameManager.wave_ended.disconnect(_on_wave_ended)
-	super.on_cleanup()
+	if super.has_method("on_cleanup"):
+		super.on_cleanup()
 
 # 获取状态
 func get_status() -> Dictionary:

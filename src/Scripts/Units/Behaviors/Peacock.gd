@@ -26,10 +26,10 @@ func on_combat_tick(delta: float) -> bool:
 		print("[PEACOCK DEBUG] combat_manager is null!")
 		return true
 
-	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
+	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.stats.range_val)
 	if !target:
 		# Debug: Log when no target found
-		print("[PEACOCK DEBUG] No target found! Pos: ", unit.global_position, " Range: ", unit.range_val)
+		print("[PEACOCK DEBUG] No target found! Pos: ", unit.global_position, " Range: ", unit.stats.range_val)
 		return true
 
 	print("[PEACOCK DEBUG] Target found: ", target.name, " Distance: ", unit.global_position.distance_to(target.global_position))
@@ -82,12 +82,12 @@ func _apply_vulnerable_debuff(target: Node2D):
 
 func _do_bow_attack(target):
 	var target_last_pos = target.global_position
-	if unit.attack_cost_mana > 0: GameManager.consume_resource("mana", unit.attack_cost_mana)
+	if unit.stats.attack_cost_mana > 0: GameManager.consume_resource("mana", unit.stats.attack_cost_mana)
 
-	var anim_duration = clamp(unit.atk_speed * 0.8, 0.1, 0.6)
-	unit.cooldown = unit.atk_speed * GameManager.get_stat_modifier("attack_interval")
+	var anim_duration = clamp(unit.stats.atk_speed * 0.8, 0.1, 0.6)
+	unit.cooldown = unit.stats.atk_speed * GameManager.get_stat_modifier("attack_interval")
 
-	unit.play_attack_anim("bow", target_last_pos, anim_duration)
+	unit.visual.play_attack_anim("bow", target_last_pos, anim_duration)
 
 	var pull_time = anim_duration * 0.6
 	await unit.get_tree().create_timer(pull_time).timeout

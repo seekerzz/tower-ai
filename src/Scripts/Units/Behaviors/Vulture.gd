@@ -57,7 +57,7 @@ func _on_enemy_died(enemy, killer_unit):
 		if unit.has_method("add_permanent_damage"):
 			unit.add_permanent_damage(1)
 		else:
-			unit.damage += 1
+			unit.stats.damage += 1
 
 		# 显示提示
 		GameManager.spawn_floating_text(unit.global_position, "攻击+%d" % permanent_attack_bonus, Color.ORANGE)
@@ -82,7 +82,7 @@ func _trigger_death_echo(target):
 		return
 
 	# 触发一次额外的回响攻击
-	var echo_damage = unit.damage * 0.5  # 回响造成50%伤害
+	var echo_damage = unit.stats.damage * 0.5  # 回响造成50%伤害
 
 	# 创建回响效果
 	GameManager.spawn_floating_text(target.global_position, "回响!", Color.GOLD)
@@ -115,14 +115,14 @@ func _get_target() -> Node2D:
 	for enemy in enemies:
 		if !is_instance_valid(enemy): continue
 		var dist = unit.global_position.distance_to(enemy.global_position)
-		if dist <= unit.range_val:
+		if dist <= unit.stats.range_val:
 			if enemy.hp < min_hp:
 				min_hp = enemy.hp
 				best_target = enemy
 	return best_target
 
 func _calculate_damage(target: Node2D) -> float:
-	var dmg = unit.damage
+	var dmg = unit.stats.damage
 
 	# Lv.2+：对低HP敌人伤害+30%
 	if unit.level >= 2 and is_instance_valid(target):

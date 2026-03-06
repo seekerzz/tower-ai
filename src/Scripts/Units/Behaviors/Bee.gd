@@ -5,7 +5,7 @@ func on_combat_tick(delta: float) -> bool:
 		unit.cooldown -= delta
 		return true
 
-	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
+	var target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.stats.range_val)
 	if target:
 		_do_bow_attack(target)
 	return true
@@ -13,17 +13,17 @@ func on_combat_tick(delta: float) -> bool:
 func _do_bow_attack(target, on_release_callback: Callable = Callable()):
 	var target_last_pos = target.global_position
 
-	if unit.attack_cost_mana > 0:
-		if !GameManager.check_resource("mana", unit.attack_cost_mana):
+	if unit.stats.attack_cost_mana > 0:
+		if !GameManager.check_resource("mana", unit.stats.attack_cost_mana):
 			unit.is_no_mana = true
 			return
-		GameManager.consume_resource("mana", unit.attack_cost_mana)
+		GameManager.consume_resource("mana", unit.stats.attack_cost_mana)
 		unit.is_no_mana = false
 
-	var anim_duration = clamp(unit.atk_speed * 0.8, 0.1, 0.6)
-	unit.cooldown = unit.atk_speed * GameManager.get_stat_modifier("attack_interval")
+	var anim_duration = clamp(unit.stats.atk_speed * 0.8, 0.1, 0.6)
+	unit.cooldown = unit.stats.atk_speed * GameManager.get_stat_modifier("attack_interval")
 
-	unit.play_attack_anim("bow", target_last_pos, anim_duration)
+	unit.visual.play_attack_anim("bow", target_last_pos, anim_duration)
 
 	var pull_time = anim_duration * 0.6
 	await unit.get_tree().create_timer(pull_time).timeout

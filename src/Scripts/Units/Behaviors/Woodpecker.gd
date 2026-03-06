@@ -21,11 +21,11 @@ func on_combat_tick(delta: float) -> bool:
 	var target = null
 	# Stick to current target if valid and in range
 	if drill_target and drill_target.get_ref() and is_instance_valid(drill_target.get_ref()) and drill_target.get_ref().hp > 0:
-		if drill_target.get_ref().global_position.distance_to(unit.global_position) <= unit.range_val:
+		if drill_target.get_ref().global_position.distance_to(unit.global_position) <= unit.stats.range_val:
 			target = drill_target.get_ref()
 
 	if not target:
-		target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.range_val)
+		target = GameManager.combat_manager.find_nearest_enemy(unit.global_position, unit.stats.range_val)
 		# New target found (or null), so logic below handles stack reset
 
 	if target:
@@ -46,7 +46,7 @@ func on_combat_tick(delta: float) -> bool:
 
 func _perform_attack(target):
 	var bonus = 1.0 + (drill_stacks * 0.08)
-	var final_damage = unit.damage * bonus
+	var final_damage = unit.stats.damage * bonus
 
 	if unit.level >= 3 and drill_stacks >= max_drill_stacks:
 		_enter_drill_master_mode()
@@ -58,9 +58,9 @@ func _perform_attack(target):
 
 	GameManager.combat_manager.spawn_projectile(unit, unit.global_position, target, stats)
 
-	unit.cooldown = unit.atk_speed
+	unit.cooldown = unit.stats.atk_speed
 	if unit.has_method("play_attack_anim"):
-		unit.play_attack_anim("ranged", target.global_position)
+		unit.visual.play_attack_anim("ranged", target.global_position)
 
 func _enter_drill_master_mode():
 	# prevent multiple triggers if already fast?
@@ -79,10 +79,10 @@ func _enter_drill_master_mode():
 	if unit.guaranteed_crit_stacks > 0: return
 
 	unit.add_crit_stacks(3)
-	unit.atk_speed *= 0.75
+	unit.stats.atk_speed *= 0.75
 	GameManager.spawn_floating_text(unit.global_position, "DRILL MODE!", Color.ORANGE)
 
-	await unit.get_tree().create_timer(unit.atk_speed * 3.0).timeout # Use current (fast) speed for duration estimation
+	await unit.get_tree().create_timer(unit.stats.atk_speed * 3.0).timeout # Use current (fast) speed for duration estimation
 
 	if is_instance_valid(unit):
-		unit.atk_speed /= 0.75
+		unit.stats.atk_speed /= 0.75

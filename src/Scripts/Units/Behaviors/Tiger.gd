@@ -6,7 +6,7 @@ var _skill_interval_timer: float = 0.0
 func on_skill_activated():
 	skill_active_timer = unit.unit_data.get("skillDuration", 5.0)
 	_skill_interval_timer = 0.0
-	unit.set_highlight(true, Color.ORANGE)
+	unit.visual.set_highlight(true, Color.ORANGE)
 
 func on_tick(delta: float):
 	if skill_active_timer > 0:
@@ -17,7 +17,7 @@ func on_tick(delta: float):
 			_spawn_meteor_at_random_enemy()
 
 		if skill_active_timer <= 0:
-			unit.set_highlight(false)
+			unit.visual.set_highlight(false)
 
 func _spawn_meteor_at_random_enemy():
 	var combat_manager = GameManager.combat_manager

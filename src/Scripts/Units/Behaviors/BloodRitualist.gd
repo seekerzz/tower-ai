@@ -15,7 +15,7 @@ func on_skill_activated():
 	var enemies = unit.get_tree().get_nodes_in_group("enemies")
 	var affected_count = 0
 	for enemy in enemies:
-		if is_instance_valid(enemy) and unit.global_position.distance_to(enemy.global_position) <= unit.range_val:
+		if is_instance_valid(enemy) and unit.global_position.distance_to(enemy.global_position) <= unit.stats.range_val:
 			enemy.add_bleed_stacks(bleed_stacks, unit)
 			affected_count += 1
 
