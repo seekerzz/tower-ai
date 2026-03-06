@@ -49,7 +49,7 @@ func _on_plagued_enemy_died(enemy):
 			_spread_additional_debuff(e)
 
 	if spread_count > 0 and AILogger:
-		AILogger.mechanic_plague_spread(str(enemy.get_instance_id()), spread_count)
+		pass), spread_count)
 
 func _spread_additional_debuff(enemy):
 	var debuffs = ["burn", "bleed", "slow"]

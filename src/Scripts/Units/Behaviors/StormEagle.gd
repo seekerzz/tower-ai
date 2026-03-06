@@ -67,9 +67,9 @@ func _trigger_lightning_storm():
 		var unit_name = unit.name if unit and "name" in unit else "未知"
 		if unit and "type_key" in unit:
 			unit_name = unit.type_key
-		AILogger.mechanic_thunder_storm(unit_name, 5, 5.0, total_dmg)
+		pass
 		# 记录[SKILL]雷暴召唤技能日志
-		AILogger.event("[SKILL] 风暴鹰 %s 触发雷暴召唤 | 范围: 5格 | 影响敌人: %d个 | 总伤害: %.0f" % [unit_name, enemies.size(), total_dmg])
+		AILogger.broadcast_log("事件", "[SKILL] 风暴鹰 %s 触发雷暴召唤 | 范围: 5格 | 影响敌人: %d个 | 总伤害: %.0f" % [unit_name, enemies.size(), total_dmg])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 风暴鹰 %s 触发雷暴召唤 | 范围: 5格 | 影响敌人: %d个 | 总伤害: %.0f" % [unit_name, enemies.size(), total_dmg])
 

@@ -20,7 +20,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 		var unit_id = unit.type_key if unit and "type_key" in unit else "未知单位"
 		var target_name = target.type_key if target.has("type_key") else str(target.get_instance_id())
 		var chance_display = base_chance * 100 if base_chance > 0 else 0
-		AILogger.event("[SKILL] 仙女龙攻击 | 目标: %s | 传送概率: %.0f%%" % [target_name, chance_display])
+		AILogger.broadcast_log("事件", "[SKILL] 仙女龙攻击 | 目标: %s | 传送概率: %.0f%%" % [target_name, chance_display])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 仙女龙攻击 | 目标: %s" % target_name)
 
@@ -43,11 +43,11 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 
 		if AILogger:
 			var unit_id = unit.type_key if unit and "type_key" in unit else "未知单位"
-			AILogger.fairy_dragon_teleport(unit_id, final_chance * 100, target_pos.x, target_pos.y)
+			pass
 			# 记录[FAIRY_DRAGON]仙女龙传送技能日志 - 使用测试脚本可检测的格式
-			AILogger.event("[FAIRY_DRAGON] 仙女龙触发传送 | 概率: %.0f%% | 目标位置: (%.0f, %.0f)" % [final_chance * 100, target_pos.x, target_pos.y])
+			AILogger.broadcast_log("事件", "[FAIRY_DRAGON] 仙女龙触发传送 | 概率: %.0f%% | 目标位置: (%.0f, %.0f)" % [final_chance * 100, target_pos.x, target_pos.y])
 			# 同时保留[SKILL]格式日志用于兼容性
-			AILogger.event("[SKILL] 仙女龙触发传送 | 概率: %.0f%% | 目标位置: (%.0f, %.0f)" % [final_chance * 100, target_pos.x, target_pos.y])
+			AILogger.broadcast_log("事件", "[SKILL] 仙女龙触发传送 | 概率: %.0f%% | 目标位置: (%.0f, %.0f)" % [final_chance * 100, target_pos.x, target_pos.y])
 			if AIManager:
 				AIManager.broadcast_text("[FAIRY_DRAGON] 仙女龙触发传送 | 概率: %.0f%%" % (final_chance * 100))
 
@@ -62,4 +62,4 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 			if target.has_method("take_damage"):
 				target.take_damage(aoe_damage, unit, "magic")
 			if AILogger:
-				AILogger.fairy_dragon_phase_collapse(aoe_damage)
+				pass

@@ -84,12 +84,12 @@ func _spawn_orbs():
 
 	# 记录法球生成日志
 	if AILogger:
-		AILogger.totem_triggered("蝴蝶图腾", "环绕法球", "生成%d个法球，伤害%.0f" % [ORB_COUNT, ORB_DAMAGE])
-		AILogger.totem_orb_spawned(ORB_COUNT, "核心图腾")
+		pass
+		pass
 		# 记录[ORB_GENERATE]法球生成日志 - 使用测试脚本可检测的格式
-		AILogger.event("[ORB_GENERATE] 蝴蝶图腾法球生成 | 数量: %d | 伤害: %.0f | 环绕半径: %d格" % [ORB_COUNT, ORB_DAMAGE, ORBIT_RADIUS_TILES])
+		AILogger.broadcast_log("事件", "[ORB_GENERATE] 蝴蝶图腾法球生成 | 数量: %d | 伤害: %.0f | 环绕半径: %d格" % [ORB_COUNT, ORB_DAMAGE, ORBIT_RADIUS_TILES])
 		# 同时保留[TOTEM]格式日志用于兼容性
-		AILogger.event("[TOTEM] 蝴蝶图腾法球生成 | 数量: %d | 伤害: %.0f | 环绕半径: %d格" % [ORB_COUNT, ORB_DAMAGE, ORBIT_RADIUS_TILES])
+		AILogger.broadcast_log("事件", "[TOTEM] 蝴蝶图腾法球生成 | 数量: %d | 伤害: %.0f | 环绕半径: %d格" % [ORB_COUNT, ORB_DAMAGE, ORBIT_RADIUS_TILES])
 		if AIManager:
 			AIManager.broadcast_text("[ORB_GENERATE] 蝴蝶图腾法球生成 | 数量: %d | 伤害: %.0f" % [ORB_COUNT, ORB_DAMAGE])
 
@@ -135,17 +135,17 @@ func on_projectile_hit(target, damage, projectile):
 		target_id = target.type_key
 
 	if AILogger:
-		AILogger.totem_orb_damage(target_id, damage, pierce_count)
-		AILogger.totem_mana_recovery(MANA_GAIN, GameManager.mana, GameManager.max_mana)
+		pass
+		pass
 		if target and "type_key" in target:
-			AILogger.mana_changed(MANA_GAIN, GameManager.mana, GameManager.max_mana, "蝴蝶法球命中 %s" % target.type_key)
+			pass
 		# 记录[ORB_DAMAGE]法球伤害日志 - 使用测试脚本可检测的格式
-		AILogger.event("[ORB_DAMAGE] 蝴蝶法球伤害 | 目标: %s | 伤害: %.0f | 穿透: %d" % [target_id, damage, pierce_count])
+		AILogger.broadcast_log("事件", "[ORB_DAMAGE] 蝴蝶法球伤害 | 目标: %s | 伤害: %.0f | 穿透: %d" % [target_id, damage, pierce_count])
 		# 记录[MANA_RESTORE]法力回复日志 - 使用测试脚本可检测的格式
-		AILogger.event("[MANA_RESTORE] 蝴蝶法球法力回复 | 回复量: %.0f | 当前法力: %.0f/%.0f" % [MANA_GAIN, GameManager.mana, GameManager.max_mana])
+		AILogger.broadcast_log("事件", "[MANA_RESTORE] 蝴蝶法球法力回复 | 回复量: %.0f | 当前法力: %.0f/%.0f" % [MANA_GAIN, GameManager.mana, GameManager.max_mana])
 		# 同时保留[TOTEM]格式日志用于兼容性
-		AILogger.event("[TOTEM] 蝴蝶法球伤害 | 目标: %s | 伤害: %.0f | 穿透: %d" % [target_id, damage, pierce_count])
-		AILogger.event("[TOTEM] 蝴蝶法球法力回复 | 回复量: %.0f | 当前法力: %.0f/%.0f" % [MANA_GAIN, GameManager.mana, GameManager.max_mana])
+		AILogger.broadcast_log("事件", "[TOTEM] 蝴蝶法球伤害 | 目标: %s | 伤害: %.0f | 穿透: %d" % [target_id, damage, pierce_count])
+		AILogger.broadcast_log("事件", "[TOTEM] 蝴蝶法球法力回复 | 回复量: %.0f | 当前法力: %.0f/%.0f" % [MANA_GAIN, GameManager.mana, GameManager.max_mana])
 		if AIManager:
 			AIManager.broadcast_text("[ORB_DAMAGE] 蝴蝶法球伤害 | 目标: %s | 伤害: %.0f" % [target_id, damage])
 			AIManager.broadcast_text("[MANA_RESTORE] 蝴蝶法球法力回复 | 回复量: %.0f" % [MANA_GAIN])

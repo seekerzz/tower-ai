@@ -59,7 +59,7 @@ func _petrify_enemy(enemy: Node2D):
 		enemy.apply_status(PetrifiedStatus, {"duration": duration, "source": unit})
 
 		if AILogger:
-			AILogger.mechanic_petrify_gaze(str(unit.get_instance_id()), str(enemy.get_instance_id()), duration)
+			pass), str(enemy.get_instance_id()), duration)
 
 	# Visual feedback
 	GameManager.spawn_floating_text(enemy.global_position, "石化!", Color.GRAY)

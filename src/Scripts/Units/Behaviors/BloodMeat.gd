@@ -24,7 +24,7 @@ func on_setup():
 	# Log initialization - 确保日志能被测试脚本检测到
 	if AILogger:
 		var lvl = unit.level if unit and unit.get("level") else 1
-		AILogger.event("[BLOOD_MEAT] 血食单位初始化 | 等级: %d | 最大血魂层数: %d" % [lvl, max_blood_stacks])
+		AILogger.broadcast_log("事件", "[BLOOD_MEAT] 血食单位初始化 | 等级: %d | 最大血魂层数: %d" % [lvl, max_blood_stacks])
 		print("[BLOOD_MEAT DEBUG] 日志已记录")
 
 	# Set level-based stats - safely get level
@@ -114,7 +114,7 @@ func _apply_wolf_aura():
 	# 记录[BLOOD_AURA]血食光环效果日志 - 使用测试脚本可检测的格式
 	if AILogger and buffed_units.size() > 0:
 		var stack_bonus = blood_stacks * stack_bonus_per_devour * 100
-		AILogger.event("[BLOOD_AURA] 血食光环生效 | 基础加成: %.0f%% | 血魂层数: %d | 层数加成: +%.0f%% | 总加成: %.0f%% | 影响单位: %d" % [adjacent_wolf_buff * 100, blood_stacks, stack_bonus, total_buff * 100, buffed_units.size()])
+		AILogger.broadcast_log("事件", "[BLOOD_AURA] 血食光环生效 | 基础加成: %.0f%% | 血魂层数: %d | 层数加成: +%.0f%% | 总加成: %.0f%% | 影响单位: %d" % [adjacent_wolf_buff * 100, blood_stacks, stack_bonus, total_buff * 100, buffed_units.size()])
 		if AIManager:
 			AIManager.broadcast_text("[BLOOD_AURA] 血食光环 | 层数%d | 总加成%.0f%% | 影响%d单位" % [blood_stacks, total_buff * 100, buffed_units.size()])
 
@@ -151,9 +151,9 @@ func _perform_sacrifice():
 	# Log sacrifice skill
 	if AILogger:
 		# 记录[BLOOD_SACRIFICE]血祭技能日志 - 使用测试脚本可检测的格式
-		AILogger.event("[BLOOD_SACRIFICE] 血食触发血祭技能 | 治疗核心: %.0f%% | 狼族buff: +%.0f%%攻击持续%.0f秒 | 影响单位: %d" % [sacrifice_heal_percent * 100, sacrifice_buff_percent * 100, sacrifice_duration, buffed_count])
+		AILogger.broadcast_log("事件", "[BLOOD_SACRIFICE] 血食触发血祭技能 | 治疗核心: %.0f%% | 狼族buff: +%.0f%%攻击持续%.0f秒 | 影响单位: %d" % [sacrifice_heal_percent * 100, sacrifice_buff_percent * 100, sacrifice_duration, buffed_count])
 		# 同时保留[BLOOD_MEAT]格式日志用于兼容性
-		AILogger.event("[BLOOD_MEAT] 血食触发血祭 | 治疗核心: %.0f%% | 狼族buff: +%.0f%%攻击持续%.0f秒 | 影响单位: %d" % [sacrifice_heal_percent * 100, sacrifice_buff_percent * 100, sacrifice_duration, buffed_count])
+		AILogger.broadcast_log("事件", "[BLOOD_MEAT] 血食触发血祭 | 治疗核心: %.0f%% | 狼族buff: +%.0f%%攻击持续%.0f秒 | 影响单位: %d" % [sacrifice_heal_percent * 100, sacrifice_buff_percent * 100, sacrifice_duration, buffed_count])
 		if AIManager:
 			AIManager.broadcast_text("[BLOOD_SACRIFICE] 血食触发血祭技能 | 治疗核心: %.0f%% | 影响单位: %d" % [sacrifice_heal_percent * 100, buffed_count])
 	if AIManager:
@@ -184,9 +184,9 @@ func _on_unit_devoured(devouring_unit: Node2D, devoured_unit: Node2D):
 				var devourer_name = devouring_unit.unit_data.get("type_key", "unknown") if devouring_unit.get("unit_data") else "unknown"
 				var current_bonus = blood_stacks * stack_bonus_per_devour * 100
 				# 记录[BLOOD_SOUL]血魂层数日志 - 使用测试脚本可检测的格式
-				AILogger.event("[BLOOD_SOUL] 血食获得血魂层数 | 吞噬者: %s | 当前层数: %d/%d | 每层+2%%光环 | 总加成: +%.0f%%" % [devourer_name, blood_stacks, max_blood_stacks, current_bonus])
+				AILogger.broadcast_log("事件", "[BLOOD_SOUL] 血食获得血魂层数 | 吞噬者: %s | 当前层数: %d/%d | 每层+2%%光环 | 总加成: +%.0f%%" % [devourer_name, blood_stacks, max_blood_stacks, current_bonus])
 				# 同时保留[BLOOD_MEAT]格式日志用于兼容性
-				AILogger.event("[BLOOD_MEAT] 血食获得血魂层数 | 吞噬者: %s | 当前层数: %d/%d | 光环加成: +%.0f%%" % [devourer_name, blood_stacks, max_blood_stacks, current_bonus])
+				AILogger.broadcast_log("事件", "[BLOOD_MEAT] 血食获得血魂层数 | 吞噬者: %s | 当前层数: %d/%d | 光环加成: +%.0f%%" % [devourer_name, blood_stacks, max_blood_stacks, current_bonus])
 				if AIManager:
 					AIManager.broadcast_text("[BLOOD_SOUL] 血食血魂层数 %d/%d | 光环+%.0f%%" % [blood_stacks, max_blood_stacks, current_bonus])
 			if AIManager:

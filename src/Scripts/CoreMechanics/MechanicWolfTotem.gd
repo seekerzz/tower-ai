@@ -35,10 +35,10 @@ func _on_enemy_died(enemy, killer_unit):
 		var current_souls = TotemManager.get_resource(TOTEM_ID)
 		var enemy_name = enemy.type_key if enemy and "type_key" in enemy else "敌人"
 		var killer_name = killer_unit.type_key if killer_unit and "type_key" in killer_unit else "未知"
-		AILogger.totem_resource("狼图腾", "魂魄", 1, current_souls)
-		AILogger.action("[狼图腾] %s 被 %s 击杀，获得魂魄+1 (当前: %d)" % [enemy_name, killer_name, current_souls])
+		pass
+		AILogger.broadcast_log("动作", "[狼图腾] %s 被 %s 击杀，获得魂魄+1 (当前: %d)" % [enemy_name, killer_name, current_souls])
 		# 记录[RESOURCE]魂魄收集日志
-		AILogger.event("[RESOURCE] 狼图腾 魂魄收集 | 来源: %s被%s击杀 | 获得: +1 | 当前魂魄: %d" % [enemy_name, killer_name, current_souls])
+		AILogger.broadcast_log("事件", "[RESOURCE] 狼图腾 魂魄收集 | 来源: %s被%s击杀 | 获得: +1 | 当前魂魄: %d" % [enemy_name, killer_name, current_souls])
 		if AIManager:
 			AIManager.broadcast_text("[RESOURCE] 狼图腾 魂魄收集 | 来源: %s被%s击杀 | 获得: +1 | 当前魂魄: %d" % [enemy_name, killer_name, current_souls])
 
@@ -49,8 +49,8 @@ func _on_unit_upgraded(unit, old_level, new_level):
 	if AILogger:
 		var current_souls = TotemManager.get_resource(TOTEM_ID)
 		var unit_name = unit.type_key if unit and "type_key" in unit else "单位"
-		AILogger.totem_resource("狼图腾", "魂魄", 10, current_souls)
-		AILogger.action("[狼图腾] %s 升级 Lv%d→Lv%d，获得魂魄+10 (当前: %d)" % [unit_name, old_level, new_level, current_souls])
+		pass
+		AILogger.broadcast_log("动作", "[狼图腾] %s 升级 Lv%d→Lv%d，获得魂魄+10 (当前: %d)" % [unit_name, old_level, new_level, current_souls])
 
 func _on_totem_attack():
 	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
@@ -68,9 +68,9 @@ func _on_totem_attack():
 					target_names.append(t.type_key)
 				if t.has_method("get_instance_id"):
 					target_ids.append(str(t.get_instance_id()))
-		AILogger.totem_triggered("狼图腾", str(target_names), "魂魄攻击 基础%d+魂魄%d=总伤害%d" % [base_damage, soul_bonus, base_damage + soul_bonus])
+		pass, "魂魄攻击 基础%d+魂魄%d=总伤害%d" % [base_damage, soul_bonus, base_damage + soul_bonus])
 		# 记录[TOTEM_DAMAGE]图腾伤害日志
-		AILogger.event("[TOTEM_DAMAGE] 狼图腾 对 %d个敌人 造成 %d 伤害 (基础%d+魂魄%d)" % [targets.size(), base_damage + soul_bonus, base_damage, soul_bonus])
+		AILogger.broadcast_log("事件", "[TOTEM_DAMAGE] 狼图腾 对 %d个敌人 造成 %d 伤害 (基础%d+魂魄%d)" % [targets.size(), base_damage + soul_bonus, base_damage, soul_bonus])
 		if AIManager:
 			AIManager.broadcast_text("[TOTEM_DAMAGE] 狼图腾 对 %d个敌人 造成 %d 伤害 (基础%d+魂魄%d)" % [targets.size(), base_damage + soul_bonus, base_damage, soul_bonus])
 

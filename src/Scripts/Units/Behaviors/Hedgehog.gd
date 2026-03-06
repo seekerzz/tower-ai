@@ -19,7 +19,7 @@ func on_damage_taken(amount: float, source: Node) -> float:
 		if AILogger:
 			var source_name = source.name if source.has("name") else "敌人"
 			var chance_str = "30%" if unit.level < 2 else "50%"
-			AILogger.event("[UNIT_SKILL] 刺猬 尖刺反弹触发 | 概率: %s | 目标: %s | 反弹伤害: %.0f" % [chance_str, source_name, reflect_damage])
+			AILogger.broadcast_log("事件", "[UNIT_SKILL] 刺猬 尖刺反弹触发 | 概率: %s | 目标: %s | 反弹伤害: %.0f" % [chance_str, source_name, reflect_damage])
 			if AIManager:
 				AIManager.broadcast_text("[UNIT_SKILL] 刺猬 尖刺反弹 | 目标: %s | 伤害: %.0f" % [source_name, reflect_damage])
 
@@ -31,7 +31,7 @@ func on_damage_taken(amount: float, source: Node) -> float:
 func _launch_spikes():
 	# 记录[UNIT_SKILL]刚毛散射日志
 	if AILogger:
-		AILogger.event("[UNIT_SKILL] 刺猬 刚毛散射触发 | 发射数量: 3 | Lv.3技能")
+		AILogger.broadcast_log("事件", "[UNIT_SKILL] 刺猬 刚毛散射触发 | 发射数量: 3 | Lv.3技能")
 		if AIManager:
 			AIManager.broadcast_text("[UNIT_SKILL] 刺猬 刚毛散射 | 发射3枚尖刺")
 

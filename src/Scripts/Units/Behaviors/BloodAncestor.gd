@@ -11,7 +11,7 @@ func on_setup():
 	# 记录血祖单位激活日志
 	if AILogger:
 		var unit_name = unit.type_key if unit and "type_key" in unit else "血祖"
-		AILogger.event("[SKILL] 血祖单位激活 | 单位: %s | 等级: %d" % [unit_name, unit.level])
+		AILogger.broadcast_log("事件", "[SKILL] 血祖单位激活 | 单位: %s | 等级: %d" % [unit_name, unit.level])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 血祖单位激活 | 单位: %s" % unit_name)
 
@@ -78,7 +78,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	# 记录血祖鲜血领域日志
 	if AILogger:
 		var target_name = target.type_key if target.has("type_key") else str(target.get_instance_id())
-		AILogger.event("[SKILL] 血祖鲜血领域攻击 | 目标: %s | 伤害: %.0f | 当前加成: %.0f%%" % [target_name, damage, (current_bonus_damage - 1.0) * 100])
+		AILogger.broadcast_log("事件", "[SKILL] 血祖鲜血领域攻击 | 目标: %s | 伤害: %.0f | 当前加成: %.0f%%" % [target_name, damage, (current_bonus_damage - 1.0) * 100])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 血祖鲜血领域攻击 | 伤害: %.0f" % damage)
 

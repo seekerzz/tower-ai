@@ -302,7 +302,7 @@ func apply_buff(buff_type: String, source_unit: Node2D = null):
 
 		if is_new_buff:
 			var buff_msg = "[BUFF] %s 施加 %s Buff | 目标: %s | 效果: %s" % [source_name, buff_type, target_name, effect_desc]
-			AILogger.event(buff_msg)
+			AILogger.broadcast_log("事件", buff_msg)
 			# 同时通过AIManager广播，确保测试脚本能检测到
 			if AIManager:
 				AIManager.broadcast_text(buff_msg)
@@ -310,7 +310,7 @@ func apply_buff(buff_type: String, source_unit: Node2D = null):
 			# 记录[BUFF_STACK]日志
 			var current_stacks = bounce_count if buff_type == "bounce" else split_count
 			var stack_msg = "[BUFF_STACK] %s %s Buff叠加 | 目标: %s | 当前层数: %d | 效果: %s" % [source_name, buff_type, target_name, current_stacks + 1, effect_desc]
-			AILogger.event(stack_msg)
+			AILogger.broadcast_log("事件", stack_msg)
 			# 同时通过AIManager广播，确保测试脚本能检测到
 			if AIManager:
 				AIManager.broadcast_text(stack_msg)
@@ -463,14 +463,14 @@ func _process(delta):
 	var debug_msg = "[UNIT DEBUG] _process called, behavior: %s" % (behavior != null)
 	print(debug_msg)
 	if AILogger and AIManager and AIManager.has_method("broadcast_text"):
-		AILogger.event(debug_msg)
+		AILogger.broadcast_log("事件", debug_msg)
 		AIManager.broadcast_text(debug_msg)
 
 	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	var wave_msg = "[UNIT DEBUG] is_wave_active: %s" % is_wave_active
 	print(wave_msg)
 	if AILogger and AIManager and AIManager.has_method("broadcast_text"):
-		AILogger.event(wave_msg)
+		AILogger.broadcast_log("事件", wave_msg)
 		AIManager.broadcast_text(wave_msg)
 
 	if !is_wave_active: return

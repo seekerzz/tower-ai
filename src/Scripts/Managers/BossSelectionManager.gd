@@ -221,7 +221,7 @@ func _log_boss_selection(season: String, boss_type: String, boss_name: String):
 	var ai_manager = get_node_or_null("/root/AIManager")
 
 	if ai_logger:
-		ai_logger.boss_selected(boss_name, season_cn, boss_type, pool)
+		ai_logger.broadcast_log("BOSS", "Boss选择: " + boss_name + " (" + season_cn + ", " + boss_type + ")")
 
 	if ai_manager:
 		ai_manager.broadcast_text("[BOSS选择] %sBoss: %s" % [season_cn, boss_name])
@@ -251,5 +251,5 @@ func _log_selection_summary():
 		var summary_text = " | ".join(season_order.map(
 			func(s): return "%s: %s" % [season_names[s], get_boss_display_name(selected_bosses[s])]
 		))
-		ai_logger.system_log("季节系统", "Boss配置完成", summary_text)
-		ai_logger.event("[BOSS选择] 本局配置完成 | 种子:%d | %s" % [rng.seed, " | ".join(summary_parts)])
+		ai_logger.broadcast_log("系统", "系统日志: 季节系统 Boss配置完成 " + summary_text)
+		ai_logger.broadcast_log("事件", "[BOSS选择] 本局配置完成 | 种子:%d | %s" % [rng.seed, " | ".join(summary_parts)])

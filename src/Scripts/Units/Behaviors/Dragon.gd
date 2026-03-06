@@ -6,7 +6,7 @@ var black_hole_enemies = []
 func on_skill_activated():
 	# 记录龙技能激活日志
 	if AILogger:
-		AILogger.event("[SKILL] 龙技能激活 | 进入黑洞目标选择模式")
+		AILogger.broadcast_log("事件", "[SKILL] 龙技能激活 | 进入黑洞目标选择模式")
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 龙技能激活 | 进入黑洞目标选择模式")
 	if GameManager.grid_manager:
@@ -37,11 +37,11 @@ func _create_black_hole(pos: Vector2):
 		var unit_id = unit.name if unit and "name" in unit else "未知单位"
 		if unit and "type_key" in unit:
 			unit_id = unit.type_key
-		AILogger.dragon_black_hole(unit_id, radius / Constants.TILE_SIZE, duration)
+		pass
 		# 记录[DRAGON]龙黑洞日志 - 使用测试脚本可检测的格式
-		AILogger.event("[DRAGON] 龙触发黑洞 | 范围: %.0f | 持续: %.1fs" % [radius, duration])
+		AILogger.broadcast_log("事件", "[DRAGON] 龙触发黑洞 | 范围: %.0f | 持续: %.1fs" % [radius, duration])
 		# 同时保留[SKILL]格式日志用于兼容性
-		AILogger.event("[SKILL] 龙触发黑洞 | 范围: %.0f | 持续: %.1fs" % [radius, duration])
+		AILogger.broadcast_log("事件", "[SKILL] 龙触发黑洞 | 范围: %.0f | 持续: %.1fs" % [radius, duration])
 		if AIManager:
 			AIManager.broadcast_text("[DRAGON] 龙触发黑洞 | 范围: %.0f | 持续: %.1fs" % [radius, duration])
 

@@ -65,10 +65,10 @@ func _on_enemy_died(enemy, killer_unit):
 		# 日志
 		if AILogger:
 			# 记录[VULTURE_BUFF]秃鹫永久叠加日志 - 使用测试脚本可检测的格式
-			AILogger.event("[VULTURE_BUFF] 秃鹫击杀叠加 | 击杀数: %d | 永久攻击+%d/%d" % [kills_count, permanent_attack_bonus, max_attack_bonus])
+			AILogger.broadcast_log("事件", "[VULTURE_BUFF] 秃鹫击杀叠加 | 击杀数: %d | 永久攻击+%d/%d" % [kills_count, permanent_attack_bonus, max_attack_bonus])
 			# 同时保留[UNIT]和[BUFF]格式日志用于兼容性
-			AILogger.event("[UNIT] 秃鹫击杀叠加 | 击杀数: %d | 永久攻击+%d/%d" % [kills_count, permanent_attack_bonus, max_attack_bonus])
-			AILogger.event("[BUFF] 秃鹫永久叠加 | 当前加成: +%d (上限:%d)" % [permanent_attack_bonus, max_attack_bonus])
+			AILogger.broadcast_log("事件", "[UNIT] 秃鹫击杀叠加 | 击杀数: %d | 永久攻击+%d/%d" % [kills_count, permanent_attack_bonus, max_attack_bonus])
+			AILogger.broadcast_log("事件", "[BUFF] 秃鹫永久叠加 | 当前加成: +%d (上限:%d)" % [permanent_attack_bonus, max_attack_bonus])
 			if AIManager:
 				AIManager.broadcast_text("[VULTURE_BUFF] 秃鹫击杀叠加 | 永久攻击+%d/%d" % [permanent_attack_bonus, max_attack_bonus])
 
@@ -97,14 +97,14 @@ func _trigger_death_echo(target):
 
 	if AILogger:
 		# 记录[VULTURE_ECHO]秃鹫死亡回响日志 - 使用测试脚本可检测的格式
-		AILogger.event("[VULTURE_ECHO] 秃鹫死亡回响 | 目标: %s | 回响伤害: %.0f" % [target_name, echo_damage])
+		AILogger.broadcast_log("事件", "[VULTURE_ECHO] 秃鹫死亡回响 | 目标: %s | 回响伤害: %.0f" % [target_name, echo_damage])
 		# 同时保留[UNIT]格式日志用于兼容性
-		AILogger.event("[UNIT] 秃鹫死亡回响 | 目标: %s | 回响伤害: %.0f" % [target_name, echo_damage])
+		AILogger.broadcast_log("事件", "[UNIT] 秃鹫死亡回响 | 目标: %s | 回响伤害: %.0f" % [target_name, echo_damage])
 		if AIManager:
 			AIManager.broadcast_text("[VULTURE_ECHO] 秃鹫死亡回响 | 目标: %s | 回响伤害: %.0f" % [target_name, echo_damage])
 
 	# 确保日志被正确记录到AILogger中，增加冗余日志输出
-	AILogger.event("[VULTURE_ECHO] 秃鹫Lv.3死亡回响触发")
+	AILogger.broadcast_log("事件", "[VULTURE_ECHO] 秃鹫Lv.3死亡回响触发")
 
 func _get_target() -> Node2D:
 	# Lowest HP

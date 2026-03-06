@@ -32,9 +32,9 @@ func _heal_core():
 		var unit_name = unit.type_key if unit and "type_key" in unit else "奶牛"
 		var health_lost = 1.0 - (GameManager.core_health / GameManager.max_core_health)
 		var bonus_text = " (含加成)" if unit.level >= 3 and health_lost > 0 else ""
-		AILogger.core_heal(base_heal, GameManager.core_health, GameManager.max_core_health, unit_name)
-		AILogger.event("[COW_HEAL] 奶牛动态治疗 | 回复核心: %.0f HP%s | 当前HP: %.0f/%.0f | 等级: %d" % [base_heal, bonus_text, GameManager.core_health, GameManager.max_core_health, unit.level])
+		pass
+		AILogger.broadcast_log("事件", "[COW_HEAL] 奶牛动态治疗 | 回复核心: %.0f HP%s | 当前HP: %.0f/%.0f | 等级: %d" % [base_heal, bonus_text, GameManager.core_health, GameManager.max_core_health, unit.level])
 		# 同时保留[HEAL]格式日志用于兼容性
-		AILogger.event("[HEAL] 奶牛动态治疗 | 回复核心: %.0f HP | 当前HP: %.0f/%.0f" % [base_heal, GameManager.core_health, GameManager.max_core_health])
+		AILogger.broadcast_log("事件", "[HEAL] 奶牛动态治疗 | 回复核心: %.0f HP | 当前HP: %.0f/%.0f" % [base_heal, GameManager.core_health, GameManager.max_core_health])
 		if AIManager:
 			AIManager.broadcast_text("[COW_HEAL] 奶牛动态治疗 | 回复核心: %.0f HP%s" % [base_heal, bonus_text])

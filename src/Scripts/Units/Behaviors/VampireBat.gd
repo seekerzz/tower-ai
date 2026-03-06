@@ -97,9 +97,9 @@ func _apply_lifesteal(damage: float):
 		var current_hp = int(min(unit.stats.current_hp + heal_amt, unit.stats.max_hp)) if unit.has_method("heal") else int(unit.stats.current_hp)
 
 		if AILogger:
-			AILogger.core_heal(heal_amt, GameManager.core_health, GameManager.max_core_health, unit_name)
-			AILogger.event("[CORE_HEAL] 核心回复 %.0f HP，来源: %s吸血，当前HP: %.0f/%.0f" % [heal_amt, unit_name, GameManager.core_health, GameManager.max_core_health])
-			AILogger.event("[RESOURCE] %s 吸血治疗 | 伤害: %.0f | 吸血比例: %.0f%% | 治疗量: %.0f | 当前生命: %d/%d" % [unit_name, damage, lifesteal_pct * 100, heal_amt, current_hp, int(unit.stats.max_hp)])
+			pass
+			AILogger.broadcast_log("事件", "[CORE_HEAL] 核心回复 %.0f HP，来源: %s吸血，当前HP: %.0f/%.0f" % [heal_amt, unit_name, GameManager.core_health, GameManager.max_core_health])
+			AILogger.broadcast_log("事件", "[RESOURCE] %s 吸血治疗 | 伤害: %.0f | 吸血比例: %.0f%% | 治疗量: %.0f | 当前生命: %d/%d" % [unit_name, damage, lifesteal_pct * 100, heal_amt, current_hp, int(unit.stats.max_hp)])
 
 		# 广播吸血日志
 		if AIManager and AIManager.has_method("broadcast_text"):

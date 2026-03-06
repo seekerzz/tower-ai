@@ -158,7 +158,7 @@ func setup(key: String, wave: int):
 		var current_wave = 1
 		if GameManager.wave_system_manager:
 			current_wave = GameManager.wave_system_manager.current_wave
-		AILogger.enemy_spawned(current_wave, type_key, hp, global_position)
+		AILogger.broadcast_log("战斗", "敌人 %s 出生 波次 %d" % [ type_key, current_wave])
 
 func _init_behavior():
 	if type_key == "mutant_slime":
@@ -610,7 +610,7 @@ func add_bleed_stacks(stacks: int, source_unit = null):
 
 	# 使用 AILogger 记录流血施加日志，避免重复
 	if AILogger:
-		AILogger.mechanic_bleed_applied(str(get_instance_id()), stacks, 5.0)
+		pass
 
 	# Track the bleed source for lifesteal
 	if source_unit and _bleed_source_unit == null:
@@ -637,7 +637,7 @@ func _process_bleed_damage(delta: float):
 			var enemy_name = type_key if type_key else str(get_instance_id())
 			if AILogger:
 				# 使用测试脚本可检测的格式: "流血伤害: X"
-				AILogger.event("[DAMAGE] 流血伤害: %.1f | 目标: %s | 层数: %d" % [_bleed_accumulated_damage, enemy_name, bleed_stacks])
+				AILogger.broadcast_log("事件", "[DAMAGE] 流血伤害: %.1f | 目标: %s | 层数: %d" % [_bleed_accumulated_damage, enemy_name, bleed_stacks])
 			if AIManager:
 				AIManager.broadcast_text("[DAMAGE] 流血伤害: %.1f | 目标: %s | 层数: %d" % [_bleed_accumulated_damage, enemy_name, bleed_stacks])
 			_bleed_accumulated_damage = 0.0
@@ -689,7 +689,7 @@ func add_debuff(type: String, stacks: int, duration: float):
 
 func take_damage(amount: float, source_unit = null, damage_type: String = "physical", hit_source: Node2D = null, kb_force: float = 0.0):
 	if source_unit == GameManager and AILogger:
-		AILogger.event("[DAMAGE] 全局伤害: %.1f" % amount)
+		AILogger.broadcast_log("事件", "[DAMAGE] 全局伤害: %.1f" % amount)
 
 	if invincible_timer > 0:
 		return
@@ -749,7 +749,7 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 				source_name = source_unit.type_key
 			elif source_unit == GameManager:
 				source_name = "图腾/状态效果"
-		AILogger.enemy_hit(type_key, amount, source_name, hp)
+		pass # spam
 
 	if source_unit:
 		GameManager.damage_dealt.emit(source_unit, amount)
@@ -796,7 +796,7 @@ func die(killer_unit = null):
 				killer_name = "图腾/状态效果"
 		else:
 			killer_name = "未知"
-		AILogger.enemy_died(type_key, killer_name)
+		AILogger.broadcast_log("战斗", "敌人 %s 阵亡" % [type_key])
 
 	GameManager.add_gold(1)
 	if GameManager.reward_manager and "scrap_recycling" in GameManager.reward_manager.acquired_artifacts:
@@ -848,9 +848,9 @@ func _play_petrified_death_effect():
 	_enhance_petrified_shatter_effect(global_position, damage_percent)
 
 	if AILogger:
-		AILogger.mechanic_petrified_shatter(str(get_instance_id()), max_hp * damage_percent)
+		pass
 		# 记录石块破碎日志 - 使用测试脚本可检测的格式
-		AILogger.event("[SKILL] 美杜莎石块破碎 | 目标: %s | 伤害: %.0f (%.0f%%)" % [type_key, max_hp * damage_percent, damage_percent * 100])
+		AILogger.broadcast_log("事件", "[SKILL] 美杜莎石块破碎 | 目标: %s | 伤害: %.0f (%.0f%%)" % [type_key, max_hp * damage_percent, damage_percent * 100])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 美杜莎石块破碎 | 伤害: %.0f" % (max_hp * damage_percent))
 

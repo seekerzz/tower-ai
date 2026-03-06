@@ -43,7 +43,7 @@ func _apply_dive_stun(enemy: Node2D, duration: float):
 	if AILogger:
 		var unit_name = unit.name if unit and "name" in unit else "未知"
 		var enemy_name = enemy.name if enemy and "name" in enemy else "未知"
-		AILogger.mechanic_dive_attack(unit_name, enemy_name, 50)
+		pass
 
 	if unit.level >= 3:
 		_sonic_boom(enemy.global_position)

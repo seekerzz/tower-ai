@@ -205,7 +205,7 @@ func _finish_combo():
 		var unit_name = unit.name if unit and "name" in unit else "未知"
 		if unit and "type_key" in unit:
 			unit_name = unit.type_key
-		AILogger.mechanic_triple_claw(unit_name, _last_target_id, _combo_total_damage)
+		pass
 		# 记录[SKILL]三连爪击技能日志
 		var is_crit = false
 		if unit.level == 1:
@@ -214,7 +214,7 @@ func _finish_combo():
 			is_crit = randf() < (unit.stats.crit_rate * 3)
 		elif unit.level >= 3:
 			is_crit = true
-		AILogger.event("[SKILL] 角雕 %s 触发三连爪击 | 目标: %s | 总伤害: %.0f | 第3击暴击: %s" % [unit_name, _last_target_id, _combo_total_damage, "是" if is_crit else "否"])
+		AILogger.broadcast_log("事件", "[SKILL] 角雕 %s 触发三连爪击 | 目标: %s | 总伤害: %.0f | 第3击暴击: %s" % [unit_name, _last_target_id, _combo_total_damage, "是" if is_crit else "否"])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 角雕 %s 触发三连爪击 | 目标: %s | 总伤害: %.0f | 第3击暴击: %s" % [unit_name, _last_target_id, _combo_total_damage, "是" if is_crit else "否"])
 

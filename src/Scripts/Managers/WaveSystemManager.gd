@@ -303,7 +303,7 @@ func _check_season_change(wave: int):
 
 		# SEASON-VERIFY-001: 添加季节切换日志
 		if AILogger:
-			AILogger.system_log("季节系统", "季节切换", "%s → %s | 波次: %d" % [old_season_name, season_name, wave])
+			AILogger.broadcast_log("系统", "系统日志: " + "季节系统" + " " + "季节切换" + " " + str("%s → %s | 波次: %d" % [old_season_name, season_name, wave]))
 		if AIManager:
 			AIManager.broadcast_text("【季节系统】季节切换: %s → %s | 当前波次: %d" % [old_season_name, season_name, wave])
 
@@ -528,8 +528,8 @@ func start_wave(wave: int = -1) -> bool:
 			boss_wave_started.emit(current_wave, 1)
 			# [BOSS选择] 日志埋点: Boss出场
 			if AILogger:
-				AILogger.system_log("季节系统", "季节Boss生成", "%s | 类型: %s | 波次: %d" % [season_name, boss_type, current_wave])
-				AILogger.event("[BOSS选择] Boss出场 | 波次:%d | 季节:%s | Boss:%s" % [current_wave, season_name, boss_type])
+				AILogger.broadcast_log("系统", "系统日志: " + "季节系统" + " " + "季节Boss生成" + " " + str("%s | 类型: %s | 波次: %d" % [season_name, boss_type, current_wave]))
+				AILogger.broadcast_log("事件", "[BOSS选择] Boss出场 | 波次:%d | 季节:%s | Boss:%s" % [current_wave, season_name, boss_type])
 			if AIManager:
 				AIManager.broadcast_text("[BOSS选择] %s - %s 登场！| 波次: %d" % [season_name, boss_type, current_wave])
 
@@ -839,13 +839,13 @@ func _spawn_enemy_at_pos(pos: Vector2, type_key: String):
 			boss_hp = enemy.health
 		# 确保 [BOSS生成] 日志总是被记录
 		if AILogger:
-			AILogger.boss_spawned(boss_name, 1, boss_hp)
+			AILogger.broadcast_log("BOSS", "Boss %s 出现, 阶级: %d" % [boss_name,  1])
 		if AIManager:
 			AIManager.broadcast_text("[BOSS生成] %s 降临！波次:%d" % [boss_name, current_wave])
 	else:
 		# 普通敌人通过AILogger记录生成日志
 		if AILogger:
-			AILogger.enemy_spawned(current_wave, type_key, enemy.hp if "hp" in enemy else 0, pos)
+			AILogger.broadcast_log("战斗", "敌人 %s 出生 波次 %d" % [ type_key, current_wave])
 
 func _apply_difficulty_scaling(enemy: Node):
 	"""应用难度缩放到敌人"""

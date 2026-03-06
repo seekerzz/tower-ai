@@ -15,10 +15,10 @@ func on_setup():
 	# 记录[YAK]牦牛守护嘲讽日志 - 使用测试脚本可检测的格式
 	if AILogger:
 		var unit_name = unit.type_key if unit and "type_key" in unit else "牦牛守护"
-		AILogger.buff_applied("自身", "嘲讽光环", unit_name)
-		AILogger.event("[YAK] 牦牛守护激活嘲讽光环 | 等级: %d | 嘲讽间隔: %.1fs" % [unit.level, taunt_behavior.taunt_interval if taunt_behavior else 6.0])
+		AILogger.broadcast_log("BUFF", "%s 施加 %s 给 %s" % [ unit_name,  "嘲讽光环", "自身"])
+		AILogger.broadcast_log("事件", "[YAK] 牦牛守护激活嘲讽光环 | 等级: %d | 嘲讽间隔: %.1fs" % [unit.level, taunt_behavior.taunt_interval if taunt_behavior else 6.0])
 		# 同时保留[UNIT]格式日志用于兼容性
-		AILogger.event("[UNIT] 牦牛守护激活嘲讽光环")
+		AILogger.broadcast_log("事件", "[UNIT] 牦牛守护激活嘲讽光环")
 		if AIManager:
 			AIManager.broadcast_text("[YAK] 牦牛守护激活嘲讽光环 | 等级: %d" % unit.level)
 
@@ -41,9 +41,9 @@ func _on_totem_attack(totem_type: String):
 	# 记录[YAK_TOTEM]牦牛守护图腾联动日志 - 使用测试脚本可检测的格式
 	if AILogger and hit_count > 0:
 		var unit_name = unit.type_key if unit and "type_key" in unit else "牦牛守护"
-		AILogger.event("[YAK_TOTEM] 牦牛守护触发图腾联动 | 目标: %d个敌人 | 伤害: %.0f" % [hit_count, bonus_damage])
+		AILogger.broadcast_log("事件", "[YAK_TOTEM] 牦牛守护触发图腾联动 | 目标: %d个敌人 | 伤害: %.0f" % [hit_count, bonus_damage])
 		# 同时保留[UNIT]格式日志用于兼容性
-		AILogger.event("[UNIT] 牦牛守护触发图腾联动 | 目标: %d个敌人 | 伤害: %.0f" % [hit_count, bonus_damage])
+		AILogger.broadcast_log("事件", "[UNIT] 牦牛守护触发图腾联动 | 目标: %d个敌人 | 伤害: %.0f" % [hit_count, bonus_damage])
 		if AIManager:
 			AIManager.broadcast_text("[YAK_TOTEM] 牦牛守护触发图腾联动 | 目标: %d个敌人 | 伤害: %.0f" % [hit_count, bonus_damage])
 

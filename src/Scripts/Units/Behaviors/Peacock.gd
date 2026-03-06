@@ -72,11 +72,11 @@ func _apply_vulnerable_debuff(target: Node2D):
 
 	if AILogger:
 		# 记录[PEACOCK_VULNERABLE]孔雀易伤debuff日志 - 使用测试脚本可检测的格式
-		AILogger.event("[PEACOCK_VULNERABLE] 孔雀Lv.2施加易伤 | 目标: %s | 增伤: %.0f%% | 持续: %.1fs" % [target_name, vulnerable_damage_increase * 100, vulnerable_debuff_duration])
+		AILogger.broadcast_log("事件", "[PEACOCK_VULNERABLE] 孔雀Lv.2施加易伤 | 目标: %s | 增伤: %.0f%% | 持续: %.1fs" % [target_name, vulnerable_damage_increase * 100, vulnerable_debuff_duration])
 		# 同时保留[PEACOCK_DEBUFF]和[DEBUFF]和[UNIT]格式日志用于兼容性
-		AILogger.event("[PEACOCK_DEBUFF] 孔雀Lv.2施加易伤 | 目标: %s | 增伤: %.0f%% | 持续: %.1fs" % [target_name, vulnerable_damage_increase * 100, vulnerable_debuff_duration])
-		AILogger.event("[DEBUFF] 孔雀施加易伤 | 目标: %s | 增伤: %.0f%% | 持续: %.1fs" % [target_name, vulnerable_damage_increase * 100, vulnerable_debuff_duration])
-		AILogger.event("[UNIT] 孔雀Lv.2易伤debuff | 目标: %s | 伤害+30%%" % target_name)
+		AILogger.broadcast_log("事件", "[PEACOCK_DEBUFF] 孔雀Lv.2施加易伤 | 目标: %s | 增伤: %.0f%% | 持续: %.1fs" % [target_name, vulnerable_damage_increase * 100, vulnerable_debuff_duration])
+		AILogger.broadcast_log("事件", "[DEBUFF] 孔雀施加易伤 | 目标: %s | 增伤: %.0f%% | 持续: %.1fs" % [target_name, vulnerable_damage_increase * 100, vulnerable_debuff_duration])
+		AILogger.broadcast_log("事件", "[UNIT] 孔雀Lv.2易伤debuff | 目标: %s | 伤害+30%%" % target_name)
 		if AIManager:
 			AIManager.broadcast_text("[PEACOCK_VULNERABLE] 孔雀Lv.2施加易伤 | 目标: %s | 增伤: %.0f%%" % [target_name, vulnerable_damage_increase * 100])
 
@@ -108,8 +108,8 @@ func _do_bow_attack(target):
 		var target_name = target.name if "name" in target else "敌人"
 		var damage = unit.unit_data.get("damage", 0)
 		var wave_info = GameManager.session_data.wave if GameManager.session_data else 1
-		AILogger.unit_attack(unit.type_key, target_name, damage)
-		AILogger.event("[单位攻击] 波次%d | %s 攻击 %s，伤害 %.0f" % [
+		pass # spam
+		AILogger.broadcast_log("事件", "[单位攻击] 波次%d | %s 攻击 %s，伤害 %.0f" % [
 			wave_info, unit.type_key, target_name, damage
 		])
 		if AIManager:

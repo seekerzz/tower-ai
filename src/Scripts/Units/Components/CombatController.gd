@@ -39,7 +39,7 @@ func activate_skill():
 		GameManager.skill_activated.emit(unit)
 		# 中文技能日志
 		if AILogger:
-			AILogger.action("[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [unit.type_key, unit.level, skill_name, final_cost])
+			AILogger.broadcast_log("动作", "[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [unit.type_key, unit.level, skill_name, final_cost])
 
 		if unit.visual_holder and unit.is_inside_tree():
 			var tween = unit.create_tween()

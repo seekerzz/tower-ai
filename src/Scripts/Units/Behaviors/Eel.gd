@@ -42,4 +42,4 @@ func _log_lightning_chain(chain_count: int, hit_list: Array, first_target: Node2
 			single_dmg = unit.calculate_damage_against(first_target)
 		var total_dmg = jumps * single_dmg
 
-		AILogger.eel_lightning_chain(unit_id, jumps, total_dmg)
+		pass

@@ -21,7 +21,7 @@ func setup(target: Node, source: Object, params: Dictionary):
 				source_name = source.type_key
 		var target_name = target.type_key if "type_key" in target else "目标"
 		var debuff_msg = "[DEBUFF] %s 施加 Burn | 目标: %s | 层数: %d | 伤害: %.0f/秒 | 死亡爆炸: %.0f" % [source_name, target_name, stacks, base_damage * stacks, explosion_damage * stacks]
-		AILogger.event(debuff_msg)
+		AILogger.broadcast_log("事件", debuff_msg)
 		# 同时通过AIManager广播，确保测试脚本能检测到
 		if AIManager:
 			AIManager.broadcast_text(debuff_msg)
@@ -44,7 +44,7 @@ func stack(params: Dictionary):
 		if host:
 			var target_name = host.type_key if "type_key" in host else "目标"
 			var stack_msg = "[DEBUFF] Burn叠加 | 目标: %s | 当前层数: %d | 伤害: %.0f/秒 | 死亡爆炸: %.0f" % [target_name, stacks, base_damage * stacks, explosion_damage * stacks]
-			AILogger.event(stack_msg)
+			AILogger.broadcast_log("事件", stack_msg)
 			# 同时通过AIManager广播，确保测试脚本能检测到
 			if AIManager:
 				AIManager.broadcast_text(stack_msg)
@@ -59,7 +59,7 @@ func _deal_damage():
 		if AILogger:
 			var target_name = host.type_key if "type_key" in host else "目标"
 			var damage_msg = "[DEBUFF] Burn伤害 | 目标: %s | 层数: %d | 伤害: %.0f" % [target_name, stacks, dmg]
-			AILogger.event(damage_msg)
+			AILogger.broadcast_log("事件", damage_msg)
 			# 同时通过AIManager广播，确保测试脚本能检测到
 			if AIManager:
 				AIManager.broadcast_text(damage_msg)

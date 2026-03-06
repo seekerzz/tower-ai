@@ -29,9 +29,9 @@ func on_core_damaged(amount: float):
 	if AILogger:
 		var current_charge = TotemManager.get_resource(TOTEM_ID)
 		var wave_info = GameManager.session_data.wave if GameManager.session_data else 1
-		AILogger.totem_resource("牛图腾", "充能", int(amount), current_charge)
+		pass, current_charge)
 		# 额外记录详细充能信息
-		AILogger.event("[牛图腾充能] 波次%d | 受到伤害: %.0f | 充能+%d | 当前充能: %d" % [
+		AILogger.broadcast_log("事件", "[牛图腾充能] 波次%d | 受到伤害: %.0f | 充能+%d | 当前充能: %d" % [
 			wave_info, amount, int(amount), current_charge
 		])
 		# 同时通过AIManager广播，确保测试脚本能检测到
@@ -47,9 +47,9 @@ func _on_timer_timeout():
 
 	# 记录牛图腾全屏反击触发日志（包含波次信息）
 	if AILogger and damage > 0:
-		AILogger.totem_triggered("牛图腾", "全屏敌人", "全屏反击伤害 %.0f" % damage)
+		pass
 		# 额外记录详细触发信息
-		AILogger.event("[牛图腾触发] 波次%d | 充能层数: %d | 反击伤害: %.0f" % [
+		AILogger.broadcast_log("事件", "[牛图腾触发] 波次%d | 充能层数: %d | 反击伤害: %.0f" % [
 			wave_info, hit_count, damage
 		])
 		# 同时通过AIManager广播，确保测试脚本能检测到
@@ -61,7 +61,7 @@ func _on_timer_timeout():
 	# 清零层数（必须在计算伤害后）
 	TotemManager.clear_resource(TOTEM_ID)
 	if AILogger:
-		AILogger.totem_resource("牛图腾", "充能", 0, 0)
+		pass
 
 	if damage > 0:
 		if GameManager.combat_manager:
@@ -78,7 +78,7 @@ func _on_timer_timeout():
 
 			# 记录[TOTEM_DAMAGE]图腾伤害日志
 			if AILogger:
-				AILogger.event("[TOTEM_DAMAGE] 牛图腾 对 %d个敌人 造成 %.0f 伤害，击杀 %d个" % [hit_count_actual, damage, kill_count])
+				AILogger.broadcast_log("事件", "[TOTEM_DAMAGE] 牛图腾 对 %d个敌人 造成 %.0f 伤害，击杀 %d个" % [hit_count_actual, damage, kill_count])
 				if AIManager:
 					AIManager.broadcast_text("[TOTEM_DAMAGE] 牛图腾 对 %d个敌人 造成 %.0f 伤害，击杀 %d个" % [hit_count_actual, damage, kill_count])
 

@@ -169,26 +169,26 @@ func _perform_shoot_enemy():
 func _log_boss_spawn():
 	var display_name = boss_title if boss_title else boss_name
 	if AILogger:
-		AILogger.boss_spawned(display_name, current_phase, enemy.hp if enemy else 0)
+		AILogger.broadcast_log("BOSS", "Boss %s 出现, 阶级: %d" % [display_name,  current_phase])
 	if AIManager:
 		AIManager.broadcast_text("【Boss登场】%s 降临战场！" % display_name)
 
 func _log_boss_skill(skill_name: String, target: String = "", effect: String = ""):
 	var display_name = boss_title if boss_title else boss_name
 	if AILogger:
-		AILogger.boss_skill(display_name, skill_name, target, effect)
+		AILogger.broadcast_log("BOSS", "Boss %s 施放 %s 目标: %s 效果: %s" % [display_name,  skill_name,  target,  effect])
 
 func _log_phase_transition(old_phase: int, new_phase: int):
 	var display_name = boss_title if boss_title else boss_name
 	if AILogger:
-		AILogger.boss_phase_changed(display_name, old_phase, new_phase)
+		AILogger.broadcast_log("BOSS", "Boss %s 阶段 %d -> %d" % [display_name,  old_phase,  new_phase])
 	if AIManager:
 		AIManager.broadcast_text("【Boss阶段】%s 进入第%d阶段！" % [display_name, new_phase])
 
 func on_death(killer_unit) -> bool:
 	var display_name = boss_title if boss_title else boss_name
 	if AILogger:
-		AILogger.boss_died(display_name, killer_unit.name if killer_unit else "未知")
+		AILogger.broadcast_log("BOSS", "Boss %s 阵亡" % [display_name])
 	if AIManager:
 		AIManager.broadcast_text("【Boss阵亡】%s 被击败！" % display_name)
 

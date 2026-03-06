@@ -12,13 +12,13 @@ func _ready():
 
 	if AIManager:
 		AIManager.action_received.connect(_on_actions_received)
-		AILogger.action("ActionDispatcher已连接到 AIManager")
+		AILogger.broadcast_log("动作", "ActionDispatcher已连接到 AIManager")
 
 func _on_actions_received(actions: Array):
 	if actions.size() == 0:
 		return
 
-	AILogger.action("ActionDispatcher 开始分发 %d 个动作" % actions.size())
+	AILogger.broadcast_log("动作", "ActionDispatcher 开始分发 %d 个动作" % actions.size())
 
 	# 使用 async 立即执行异步任务
 	var t = get_tree().create_timer(0.001)
@@ -30,12 +30,12 @@ func _async_execute_actions(actions: Array):
 	for action in actions:
 		# 安全类型检查
 		if not action is Dictionary:
-			AILogger.error("动作格式错误: %s" % str(action))
+			AILogger.broadcast_log("错误", "动作格式错误: %s" % str(action))
 			continue
 
 		var result = await _execute_action(action)
 		if not result.get("success", false):
-			AILogger.error("动作执行失败: %s" % result.get("error_message", "未知错误"))
+			AILogger.broadcast_log("错误", "动作执行失败: %s" % result.get("error_message", "未知错误"))
 
 func _execute_action(action: Dictionary) -> Dictionary:
 	var action_type = action.get("type", "")
@@ -275,7 +275,7 @@ func _action_select_third_totem(action: Dictionary) -> Dictionary:
 		AIManager.broadcast_text("【第三图腾】AI选择了 %s 作为第三图腾！商店现在会刷新三阵营混合单位。" % totem_name)
 
 	if AILogger:
-		AILogger.event("[第三图腾] 玩家选择: %s" % totem_id)
+		AILogger.broadcast_log("事件", "[第三图腾] 玩家选择: %s" % totem_id)
 
 	return {"success": true, "message": "已选择第三图腾: %s" % totem_id}
 

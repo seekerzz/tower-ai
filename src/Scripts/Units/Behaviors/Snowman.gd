@@ -35,9 +35,9 @@ func on_tick(delta: float):
 				GameManager.spawn_floating_text(unit.global_position, "%s Produced!" % trap_name, Color.GREEN)
 				# 记录[SNOWMAN]雪人冰封剧毒日志 - 使用测试脚本可检测的格式
 				if AILogger:
-					AILogger.event("[SNOWMAN] 雪人生产冰封剧毒陷阱 | 陷阱: %s | 等级: %d" % [trap_name, unit.level])
+					AILogger.broadcast_log("事件", "[SNOWMAN] 雪人生产冰封剧毒陷阱 | 陷阱: %s | 等级: %d" % [trap_name, unit.level])
 					# 同时保留[SKILL]格式日志用于兼容性
-					AILogger.event("[SKILL] 雪人生产冰封剧毒陷阱 | 陷阱: %s" % trap_name)
+					AILogger.broadcast_log("事件", "[SKILL] 雪人生产冰封剧毒陷阱 | 陷阱: %s" % trap_name)
 					if AIManager:
 						AIManager.broadcast_text("[SNOWMAN] 雪人生产冰封剧毒陷阱 | 陷阱: %s" % trap_name)
 				production_timer = max_production_timer

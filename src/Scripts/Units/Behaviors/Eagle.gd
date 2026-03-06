@@ -46,7 +46,7 @@ func _calculate_damage(target: Node2D) -> float:
 		GameManager.spawn_floating_text(target.global_position, "FIRST STRIKE!", Color.RED)
 		# 记录[DAMAGE]老鹰处决伤害日志
 		if AILogger:
-			AILogger.event("[DAMAGE] 老鹰Lv.3处决伤害 | 倍率: 250%% | 目标血量: %.0f%%" % (hp_percent * 100))
+			AILogger.broadcast_log("事件", "[DAMAGE] 老鹰Lv.3处决伤害 | 倍率: 250%% | 目标血量: %.0f%%" % (hp_percent * 100))
 			if AIManager:
 				AIManager.broadcast_text("[DAMAGE] 老鹰Lv.3处决伤害 | 倍率: 250%%")
 

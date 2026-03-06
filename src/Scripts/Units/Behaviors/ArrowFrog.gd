@@ -15,7 +15,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	# 记录箭毒蛙攻击日志
 	var target_name = target.type_key if "type_key" in target else str(target.get_instance_id())
 	if AILogger:
-		AILogger.event("[ARROW_FROG] 箭毒蛙攻击 | 目标: %s | 伤害: %.0f" % [target_name, damage])
+		AILogger.broadcast_log("事件", "[ARROW_FROG] 箭毒蛙攻击 | 目标: %s | 伤害: %.0f" % [target_name, damage])
 		if AIManager:
 			AIManager.broadcast_text("[ARROW_FROG] 箭毒蛙攻击 | 目标: %s" % target_name)
 
@@ -48,11 +48,11 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 			# 斩杀日志 - 确保测试脚本能够检测到 [ARROW_FROG_EXECUTE]
 			print("[ARROW_FROG_EXECUTE] 箭毒蛙触发斩杀 | 目标: %s | Debuff层数: %d | 阈值: %.0f" % [target_name, debuff_stacks, easy_execute_threshold])
 			if AILogger:
-				AILogger.mechanic_execute_trigger(str(target.get_instance_id()), debuff_stacks)
+				pass), debuff_stacks)
 				# 记录[ARROW_FROG_EXECUTE]箭毒蛙斩杀日志 - 使用测试脚本可检测的格式
-				AILogger.event("[ARROW_FROG_EXECUTE] 箭毒蛙触发斩杀 | 目标: %s | Debuff层数: %d | 阈值: %.0f" % [target_name, debuff_stacks, easy_execute_threshold])
+				AILogger.broadcast_log("事件", "[ARROW_FROG_EXECUTE] 箭毒蛙触发斩杀 | 目标: %s | Debuff层数: %d | 阈值: %.0f" % [target_name, debuff_stacks, easy_execute_threshold])
 				# 同时保留[EXECUTE]格式日志用于兼容性
-				AILogger.event("[EXECUTE] 箭毒蛙触发斩杀 | 目标: %s | Debuff层数: %d | 阈值: %.0f" % [target_name, debuff_stacks, easy_execute_threshold])
+				AILogger.broadcast_log("事件", "[EXECUTE] 箭毒蛙触发斩杀 | 目标: %s | Debuff层数: %d | 阈值: %.0f" % [target_name, debuff_stacks, easy_execute_threshold])
 				if AIManager:
 					AIManager.broadcast_text("[ARROW_FROG_EXECUTE] 箭毒蛙触发斩杀 | 目标: %s | Debuff层数: %d" % [target_name, debuff_stacks])
 			# 播放斩杀特效
@@ -62,7 +62,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 			# 即使没有达到斩杀阈值，也输出调试日志，帮助排查问题
 			print("[ARROW_FROG DEBUG] 未触发斩杀 | 目标HP: %.0f, 斩杀阈值: %.0f, Debuff层数: %d" % [target.hp, easy_execute_threshold, debuff_stacks])
 			if AILogger:
-				AILogger.event("[ARROW_FROG_DEBUG] 未触发斩杀 | 目标HP: %.0f, 斩杀阈值: %.0f, Debuff层数: %d" % [target.hp, easy_execute_threshold, debuff_stacks])
+				AILogger.broadcast_log("事件", "[ARROW_FROG_DEBUG] 未触发斩杀 | 目标HP: %.0f, 斩杀阈值: %.0f, Debuff层数: %d" % [target.hp, easy_execute_threshold, debuff_stacks])
 			# 3. 常规攻击：施加中毒
 			_apply_poison(target, damage)
 	else:

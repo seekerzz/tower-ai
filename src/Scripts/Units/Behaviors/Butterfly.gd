@@ -23,7 +23,7 @@ func on_skill_activated():
 		var unit_id = unit.name if unit and "name" in unit else "未知单位"
 		if unit and "type_key" in unit:
 			unit_id = unit.type_key
-		AILogger.butterfly_damage_bonus(unit_id, mana_cost, damage_multiplier * 100)
+		pass
 
 func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	super.on_projectile_hit(target, damage, projectile)

@@ -24,7 +24,7 @@ func _on_wave_ended(_wave_number: int, _wave_type: String, _result: Dictionary):
 
 	# 日志
 	if AILogger:
-		AILogger.event("[RESOURCE] 金蟾 产金 | 波次: %d | 获得金币: %d | 总计波次: %d" % [_wave_number, gold_amount, wave_counter])
+		AILogger.broadcast_log("事件", "[RESOURCE] 金蟾 产金 | 波次: %d | 获得金币: %d | 总计波次: %d" % [_wave_number, gold_amount, wave_counter])
 	if AIManager:
 		AIManager.broadcast_text("【产金】金蟾产出 %d 金币（Lv.%d）" % [gold_amount, unit.level])
 

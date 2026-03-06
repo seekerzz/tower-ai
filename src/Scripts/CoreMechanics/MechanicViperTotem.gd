@@ -60,14 +60,14 @@ func _on_timer_timeout():
 					target_names.append(t.type_key if "type_key" in t else "敌人")
 
 		if AILogger:
-			AILogger.totem_triggered("毒蛇图腾", str(target_names.size()) + "个最远敌人", "毒液攻击+3层中毒")
-			AILogger.mechanic_viper_attack(target_ids)
+			pass) + "个最远敌人", "毒液攻击+3层中毒")
+			pass
 			# 记录[VIPER_TOTEM]毒蛇图腾3目标选择日志 - 使用测试脚本可检测的格式
-			AILogger.event("[VIPER_TOTEM] 毒蛇图腾3目标选择 | 选中目标: %d个 | 目标: %s" % [targets.size(), ", ".join(target_names)])
+			AILogger.broadcast_log("事件", "[VIPER_TOTEM] 毒蛇图腾3目标选择 | 选中目标: %d个 | 目标: %s" % [targets.size(), ", ".join(target_names)])
 			# 记录[VIPER_POISON]毒蛇图腾3层中毒日志 - 使用测试脚本可检测的格式
-			AILogger.event("[VIPER_POISON] 毒蛇图腾施加3层中毒 | 目标数: %d | 每层伤害: 5.0/秒" % targets.size())
+			AILogger.broadcast_log("事件", "[VIPER_POISON] 毒蛇图腾施加3层中毒 | 目标数: %d | 每层伤害: 5.0/秒" % targets.size())
 			# 同时保留[TOTEM]格式日志用于兼容性
-			AILogger.event("[TOTEM] 毒蛇图腾毒液攻击 | 目标数: %d | 伤害: 35 | 效果: 3层中毒" % targets.size())
+			AILogger.broadcast_log("事件", "[TOTEM] 毒蛇图腾毒液攻击 | 目标数: %d | 伤害: 35 | 效果: 3层中毒" % targets.size())
 			if AIManager:
 				AIManager.broadcast_text("[VIPER_TOTEM] 毒蛇图腾3目标选择 | 选中目标: %d个" % targets.size())
 				AIManager.broadcast_text("[VIPER_POISON] 毒蛇图腾施加3层中毒 | 目标数: %d" % targets.size())

@@ -22,7 +22,7 @@ func on_skill_activated():
 	# 记录血祭术士鲜血仪式日志
 	if AILogger:
 		var skill_msg = "[SKILL] 血祭术士触发鲜血仪式 | 消耗核心血量: %.0f | 流血层数: %d | 影响敌人: %d" % [hp_cost, bleed_stacks, affected_count]
-		AILogger.event(skill_msg)
+		AILogger.broadcast_log("事件", skill_msg)
 		if AIManager:
 			AIManager.broadcast_text(skill_msg)
 
@@ -39,7 +39,7 @@ func _start_ritual_buff():
 	# 记录鲜血仪式Buff日志
 	if AILogger:
 		var buff_msg = "[SKILL] 血祭术士鲜血仪式Buff生效 | 吸血倍数: 2.0x | 持续: 4秒"
-		AILogger.event(buff_msg)
+		AILogger.broadcast_log("事件", buff_msg)
 		if AIManager:
 			AIManager.broadcast_text(buff_msg)
 
@@ -52,7 +52,7 @@ func _start_ritual_buff():
 		# 记录Buff结束日志
 		if AILogger:
 			var end_msg = "[SKILL] 血祭术士鲜血仪式Buff结束"
-			AILogger.event(end_msg)
+			AILogger.broadcast_log("事件", end_msg)
 			if AIManager:
 				AIManager.broadcast_text(end_msg)
 

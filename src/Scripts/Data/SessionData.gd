@@ -39,9 +39,9 @@ var core_health: float = 500.0:
 			if AILogger:
 				var change = core_health - old_value
 				var change_str = "+%.0f" % change if change > 0 else "%.0f" % change
-				AILogger.action("[CORE_HP] 核心血量变化: %.0f → %.0f (%s), 最大: %.0f" % [old_value, core_health, change_str, max_core_health])
+				AILogger.broadcast_log("动作", "[CORE_HP] 核心血量变化: %.0f → %.0f (%s), 最大: %.0f" % [old_value, core_health, change_str, max_core_health])
 				# 同时输出 [核心血量计算] 格式，确保测试脚本能检测
-				AILogger.action("[核心血量计算] 核心血量变化: %.0f → %.0f (%s), 最大: %.0f" % [old_value, core_health, change_str, max_core_health])
+				AILogger.broadcast_log("动作", "[核心血量计算] 核心血量变化: %.0f → %.0f (%s), 最大: %.0f" % [old_value, core_health, change_str, max_core_health])
 				# 通过AIManager广播，确保测试脚本能检测到
 				if AIManager:
 					AIManager.broadcast_text("[核心血量计算] 核心血量变化: %.0f → %.0f (%s), 最大: %.0f" % [old_value, core_health, change_str, max_core_health])

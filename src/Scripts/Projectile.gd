@@ -364,7 +364,7 @@ func _handle_hit(target_node):
 			if AILogger:
 				var unit_id = source_unit.name if source_unit and "name" in source_unit else "未知"
 				var crit_rate = source_unit.crit_rate if source_unit and "crit_rate" in source_unit else 0.0
-				AILogger.mechanic_crit_triggered(unit_id, damage, crit_rate)
+				pass
 			# Emit global crit signal for units like Storm Eagle
 			if GameManager.has_signal("projectile_crit"):
 				GameManager.projectile_crit.emit(source_unit, target_node, damage)
@@ -693,6 +693,6 @@ func _log_combat_hit(source, target, dmg: float, dmg_type: String, is_crit: bool
 		"eagle_crit": dmg_type_str = "鹰族回响"
 		_: dmg_type_str = dmg_type
 
-	AILogger.action("[战斗] %s 攻击 %s | %s%.1f伤害(%s) | 目标剩余HP: %.1f" % [
+	AILogger.broadcast_log("动作", "[战斗] %s 攻击 %s | %s%.1f伤害(%s) | 目标剩余HP: %.1f" % [
 		source_name, target_name, crit_str, dmg, dmg_type_str, target_hp
 	])

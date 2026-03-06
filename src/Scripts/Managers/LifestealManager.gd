@@ -55,7 +55,7 @@ func _on_damage_dealt(target, source, damage: float):
 		if AILogger:
 			var source_name = source.type_key if source and source.get("type_key") else "蝙蝠单位"
 			var target_name = target.type_key if target and target.get("type_key") else "敌人"
-			AILogger.event("[TOTEM_HEAL] 蝙蝠图腾吸血治疗 | 来源: %s | 目标: %s | 流血层数: %d | 治疗量: %.0f | 核心HP: %.0f/%.0f" % [source_name, target_name, target.bleed_stacks, lifesteal_amount, GameManager.core_health, GameManager.max_core_health])
+			AILogger.broadcast_log("事件", "[TOTEM_HEAL] 蝙蝠图腾吸血治疗 | 来源: %s | 目标: %s | 流血层数: %d | 治疗量: %.0f | 核心HP: %.0f/%.0f" % [source_name, target_name, target.bleed_stacks, lifesteal_amount, GameManager.core_health, GameManager.max_core_health])
 			if AIManager:
 				AIManager.broadcast_text("[TOTEM_HEAL] 蝙蝠图腾吸血治疗 %.0f HP，来源: %s攻击%s" % [lifesteal_amount, source_name, target_name])
 
@@ -226,6 +226,6 @@ func _on_bleed_damage(target, damage, stacks, source):
 		if AILogger:
 			var source_name = source.type_key if source and source.get("type_key") else "蝙蝠单位"
 			var target_name = target.type_key if target and target.get("type_key") else "敌人"
-			AILogger.event("[TOTEM_HEAL] 蝙蝠图腾吸血治疗 | 来源: %s | 目标: %s | 流血层数: %d | 治疗量: %.0f | 核心HP: %.0f/%.0f" % [source_name, target_name, stacks, lifesteal_amount, GameManager.core_health, GameManager.max_core_health])
+			AILogger.broadcast_log("事件", "[TOTEM_HEAL] 蝙蝠图腾吸血治疗 | 来源: %s | 目标: %s | 流血层数: %d | 治疗量: %.0f | 核心HP: %.0f/%.0f" % [source_name, target_name, stacks, lifesteal_amount, GameManager.core_health, GameManager.max_core_health])
 			if AIManager:
 				AIManager.broadcast_text("[TOTEM_HEAL] 蝙蝠图腾吸血治疗 %.0f HP（流血伤害触发），来源: %s" % [lifesteal_amount, source_name])

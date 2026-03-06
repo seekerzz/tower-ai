@@ -120,7 +120,7 @@ func perform_lightning_attack(source_unit, start_pos, target, chain_left, hit_li
 	# 记录闪电链攻击日志（仅在第一次攻击时记录）
 	if AILogger and hit_list.size() == 1:
 		var source_name = source_unit.type_key if "type_key" in source_unit else "单位"
-		AILogger.totem_triggered("闪电链", source_name, "伤害%.0f，剩余跳跃%d次" % [dmg, chain_left])
+		pass
 
 	# Chain
 	if chain_left > 0:

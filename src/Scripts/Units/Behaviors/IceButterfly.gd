@@ -13,7 +13,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	if AILogger:
 		var target_name = target.type_key if target.has("type_key") else str(target.get_instance_id())
 		var current_stacks = target.get_meta("ice_stacks") if target.has_meta("ice_stacks") else 0
-		AILogger.event("[SKILL] 冰晶蝶攻击 | 目标: %s | 当前冰层: %d/%d" % [target_name, current_stacks, freeze_threshold])
+		AILogger.broadcast_log("事件", "[SKILL] 冰晶蝶攻击 | 目标: %s | 当前冰层: %d/%d" % [target_name, current_stacks, freeze_threshold])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] 冰晶蝶攻击 | 目标: %s" % target_name)
 
@@ -38,8 +38,8 @@ func _freeze_enemy(enemy: Node2D):
 			var enemy_id = enemy.name if enemy and "name" in enemy else "未知敌人"
 			if enemy and "type_key" in enemy:
 				enemy_id = enemy.type_key
-			AILogger.ice_butterfly_freeze(enemy_id, duration)
+			pass
 			# 记录[SKILL]冰晶蝶冻结日志 - 使用测试脚本可检测的格式
-			AILogger.event("[SKILL] 冰晶蝶触发冻结 | 目标: %s | 持续时间: %.1fs" % [enemy_id, duration])
+			AILogger.broadcast_log("事件", "[SKILL] 冰晶蝶触发冻结 | 目标: %s | 持续时间: %.1fs" % [enemy_id, duration])
 			if AIManager:
 				AIManager.broadcast_text("[SKILL] 冰晶蝶触发冻结 | 目标: %s | 持续时间: %.1fs" % [enemy_id, duration])

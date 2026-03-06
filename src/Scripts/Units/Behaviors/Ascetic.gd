@@ -55,9 +55,9 @@ func _on_buffed_unit_damaged(amount: float, source: Node):
 		var buffed_name = "未知"
 		if buffed_units.size() > 0 and is_instance_valid(buffed_units[0]):
 			buffed_name = buffed_units[0].type_key if "type_key" in buffed_units[0] else "单位"
-		AILogger.event("[ASCETIC] 苦修者伤害转MP | 来源: %s | 受到伤害: %.0f | 转化比例: %.0f%% | 获得法力: %.0f" % [buffed_name, amount, ratio * 100, mana_gain])
+		AILogger.broadcast_log("事件", "[ASCETIC] 苦修者伤害转MP | 来源: %s | 受到伤害: %.0f | 转化比例: %.0f%% | 获得法力: %.0f" % [buffed_name, amount, ratio * 100, mana_gain])
 		# 同时保留[UNIT]格式日志用于兼容性
-		AILogger.event("[UNIT] 苦修者伤害转MP | 来源: %s | 受到伤害: %.0f | 转化比例: %.0f%% | 获得法力: %.0f" % [buffed_name, amount, ratio * 100, mana_gain])
+		AILogger.broadcast_log("事件", "[UNIT] 苦修者伤害转MP | 来源: %s | 受到伤害: %.0f | 转化比例: %.0f%% | 获得法力: %.0f" % [buffed_name, amount, ratio * 100, mana_gain])
 		if AIManager:
 			AIManager.broadcast_text("[ASCETIC] 苦修者伤害转MP | 来源: %s | 受到伤害: %.0f | 转化比例: %.0f%% | 获得法力: %.0f" % [buffed_name, amount, ratio * 100, mana_gain])
 

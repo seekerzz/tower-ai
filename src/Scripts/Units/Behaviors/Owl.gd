@@ -38,7 +38,7 @@ func broadcast_buffs():
 			if AILogger:
 				var unit_name = unit.name if unit and "name" in unit else "未知"
 				var neighbor_name = neighbor.name if neighbor and "name" in neighbor else "未知"
-				AILogger.mechanic_crit_buff(unit_name, neighbor_name, bonus, 10.0)
+				pass
 
 func _get_units_in_range(r: int) -> Array:
 	if not GameManager.grid_manager: return []

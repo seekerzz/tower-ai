@@ -40,9 +40,9 @@ func _on_totem_attack():
 				if t.has_method("get_instance_id"):
 					target_ids.append(str(t.get_instance_id()))
 		if AILogger:
-			AILogger.totem_triggered("蝙蝠图腾", str(target_names), "流血攻击+%d层" % bleed_stacks_per_hit)
+			pass, "流血攻击+%d层" % bleed_stacks_per_hit)
 			# 记录[TOTEM_EFFECT]图腾特效日志
-			AILogger.event("[TOTEM_EFFECT] 蝙蝠图腾 触发流血攻击 | 目标: [%s] | 施加层数: %d" % [", ".join(target_ids), bleed_stacks_per_hit])
+			AILogger.broadcast_log("事件", "[TOTEM_EFFECT] 蝙蝠图腾 触发流血攻击 | 目标: [%s] | 施加层数: %d" % [", ".join(target_ids), bleed_stacks_per_hit])
 		if AIManager and AIManager.has_method("broadcast_text"):
 			AIManager.broadcast_text("【图腾攻击】蝙蝠图腾 触发流血攻击，目标: [%s]，伤害: 25" % [", ".join(target_ids)])
 
@@ -52,7 +52,7 @@ func _on_totem_attack():
 			# 记录[DEBUFF]流血debuff施加日志 - 现在由Enemy.add_bleed_stacks通过AILogger.mechanic_bleed_applied统一记录
 			if AILogger:
 				var enemy_id = enemy.type_key if "type_key" in enemy else str(enemy.get_instance_id())
-				AILogger.bleed_effect(enemy_id, 0, bleed_stacks_per_hit, "蝙蝠图腾")
+				AILogger.broadcast_log("状态", "%s 流血 层数: %d" % [enemy_id,  bleed_stacks_per_hit])
 			_play_bat_attack_effect(enemy)
 
 func _play_bat_attack_effect(enemy):

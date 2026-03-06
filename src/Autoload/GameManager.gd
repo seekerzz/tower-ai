@@ -538,7 +538,7 @@ func damage_core(amount: float, source: String = "未知来源"):
 
 	# 记录核心受击日志（包含伤害来源）
 	if AILogger and amount > 0:
-		AILogger.core_damaged(amount, source, core_health)
+		AILogger.broadcast_log("战斗", "核心受击: %.0f伤害" % [amount])
 
 	resource_changed.emit()
 	_check_game_over()
@@ -638,7 +638,7 @@ func recalculate_max_health():
 		if AILogger:
 			var wave_info = session_data.wave if session_data else 1
 			var change_type = "增加" if diff > 0 else "减少"
-			AILogger.event("[核心血量计算] 波次%d | 单位数量: %d | 单位总HP: %.0f | 最大血量%s: %.0f→%.0f | 当前血量: %.0f→%.0f" % [
+			AILogger.broadcast_log("事件", "[核心血量计算] 波次%d | 单位数量: %d | 单位总HP: %.0f | 最大血量%s: %.0f→%.0f | 当前血量: %.0f→%.0f" % [
 				wave_info, unit_count, total_unit_hp, change_type, old_max, max_core_health, old_health, core_health
 			])
 			# 同时通过AIManager广播，确保测试脚本能检测到
@@ -921,7 +921,7 @@ func spawn_unit(unit_id: String, grid_pos: Vector2i = Vector2i(-1, -1), unit_lev
 
 	# 记录日志
 	if AILogger:
-		AILogger.event("[CHEAT] 生成单位 | 单位: %s | 位置: %s | 等级: %d" % [unit_id, str(target_pos), unit.level])
+		AILogger.broadcast_log("事件", "[CHEAT] 生成单位 | 单位: %s | 位置: %s | 等级: %d" % [unit_id, str(target_pos), unit.level])
 
 	return true
 

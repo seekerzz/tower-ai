@@ -24,11 +24,11 @@ func setup(target: Node, source: Object, params: Dictionary):
 			elif source == GameManager:
 				source_name = "图腾"
 		var target_name = target.type_key if "type_key" in target else "目标"
-		AILogger.status_applied(source_name, target_name, "中毒", duration)
-		AILogger.mechanic_poison_applied(str(target.get_instance_id()), 1, base_damage)
+		AILogger.broadcast_log("状态", "%s 获得 %s 持续 %.1f" % [ target_name,  "中毒",  duration])
+		pass), 1, base_damage)
 		# 同时输出[DEBUFF]标签日志，确保测试脚本能检测到
 		var debuff_msg = "[DEBUFF] %s 施加 Poison | 目标: %s | 层数: %d | 伤害: %.0f/秒" % [source_name, target_name, stacks, base_damage]
-		AILogger.event(debuff_msg)
+		AILogger.broadcast_log("事件", debuff_msg)
 		if AIManager:
 			AIManager.broadcast_text(debuff_msg)
 
@@ -143,11 +143,11 @@ func stack(params: Dictionary):
 	if AILogger:
 		var host = get_parent()
 		if host:
-			AILogger.mechanic_poison_stacked(str(host.get_instance_id()), stacks, MAX_STACKS)
+			pass), stacks, MAX_STACKS)
 			# 同时输出[DEBUFF]叠加日志
 			var target_name = host.type_key if "type_key" in host else "目标"
 			var stack_msg = "[DEBUFF] Poison叠加 | 目标: %s | 当前层数: %d | 伤害: %.0f/秒" % [target_name, stacks, base_damage * stacks]
-			AILogger.event(stack_msg)
+			AILogger.broadcast_log("事件", stack_msg)
 			if AIManager:
 				AIManager.broadcast_text(stack_msg)
 
@@ -160,11 +160,11 @@ func _deal_damage():
 		# 记录状态伤害日志
 		if AILogger:
 			var target_name = host.type_key if "type_key" in host else "目标"
-			AILogger.status_damage("中毒", target_name, dmg)
-			AILogger.mechanic_poison_damage(str(host.get_instance_id()), dmg, stacks)
+			pass
+			pass), dmg, stacks)
 			# 同时输出[DEBUFF]伤害日志
 			var damage_msg = "[DEBUFF] Poison伤害 | 目标: %s | 层数: %d | 伤害: %.0f" % [target_name, stacks, dmg]
-			AILogger.event(damage_msg)
+			AILogger.broadcast_log("事件", damage_msg)
 			if AIManager:
 				AIManager.broadcast_text(damage_msg)
 
@@ -239,4 +239,4 @@ func _exit_tree():
 	# 记录状态结束日志
 	if AILogger:
 		var target_name = host.type_key if host and "type_key" in host else "目标"
-		AILogger.status_ended(target_name, "中毒")
+		AILogger.broadcast_log("状态", "%s 结束 %s" % [target_name,  "中毒"])

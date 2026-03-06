@@ -47,7 +47,7 @@ func _create_blood_pool(center_pos: Vector2, size: int, efficiency: float):
 		# 记录[UNIT_SKILL]血法师召唤血池日志
 		if AILogger:
 			var skill_msg = "[UNIT_SKILL] 血法师 召唤血池 | 位置: (%.0f,%.0f) | 范围: %.0f | 持续: %.0fs | 效率: %.1f" % [center_pos.x, center_pos.y, pool_radius, pool_duration, efficiency]
-			AILogger.event(skill_msg)
+			AILogger.broadcast_log("事件", skill_msg)
 			if AIManager:
 				AIManager.broadcast_text(skill_msg)
 		_start_pool_processing(pool_data)
@@ -83,7 +83,7 @@ func _start_pool_processing(pool_data: Dictionary):
 						if AILogger:
 							var enemy_name = enemy.type_key if enemy.has("type_key") else str(enemy.get_instance_id())
 							var skill_msg = "[UNIT_SKILL] 血法师血池 对 %s 造成伤害 | 伤害: %.0f" % [enemy_name, damage]
-							AILogger.event(skill_msg)
+							AILogger.broadcast_log("事件", skill_msg)
 
 				if unit.level >= 3:
 					if enemy.has_method("add_bleed_stacks"):

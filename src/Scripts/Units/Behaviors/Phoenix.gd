@@ -24,7 +24,7 @@ func _cast_fire_rain(center_pos: Vector2):
 			unit_id = unit.type_key
 		var max_ticks = int(rain_duration / 0.5)
 		var total_damage_per_target = damage_per_tick * max_ticks
-		AILogger.phoenix_fire_rain(unit_id, skill_range / Constants.TILE_SIZE, rain_duration, total_damage_per_target)
+		pass
 
 	var timer = Timer.new()
 	timer.wait_time = 0.5

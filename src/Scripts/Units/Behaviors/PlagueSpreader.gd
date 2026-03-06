@@ -16,7 +16,7 @@ func on_setup():
 	# 记录瘟疫使者单位激活日志
 	if AILogger:
 		var unit_name = unit.type_key if unit and "type_key" in unit else "瘟疫使者"
-		AILogger.event("[DEBUFF] 瘟疫使者单位激活 | 单位: %s | 等级: %d" % [unit_name, unit.level])
+		AILogger.broadcast_log("事件", "[DEBUFF] 瘟疫使者单位激活 | 单位: %s | 等级: %d" % [unit_name, unit.level])
 		if AIManager:
 			AIManager.broadcast_text("[DEBUFF] 瘟疫使者单位激活 | 单位: %s" % unit_name)
 
@@ -44,7 +44,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	if AILogger:
 		var target_name = target.type_key if target.has("type_key") else str(target.get_instance_id())
 		var debuff_msg = "[DEBUFF] 瘟疫使者施加腐坏 | 目标: %s | 单位伤害: %.0f | 毒伤: %.0f/秒" % [target_name, unit.stats.damage, unit.stats.damage * 0.2]
-		AILogger.event(debuff_msg)
+		AILogger.broadcast_log("事件", debuff_msg)
 		if AIManager:
 			AIManager.broadcast_text(debuff_msg)
 
@@ -130,7 +130,7 @@ func _on_infected_enemy_died(infected_enemy: Node2D, spread_range: float):
 		# 记录瘟疫传播日志
 		if AILogger:
 			var spread_msg = "[DEBUFF] 瘟疫使者腐坏传播 | 来源敌人死亡 | 传播范围: %.0f | 感染: %d个敌人" % [spread_range, spread_count]
-			AILogger.event(spread_msg)
+			AILogger.broadcast_log("事件", spread_msg)
 			if AIManager:
 				AIManager.broadcast_text(spread_msg)
 		# 播放毒液传播视觉特效

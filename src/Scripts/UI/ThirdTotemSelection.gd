@@ -74,7 +74,7 @@ func _on_totem_selected(totem_id: String):
 
 		# 日志记录
 		if AILogger:
-			AILogger.event("[第三图腾] 玩家选择: %s" % totem_id)
+			AILogger.broadcast_log("事件", "[第三图腾] 玩家选择: %s" % totem_id)
 
 	# 恢复游戏
 	get_tree().paused = false
