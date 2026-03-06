@@ -133,9 +133,7 @@ func _handle_client_message(text: String):
 		action_received.emit(data["actions"])
 
 func _send_ping():
-	var core_health = GameManager.core_health
-	var max_health = GameManager.max_core_health
-	broadcast_text("【状态同步】当前核心血量：%.1f/%.1f" % [core_health, max_health])
+	broadcast_text("【网络】PING")
 
 func is_ai_connected() -> bool: return is_client_connected
 func is_waiting_action() -> bool: return is_waiting_for_action
