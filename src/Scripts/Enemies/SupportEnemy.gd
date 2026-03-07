@@ -30,7 +30,7 @@ func _physics_process(delta):
 
 	# If stunned, frozen or dying, let super handle it entirely.
 	# Enemy.gd handles stun/freeze/knockback at the beginning of _physics_process.
-	if stun_timer > 0 or freeze_timer > 0 or is_dying or knockback_velocity.length() > 10.0:
+	if has_status("stun") or has_status("freeze") or is_dying or knockback_velocity.length() > 10.0:
 		if is_casting_support:
 			interrupt_support()
 		super._physics_process(delta)
