@@ -218,9 +218,27 @@ func _on_host_died():
 	effect.scale = Vector2(2, 2)
 	effect.play()
 
-	# Damage area and spread poison (delegate to CombatManager)
-	if GameManager.combat_manager:
-		GameManager.combat_manager.trigger_poison_explosion(center, explosion_damage, stacks, source_unit)
+	# Direct Explosion Logic
+	var radius = 100.0
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var poison_script = load("res://src/Scripts/Effects/PoisonEffect.gd")
+	var affected_targets = []
+
+	for enemy in enemies:
+		if !is_instance_valid(enemy): continue
+
+		var dist = center.distance_to(enemy.global_position)
+		if dist <= radius:
+			enemy.take_damage(explosion_damage, source_unit, "poison")
+			affected_targets.append(enemy)
+			# Spread poison with reduced stacks (half of original, min 1)
+			if enemy.has_method("apply_status"):
+				var spread_stacks = max(1, int(stacks * 0.5))
+				enemy.apply_status(poison_script, {
+					"duration": 5.0,
+					"damage": explosion_damage / spread_stacks if spread_stacks > 0 else explosion_damage,
+					"stacks": spread_stacks
+				})
 
 	# Emit signal for test logging
 	if GameManager.has_signal("poison_explosion"):

@@ -85,6 +85,27 @@ func _on_host_died():
 	effect.scale = Vector2(3, 3)
 	effect.play()
 
-	# Damage Area (Delegate to CombatManager to avoid race condition on death)
-	if GameManager.combat_manager:
-		GameManager.combat_manager.trigger_burn_explosion(center, final_explosion_damage, source_unit)
+	# Direct Explosion Logic
+	var radius = 120.0
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var burn_script = load("res://src/Scripts/Effects/BurnEffect.gd")
+	var affected_targets = []
+
+	for enemy in enemies:
+		if !is_instance_valid(enemy): continue
+
+		var dist = center.distance_to(enemy.global_position)
+		if dist <= radius:
+			enemy.take_damage(final_explosion_damage, source_unit, "fire")
+			affected_targets.append(enemy)
+			# Chain reaction: Apply burn
+			if enemy.has_method("apply_status"):
+				enemy.apply_status(burn_script, {
+					"duration": 5.0,
+					"damage": final_explosion_damage,
+					"stacks": 1
+				})
+
+	# Emit signal for test logging with affected targets
+	if GameManager.has_signal("burn_explosion"):
+		GameManager.burn_explosion.emit(center, final_explosion_damage, source_unit, affected_targets)
