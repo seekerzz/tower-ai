@@ -19,9 +19,11 @@
    - 已完成测试：
      - 石像鬼反弹伤害验证 - 3/6 通过 (报告：gargoyle_test_report.md)
      - 影蝠暗影步验证 - 2/7 通过 (报告：shadow_bat_test_report.md)
+     - 毒蛇图腾核心机制验证 - 1/5 通过 (报告：viper_totem_test_report.md) - HTTP 连接超时
+     - 鹰图腾核心机制验证 - 3/6 通过 (报告：eagle_totem_test_report.md) - 缺少日志埋点
    - 待执行测试：
-     - 毒蛇图腾核心机制验证 (P0) - 等待 Godot 客户端
-     - 鹰图腾核心机制验证 (P0) - 等待 Godot 客户端
+     - 毒蛇图腾核心机制复测 (P0) - 需要修复 HTTP 连接问题
+     - 鹰图腾暴击回响日志埋点 (P0) - 需要技术总监审查代码
 
 3. `[P3]` 下一步计划
    - 待 AI Player 完成剩余测试后，QA Tester 审查结果
