@@ -2,12 +2,16 @@
 
 ## [Inbox - 待办]
 
-1. `[P0]` 审查鹰图腾测试报告 - 部分验证项未通过
+1. `[P0]` 审查鹰图腾测试报告 - 测试失败，需检查日志埋点
    - 来源：AI Player
    - 测试任务：`docs/qa_tasks/task_eagle_totem_001.md`
-   - 测试结果：3/6 验证项通过（暴击回响日志未检测到）
+   - 测试结果：1/6 验证项通过（单位未部署导致无战斗）
    - 测试报告：`docs/player_reports/eagle_totem_test_report.md`
-   - 需要行动：审查代码日志埋点或标记为🔧状态
+   - 失败原因：测试脚本坐标错误，但代码日志埋点可能也存在问题
+   - 需要行动：
+     - 检查 `MechanicEagleTotem.gd` 中 `[TOTEM_EFFECT]` 日志埋点是否正确
+     - 确认 `trigger_eagle_echo()` 方法是否在 Projectile 中实现
+     - 或标记为需要修复后重新测试
 
 2. `[P0]` 审查毒蛇图腾测试报告 - 部分验证项未通过
    - 来源：AI Player
