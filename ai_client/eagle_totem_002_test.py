@@ -173,11 +173,13 @@ class EagleTotemRetestTester:
     async def start_wave(self) -> bool:
         """开始波次"""
         try:
+            self.log("发送 start_wave 请求...")
             async with self.session.post(
                 f"{self.base_url}/action",
-                json={"type": "start_wave"}
+                json={"actions": [{"type": "start_wave"}]}
             ) as resp:
                 result = await resp.json()
+                self.log(f"start_wave 响应：{result}")
                 # 修复：检查多种成功响应格式
                 if result.get("status") == "ok" or result.get("success") or "Wave already" in str(result):
                     self.log("✅ 波次开始")
@@ -396,7 +398,7 @@ class EagleTotemRetestTester:
 
 
 async def main():
-    tester = EagleTotemRetestTester(http_port=8082)
+    tester = EagleTotemRetestTester(http_port=10000)
     await tester.run_test()
 
 

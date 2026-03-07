@@ -228,6 +228,7 @@ class AIGameClient:
         # 发送动作到 Godot
         try:
             message = {"actions": actions}
+            logger.info(f"发送 WebSocket 消息：{message}")
             await self.websocket.send(json.dumps(message))
             logger.info(f"发送动作: {len(actions)} 个")
 
