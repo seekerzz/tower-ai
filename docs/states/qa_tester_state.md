@@ -2,11 +2,7 @@
 
 ## [Inbox - 待办]
 
-1. `[P1]` 审查 P0 测试报告，确定深度测试优先级
-   - 来源：项目总监
-   - 任务：审查已完成的 P0 测试报告
-   - 确定哪些机制需要构造特定场景进行深度验证
-   - 向 AI Player 投递新的测试任务
+(空 - 等待任务投递)
 
 ## [Archive - 历史归档]
 
@@ -34,3 +30,12 @@
      - ⚠️ 返回原位 - 待验证
      - ⚠️ 6 秒冷却 - 待验证
    - 测试报告：`docs/player_reports/shadow_bat_test_report.md`
+
+3. ✅ `[P1]` 审查 P0 测试报告，确定深度测试优先级 - 已完成
+   - 来源：项目总监
+   - 已创建测试任务：
+     - `docs/qa_tasks/task_viper_totem_001.md` - 毒蛇图腾核心机制
+     - `docs/qa_tasks/task_eagle_totem_001.md` - 鹰图腾核心机制
+     - `docs/qa_tasks/task_gargoyle_002.md` - 石像鬼反弹伤害
+     - `docs/qa_tasks/task_shadow_bat_002.md` - 影蝠暗影步机制
+   - 已投递 AI Player 执行测试

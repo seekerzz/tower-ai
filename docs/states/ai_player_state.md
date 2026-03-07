@@ -2,7 +2,25 @@
 
 ## [Inbox - 待办]
 
-(空 - 等待任务投递)
+1. `[P0]` 毒蛇图腾核心机制验证
+   - 来源：QA Tester
+   - 测试任务：`docs/qa_tasks/task_viper_totem_001.md`
+   - 验证点：毒液攻击、目标选择、中毒层数
+
+2. `[P0]` 鹰图腾核心机制验证
+   - 来源：QA Tester
+   - 测试任务：`docs/qa_tasks/task_eagle_totem_001.md`
+   - 验证点：暴击回响、额外伤害、攻击特效
+
+3. `[P1]` 石像鬼反弹伤害验证
+   - 来源：QA Tester
+   - 测试任务：`docs/qa_tasks/task_gargoyle_002.md`
+   - 验证点：反弹伤害计算、反弹次数
+
+4. `[P1]` 影蝠暗影步机制验证
+   - 来源：QA Tester
+   - 测试任务：`docs/qa_tasks/task_shadow_bat_002.md`
+   - 验证点：瞬移目标选择、返回原位、冷却时间
 
 ## [Archive - 历史归档]
 
