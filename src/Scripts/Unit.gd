@@ -459,21 +459,7 @@ func _get_buff_icon(buff_type: String) -> String:
 	return "?"
 
 func _process(delta):
-	# Debug: Check if _process is being called
-	var debug_msg = "[UNIT DEBUG] _process called, behavior: %s" % (behavior != null)
-	print(debug_msg)
-	if AILogger and AIManager and AIManager.has_method("broadcast_text"):
-		AILogger.event(debug_msg)
-		AIManager.broadcast_text(debug_msg)
-
-	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
-	var wave_msg = "[UNIT DEBUG] is_wave_active: %s" % is_wave_active
-	print(wave_msg)
-	if AILogger and AIManager and AIManager.has_method("broadcast_text"):
-		AILogger.event(wave_msg)
-		AIManager.broadcast_text(wave_msg)
-
-	if !is_wave_active: return
+	if !GameManager.session_data.is_wave_active: return
 	if not behavior: return
 
 	behavior.on_tick(delta)

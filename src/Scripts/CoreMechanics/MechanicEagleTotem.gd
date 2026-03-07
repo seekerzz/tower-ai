@@ -10,6 +10,14 @@ func _ready():
 		echo_mult = config.get("crit_echo_mult", 1.0)
 
 func on_projectile_crit(projectile, target):
+	# 记录暴击日志
+	var unit_name = projectile.source_unit.type_key if projectile.source_unit and "type_key" in projectile.source_unit else "未知"
+	var target_name = target.type_key if target and "type_key" in target else "未知"
+	if AILogger:
+		AILogger.event("[EAGLE_CRIT] 鹰图腾暴击触发 | 来源：%s | 目标：%s" % [unit_name, target_name])
+		if AIManager:
+			AIManager.broadcast_text("[EAGLE_CRIT] 鹰图腾暴击触发 | 来源：%s | 目标：%s" % [unit_name, target_name])
+
 	if randf() < echo_chance:
 		if projectile.has_method("trigger_eagle_echo"):
 			var echo_damage = projectile.damage * echo_mult
