@@ -21,9 +21,9 @@ func _on_lifesteal(source: Node, amount: float):
 	# 安全类型检查：避免 Unit 类为 null 时崩溃
 	if Unit == null or not (source is Unit): return
 
-	var potential_hp = source.current_hp + amount
-	if potential_hp > source.max_hp:
-		var overflow = potential_hp - source.max_hp
+	var potential_hp = source.get_node("Stats").current_hp + amount
+	if potential_hp > source.get_node("Stats").max_hp:
+		var overflow = potential_hp - source.get_node("Stats").max_hp
 		var current_overflow = overflowed_units.get(source.get_instance_id(), 0.0)
 		overflowed_units[source.get_instance_id()] = current_overflow + overflow
 

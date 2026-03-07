@@ -1,4 +1,4 @@
-extends RefCounted
+extends Node
 class_name BuffManager
 
 var unit: Node2D

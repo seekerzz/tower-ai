@@ -1,4 +1,4 @@
-extends RefCounted
+extends Node
 class_name UnitStats
 
 var unit: Node2D

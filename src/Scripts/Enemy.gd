@@ -6,8 +6,6 @@ const AssetLoader = preload("res://src/Scripts/Utils/AssetLoader.gd")
 const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
 
 signal died
-signal hp_changed(old_hp: float, new_hp: float)
-signal status_applied(type_key: String, duration: float, source: Object)
 signal attack_missed(enemy)
 
 enum State { MOVE, ATTACK_BASE, STUNNED, SUPPORT }
@@ -15,16 +13,18 @@ var state: State = State.MOVE
 
 var faction: String = "enemy"
 var type_key: String
-var hp: float
-var max_hp: float
 var speed: float
 var enemy_data: Dictionary
 
 # Status Effects
 # Refactored to use child nodes
 # Preserving freeze/stun as timers for now (or could be effects too, but keeping scope focused)
+var freeze_timer: float = 0.0
+var stun_timer: float = 0.0
+var blind_timer: float = 0.0
 var _env_cooldowns = {} # Trap Instance ID -> Cooldown Timer
 
+var hit_flash_timer: float = 0.0
 
 var temp_speed_mod: float = 1.0
 
@@ -91,18 +91,22 @@ func _ready():
 	GameManager.enemy_spawned.emit(self)
 
 func setup(key: String, wave: int):
-	var visuals = load("res://src/Scripts/Enemies/EnemyVisuals.gd").new()
-	visuals.name = "EnemyVisuals"
-	add_child(visuals)
 	_ensure_visual_controller()
+
+	# Mount Stats Node for component compatibility
+	var stats = get_node_or_null("Stats")
+	if not stats:
+		stats = preload("res://src/Scripts/Units/Components/UnitStats.gd").new()
+		stats.name = "Stats"
+		add_child(stats)
 
 	type_key = key
 	enemy_data = Constants.ENEMY_VARIANTS[key]
 	anim_config = enemy_data.get("anim_config", {})
 
 	var base_hp = 100 + (wave * 80)
-	hp = base_hp * enemy_data.hpMod
-	max_hp = hp
+	stats.max_hp = base_hp * enemy_data.hpMod
+	stats.current_hp = stats.max_hp
 
 	speed = (40 + (wave * 2)) * enemy_data.spdMod
 	base_speed = speed
@@ -159,7 +163,7 @@ func setup(key: String, wave: int):
 		var current_wave = 1
 		if GameManager.wave_system_manager:
 			current_wave = GameManager.wave_system_manager.current_wave
-		AILogger.enemy_spawned(current_wave, type_key, hp, global_position)
+		AILogger.enemy_spawned(current_wave, type_key, get_node("Stats").current_hp, global_position)
 
 func _init_behavior():
 	if type_key == "mutant_slime":
@@ -237,6 +241,43 @@ func update_visuals():
 
 	queue_redraw()
 
+func _draw():
+	if visual_controller:
+		draw_set_transform(visual_controller.visual_offset, visual_controller.visual_rotation, visual_controller.wobble_scale)
+	var color = enemy_data.color
+	if hit_flash_timer > 0:
+		color = Color.WHITE
+
+	if enemy_data.get("shape") == "rect":
+		var size_grid = enemy_data.get("size_grid", [2, 1])
+		var tile_size = 60
+		if GameManager.grid_manager:
+			tile_size = GameManager.grid_manager.TILE_SIZE
+
+		var w = size_grid[0] * tile_size
+		var h = size_grid[1] * tile_size
+		var rect = Rect2(-w/2, -h/2, w, h)
+		draw_rect(rect, color)
+	else:
+		draw_circle(Vector2.ZERO, enemy_data.radius, color)
+
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	if get_node("Stats").current_hp < get_node("Stats").max_hp and get_node("Stats").current_hp > 0:
+		var hp_pct = get_node("Stats").current_hp / get_node("Stats").max_hp
+		var bar_w = 20
+		var bar_h = 4
+		var bar_pos = Vector2(-bar_w/2, -enemy_data.radius - 8)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color.RED)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_pct, bar_h)), Color.GREEN)
+
+	# Bleed Indicator
+	if bleed_stacks > 0:
+		var bleed_pos = Vector2(0, -enemy_data.radius - 20)
+		var font = ThemeDB.fallback_font
+		var font_size = 12
+		draw_string(font, bleed_pos, str(bleed_stacks), HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color.RED)
+
 func _physics_process(delta):
 	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	if !is_wave_active: return
@@ -263,6 +304,8 @@ func _physics_process(delta):
 		else:
 			_update_facing_logic()
 
+	if blind_timer > 0:
+		blind_timer -= delta
 
 	_process_effects(delta)
 	_process_bleed_damage(delta)
@@ -284,12 +327,12 @@ func _physics_process(delta):
 		handle_collisions(delta)
 		return
 
-	if has_status("stun"):
+	if stun_timer > 0:
 		state = State.STUNNED
 	elif state == State.STUNNED:
 		state = State.MOVE
 
-	if has_status("freeze"):
+	if freeze_timer > 0:
 		return
 
 	if state == State.STUNNED:
@@ -354,6 +397,7 @@ func _process_effects(delta):
 			if c.get("type_key") == "poison": has_poison = true
 		$PoisonParticles.emitting = has_poison
 
+	if stun_timer > 0: stun_timer -= delta
 
 	# Apply Visual Controller transforms
 	if visual_controller:
@@ -386,6 +430,23 @@ func _process_effects(delta):
 		# Max bleed stacks effect
 		if bleed_stacks >= max_bleed_stacks:
 			_show_max_bleed_effect(delta)
+
+	if hit_flash_timer > 0:
+		hit_flash_timer -= delta
+		if hit_flash_timer <= 0: queue_redraw()
+
+	if freeze_timer > 0:
+		freeze_timer -= delta
+		modulate = Color(0.5, 0.5, 1.0)
+	else:
+		# If not frozen, color is white OR handled by PoisonEffect/SlowEffect
+		# We should not forcibly reset to White if effects are active,
+		# but PoisonEffect resets on exit.
+		# However, if we were frozen, we want to return to whatever state we should be.
+		# For simplicity, if not frozen, we don't touch modulate here, letting effects drive it.
+		# But we must ensure if we just unfroze, we don't stay blue.
+		if modulate == Color(0.5, 0.5, 1.0):
+			modulate = Color.WHITE
 
 
 func handle_collisions(delta):
@@ -506,27 +567,19 @@ func add_poison_stacks(amount: int):
 		"source": null # Or pass self/GameManager if needed
 	})
 
-func _apply_simple_status(type_key: String, duration: float):
-	var effect = StatusEffect.new()
-	effect.type_key = type_key
-	effect.setup(self, null, {"duration": duration})
-	effect.name = type_key.capitalize() + "Effect"
-	add_child(effect)
-	status_applied.emit(type_key, duration, null)
-
 func apply_stun(duration: float):
-	_apply_simple_status("stun", duration)
+	stun_timer = duration
 	GameManager.spawn_floating_text(global_position, "Stunned!", Color.GRAY)
 
 func apply_freeze(duration: float):
-	_apply_simple_status("freeze", duration)
+	freeze_timer = duration
 	GameManager.spawn_floating_text(global_position, "Frozen!", Color.CYAN)
 	# Emit signal for test logging
 	if GameManager.has_signal("freeze_applied"):
 		GameManager.freeze_applied.emit(self, duration, null)
 
 func apply_blind(duration: float):
-	_apply_simple_status("blind", duration)
+	blind_timer = duration
 	GameManager.spawn_floating_text(global_position, "Blind!", Color.GRAY)
 
 func apply_debuff(type: String, stacks: int = 1):
@@ -549,8 +602,8 @@ func is_trap(node):
 	return false
 
 func heal(amount: float):
-	if hp <= 0: return
-	hp = min(hp + amount, max_hp)
+	if get_node("Stats").current_hp <= 0: return
+	get_node("Stats").current_hp = min(get_node("Stats").current_hp + amount, get_node("Stats").max_hp)
 	queue_redraw()
 
 func add_bleed_stacks(stacks: int, source_unit = null):
@@ -611,13 +664,14 @@ func _take_bleed_damage(amount: float, source_unit = null, show_text: bool = tru
 		if child.has_method("get_damage_multiplier"):
 			amount *= child.get_damage_multiplier()
 
-	hp -= amount
+	get_node("Stats").current_hp -= amount
 
 	# Note: Bleed damage logging is now handled in _process_bleed_damage with accumulated damage
 	# to show meaningful numbers instead of per-frame tiny amounts
 
 	# Only show floating text periodically
 	if show_text:
+		hit_flash_timer = 0.1
 		queue_redraw()
 		var display_val = max(1, int(amount))
 		GameManager.spawn_floating_text(global_position, str(display_val), "bleed", Vector2.ZERO)
@@ -631,7 +685,7 @@ func _take_bleed_damage(amount: float, source_unit = null, show_text: bool = tru
 	if source_unit:
 		GameManager.damage_dealt.emit(source_unit, amount)
 
-	if hp <= 0:
+	if get_node("Stats").current_hp <= 0:
 		die(source_unit)
 
 func add_debuff(type: String, stacks: int, duration: float):
@@ -660,9 +714,9 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 		if child.has_method("get_damage_multiplier"):
 			amount *= child.get_damage_multiplier()
 
-	var old_hp = hp
-	hp -= amount
-	hp_changed.emit(old_hp, hp)
+	get_node("Stats").current_hp -= amount
+	hit_flash_timer = 0.1
+	queue_redraw()
 	var hit_dir = Vector2.ZERO
 	if hit_source and is_instance_valid(hit_source) and "speed" in hit_source:
 		hit_dir = Vector2.RIGHT.rotated(hit_source.rotation)
@@ -700,12 +754,12 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 				source_name = source_unit.type_key
 			elif source_unit == GameManager:
 				source_name = "图腾/状态效果"
-		AILogger.enemy_hit(type_key, amount, source_name, hp)
+		AILogger.enemy_hit(type_key, amount, source_name, get_node("Stats").current_hp)
 
 	if source_unit:
 		GameManager.damage_dealt.emit(source_unit, amount)
 
-	if hp <= 0:
+	if get_node("Stats").current_hp <= 0:
 		die(source_unit)
 
 func _on_death():
@@ -789,7 +843,7 @@ func _play_petrified_death_effect():
 	shatter.global_position = global_position
 	shatter.launch_direction = last_hit_direction
 	shatter.damage_percent = damage_percent
-	shatter.source_max_hp = max_hp
+	shatter.source_max_hp = get_node("Stats").max_hp
 	shatter.enemy_texture = AssetLoader.get_enemy_icon(type_key)
 	shatter.enemy_color = enemy_data.color
 
@@ -799,11 +853,11 @@ func _play_petrified_death_effect():
 	_enhance_petrified_shatter_effect(global_position, damage_percent)
 
 	if AILogger:
-		AILogger.mechanic_petrified_shatter(str(get_instance_id()), max_hp * damage_percent)
+		AILogger.mechanic_petrified_shatter(str(get_instance_id()), get_node("Stats").max_hp * damage_percent)
 		# 记录石块破碎日志 - 使用测试脚本可检测的格式
-		AILogger.event("[SKILL] 美杜莎石块破碎 | 目标: %s | 伤害: %.0f (%.0f%%)" % [type_key, max_hp * damage_percent, damage_percent * 100])
+		AILogger.event("[SKILL] 美杜莎石块破碎 | 目标: %s | 伤害: %.0f (%.0f%%)" % [type_key, get_node("Stats").max_hp * damage_percent, damage_percent * 100])
 		if AIManager:
-			AIManager.broadcast_text("[SKILL] 美杜莎石块破碎 | 伤害: %.0f" % (max_hp * damage_percent))
+			AIManager.broadcast_text("[SKILL] 美杜莎石块破碎 | 伤害: %.0f" % (get_node("Stats").max_hp * damage_percent))
 
 func _enhance_petrified_shatter_effect(pos: Vector2, damage_percent: float):
 	# 屏幕震动 - 强度8像素，持续时间0.3秒

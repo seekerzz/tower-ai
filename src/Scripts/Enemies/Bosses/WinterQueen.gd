@@ -172,7 +172,7 @@ func physics_process(delta: float) -> bool:
 
 	# 被动：终极冻结 - 检查是否触发
 	if not has_final_freeze_triggered and enemy:
-		var hp_percent = enemy.hp / enemy.max_hp
+		var hp_percent = enemy.get_node("Stats").current_hp / enemy.get_node("Stats").max_hp
 		if hp_percent <= final_freeze_hp_threshold:
 			_trigger_final_freeze()
 

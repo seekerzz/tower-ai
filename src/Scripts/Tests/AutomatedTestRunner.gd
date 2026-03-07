@@ -163,7 +163,7 @@ func _on_enemy_hit(enemy, source, amount):
 		"target_id": enemy.get_instance_id(),
 		"source": source_id,
 		"damage": amount,
-		"target_hp_after": enemy.hp
+		"target_hp_after": enemy.get_node("Stats").current_hp
 	})
 
 func _on_enemy_died(enemy, killer_unit):
@@ -869,8 +869,8 @@ func _run_enemy_death_test():
 	var enemy = enemy_scene.instantiate()
 	enemy.global_position = Vector2(400, 400)
 	enemy.setup("slime", 1)
-	enemy.hp = 100
-	enemy.max_hp = 100
+	enemy.get_node("Stats").current_hp = 100
+	enemy.get_node("Stats").max_hp = 100
 
 	# 连接信号
 	enemy.died.connect(func():
@@ -880,7 +880,7 @@ func _run_enemy_death_test():
 	)
 
 	get_tree().current_scene.add_child(enemy)
-	print("[TestRunner] 测试敌人创建完成，HP: ", enemy.hp, ", 初始魂魄: ", tracker.get_meta("soul_before"))
+	print("[TestRunner] 测试敌人创建完成，HP: ", enemy.get_node("Stats").current_hp, ", 初始魂魄: ", tracker.get_meta("soul_before"))
 
 	await get_tree().process_frame
 
@@ -945,11 +945,11 @@ func _log_status():
 					"grid_x": tile.x,
 					"grid_y": tile.y,
 					"level": u.level,
-					"damage_stat": u.damage,
-					"hp": u.current_hp,
-					"max_hp": u.max_hp,
-					"attack_speed": u.atk_speed,
-					"attack_range": u.range_val
+					"damage_stat": u.get_node("Stats").damage,
+					"hp": u.get_node("Stats").current_hp,
+					"max_hp": u.get_node("Stats").max_hp,
+					"attack_speed": u.get_node("Stats").atk_speed,
+					"attack_range": u.get_node("Stats").range_val
 				})
 
 	var enemies_info = []
@@ -958,8 +958,8 @@ func _log_status():
 			var enemy_data = {
 				"instance_id": enemy.get_instance_id(),
 				"type": enemy.type_key,
-				"hp": enemy.hp,
-				"max_hp": enemy.max_hp,
+				"hp": enemy.get_node("Stats").current_hp,
+				"max_hp": enemy.get_node("Stats").max_hp,
 				"pos_x": enemy.global_position.x,
 				"pos_y": enemy.global_position.y,
 				"speed": enemy.speed if "speed" in enemy else 0,

@@ -92,7 +92,7 @@ func perform_skill_soul_reap():
 
     # 恢复生命
     if enemy:
-        enemy.hp = min(enemy.hp + heal_amount, enemy.max_hp)
+        enemy.get_node("Stats").current_hp = min(enemy.get_node("Stats").current_hp + heal_amount, enemy.get_node("Stats").max_hp)
         GameManager.spawn_floating_text(enemy.global_position + Vector2(0, -30),
             "+%.0f" % heal_amount, Color.RED)
 
@@ -115,7 +115,7 @@ func physics_process(delta: float) -> bool:
         return true
 
     # 自动释放技能
-    if is_skill_ready(SKILL_SOUL_REAP) and enemy and enemy.hp < enemy.max_hp * 0.6:
+    if is_skill_ready(SKILL_SOUL_REAP) and enemy and enemy.get_node("Stats").current_hp < enemy.get_node("Stats").max_hp * 0.6:
         perform_skill_soul_reap()
     elif is_skill_ready(SKILL_DEATH_SCYTHE):
         perform_skill_death_scythe()

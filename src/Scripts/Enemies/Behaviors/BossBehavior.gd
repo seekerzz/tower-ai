@@ -112,7 +112,7 @@ func _check_phase_transition():
 	if current_phase >= max_phase or phase_hp_thresholds.is_empty():
 		return
 
-	var hp_percent = enemy.hp / enemy.max_hp if enemy and enemy.max_hp > 0 else 1.0
+	var hp_percent = enemy.get_node("Stats").current_hp / enemy.get_node("Stats").max_hp if enemy and enemy.get_node("Stats").max_hp > 0 else 1.0
 	var next_threshold_index = current_phase - 1
 
 	if next_threshold_index < phase_hp_thresholds.size():
@@ -169,7 +169,7 @@ func _perform_shoot_enemy():
 func _log_boss_spawn():
 	var display_name = boss_title if boss_title else boss_name
 	if AILogger:
-		AILogger.boss_spawned(display_name, current_phase, enemy.hp if enemy else 0)
+		AILogger.boss_spawned(display_name, current_phase, enemy.get_node("Stats").current_hp if enemy else 0)
 	if AIManager:
 		AIManager.broadcast_text("【Boss登场】%s 降临战场！" % display_name)
 

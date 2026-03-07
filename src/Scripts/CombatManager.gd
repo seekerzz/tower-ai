@@ -53,7 +53,7 @@ func start_meteor_shower(center_pos: Vector2, damage: float):
 			# create a specialized spawn function for this, OR reuse _spawn_single_projectile but fix the source dependency.
 
 			# Let's check _spawn_single_projectile again.
-			# `var base_dmg = source_unit.calculate_damage_against(target) if target else source_unit.damage`
+			# `var base_dmg = source_unit.calculate_damage_against(target) if target else source_unit.get_node("Stats").damage`
 			# So if I pass a duck-typed object with `damage` property, it works if target is null.
 			# Here target is null.
 
@@ -163,7 +163,8 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 	var proj = PROJECTILE_SCENE.instantiate()
 
 	# Crit Calculation
-	var crit_rate = source_unit.get("crit_rate") if source_unit.get("crit_rate") else 0.0
+	var source_stats = source_unit.get_node("Stats")
+	var crit_rate = source_stats.crit_rate
 	var is_critical = randf() < crit_rate
 
 	if source_unit.get("guaranteed_crit_stacks") and source_unit.guaranteed_crit_stacks > 0:
@@ -178,12 +179,12 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 		base_dmg = extra_stats.mimic_damage
 	else:
 		if source_unit.has_method("calculate_damage_against"):
-			base_dmg = source_unit.calculate_damage_against(target) if target else source_unit.damage
+			base_dmg = source_unit.calculate_damage_against(target) if target else source_unit.get_node("Stats").damage
 		else:
-			base_dmg = source_unit.get("damage", 10.0)
+			base_dmg = source_stats.damage
 
 	var final_damage = base_dmg
-	var crit_dmg = source_unit.get("crit_dmg") if source_unit.get("crit_dmg") else 1.5
+	var crit_dmg = source_stats.crit_dmg
 	if is_critical:
 		final_damage *= crit_dmg
 
