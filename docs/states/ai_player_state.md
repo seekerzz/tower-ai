@@ -29,7 +29,3 @@
      - ⚠️ 瞬移后返回原位 - 待进一步验证
      - ⚠️ 冷却时间 6 秒 - 待进一步验证
    - 测试报告：`docs/player_reports/shadow_bat_test_report.md`
-
-## [Archive - 历史归档]
-
-(无)

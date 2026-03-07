@@ -2,13 +2,7 @@
 
 ## [Inbox - 待办]
 
-1. `[P1]` 组织 Godot 测试验证工作 - 进行中
-   - 来源：项目总监
-   - 状态：所有 64 个单位代码已实现完成
-   - 测试脚本已创建：
-     - gargoyle_test.py: 石像鬼验证
-     - shadow_bat_test.py: 影蝠验证
-   - 下一步：等待 AI Player 执行测试脚本
+(空 - 等待任务投递)
 
 ## 已完成工作汇总
 
@@ -46,3 +40,9 @@
 6. ✅ `[P0]` 蝙蝠图腾单位修复 - 已完成
    - Gargoyle.gd: 石化机制，反弹伤害
    - ShadowBat.gd: 暗影步，流血，轨迹减速/伤害
+
+7. ✅ `[P1]` 组织 Godot 测试验证工作 - 已完成
+   - 测试脚本已创建并执行
+   - 石像鬼测试结果：3/6 验证项通过
+   - 影蝠测试结果：2/7 验证项通过
+   - 测试报告：`docs/player_reports/gargoyle_test_report.md`, `docs/player_reports/shadow_bat_test_report.md`
