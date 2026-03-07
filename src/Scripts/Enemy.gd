@@ -52,6 +52,7 @@ var rotation_sensitivity = 5.0
 
 var invincible_timer: float = 0.0
 var hit_flash_timer: float = 0.0
+var blind_timer: float = 0.0
 var last_hit_direction: Vector2 = Vector2.ZERO
 
 var behavior: EnemyBehavior

@@ -4,11 +4,11 @@ const PROJECTILE_SCENE = preload("res://src/Scenes/Game/Projectile.tscn")
 const LIGHTNING_SCENE = preload("res://src/Scenes/Game/LightningArc.tscn")
 const SLASH_EFFECT_SCRIPT = preload("res://src/Scripts/Effects/SlashEffect.gd")
 
-var explosion_queue: Array = []
-const MAX_EXPLOSIONS_PER_FRAME = 10
-
 func _ready():
 	GameManager.combat_manager = self
+
+var explosion_queue: Array = []
+const MAX_EXPLOSIONS_PER_FRAME = 10
 
 func _process(delta):
 	if explosion_queue.size() > 0:
@@ -39,23 +39,6 @@ func start_meteor_shower(center_pos: Vector2, damage: float):
 				"pierce": 2,
 				"bounce": 0
 			}
-
-			# Call spawn (passing null as source_unit for now, or we could pass a dummy if needed)
-			# But _spawn_single_projectile expects a source_unit to get 'damage', 'crit_rate' etc.
-			# Or we can pass 'damage' directly if we modify _spawn_single_projectile to handle manual damage override more gracefully.
-			# Let's see _spawn_single_projectile...
-			# It uses source_unit.calculate_damage_against...
-			# I need to create a dummy source unit or modify _spawn_single_projectile to accept direct damage.
-			# Actually, I can pass a dummy dictionary acting as object if GDScript allows (duck typing),
-			# but 'calculate_damage_against' is a method.
-
-			# Workaround: Create a lightweight object or struct, OR better:
-			# create a specialized spawn function for this, OR reuse _spawn_single_projectile but fix the source dependency.
-
-			# Let's check _spawn_single_projectile again.
-			# `var base_dmg = source_unit.calculate_damage_against(target) if target else source_unit.get_node("Stats").damage`
-			# So if I pass a duck-typed object with `damage` property, it works if target is null.
-			# Here target is null.
 
 			var dummy_source = MeteorSource.new(damage)
 			_spawn_single_projectile(dummy_source, start_pos, null, stats)
@@ -272,63 +255,6 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 						neighbor.capture_bullet(snapshot)
 
 	return proj
-
-func trigger_burn_explosion(pos: Vector2, damage: float, source: Object):
-	explosion_queue.append({ "type": "burn", "pos": pos, "damage": damage, "source": source, "stacks": 1 })
-
-func trigger_poison_explosion(pos: Vector2, damage: float, stacks: int, source: Object):
-	explosion_queue.append({ "type": "poison", "pos": pos, "damage": damage, "source": source, "stacks": stacks })
-
-func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Object):
-	var radius = 120.0
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var burn_script = load("res://src/Scripts/Effects/BurnEffect.gd")
-	var affected_targets = []
-
-	for enemy in enemies:
-		if !is_instance_valid(enemy): continue
-
-		var dist = pos.distance_to(enemy.global_position)
-		if dist <= radius:
-			enemy.take_damage(damage, source, "fire")
-			affected_targets.append(enemy)
-			# Chain reaction: Apply burn
-			if enemy.has_method("apply_status"):
-				enemy.apply_status(burn_script, {
-					"duration": 5.0,
-					"damage": damage,
-					"stacks": 1
-				})
-
-	# Emit signal for test logging with affected targets
-	if GameManager.has_signal("burn_explosion"):
-		GameManager.burn_explosion.emit(pos, damage, source, affected_targets)
-
-func _process_poison_explosion_logic(pos: Vector2, damage: float, stacks: int, source: Object):
-	var radius = 100.0
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var poison_script = load("res://src/Scripts/Effects/PoisonEffect.gd")
-	var affected_targets = []
-
-	for enemy in enemies:
-		if !is_instance_valid(enemy): continue
-
-		var dist = pos.distance_to(enemy.global_position)
-		if dist <= radius:
-			enemy.take_damage(damage, source, "poison")
-			affected_targets.append(enemy)
-			# Spread poison with reduced stacks (half of original, min 1)
-			if enemy.has_method("apply_status"):
-				var spread_stacks = max(1, int(stacks * 0.5))
-				enemy.apply_status(poison_script, {
-					"duration": 5.0,
-					"damage": damage / spread_stacks if spread_stacks > 0 else damage,
-					"stacks": spread_stacks
-				})
-
-	# Emit signal for test logging with affected targets
-	if GameManager.has_signal("poison_explosion"):
-		GameManager.poison_explosion.emit(pos, damage, stacks, source)
 
 func check_kill_bonuses(killer_unit, victim = null):
 	if killer_unit and "active_buffs" in killer_unit:

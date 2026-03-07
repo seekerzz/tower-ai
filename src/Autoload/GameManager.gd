@@ -755,8 +755,9 @@ func execute_skill_effect(source_key: String, target_pos: Vector2i) -> bool:
 			if Constants.UNIT_TYPES.has("phoenix"):
 				dmg = Constants.UNIT_TYPES["phoenix"].get("damage", 30.0) * 0.5
 
-			if combat_manager:
-				combat_manager.start_meteor_shower(world_pos, dmg)
+			var meteor_shower = load("res://src/Scripts/Skills/MeteorShower.gd").new()
+			meteor_shower.setup(world_pos, dmg)
+			add_child(meteor_shower)
 			return true
 	return false
 
