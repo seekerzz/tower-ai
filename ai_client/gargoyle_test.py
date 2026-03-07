@@ -170,9 +170,9 @@ class GargoyleTester:
         await self.send_actions([{"type": "select_totem", "totem_id": "bat_totem"}])
         await asyncio.sleep(1)
 
-        # 购买石像鬼 (假设在商店位置 0)
-        self.log("购买石像鬼")
-        await self.send_actions([{"type": "buy_unit", "shop_index": 0}])
+        # 使用作弊 API 直接生成石像鬼
+        self.log("使用 spawn_unit 生成石像鬼")
+        await self.send_actions([{"type": "spawn_unit", "unit_id": "gargoyle"}])
         await asyncio.sleep(1)
 
         # 将石像鬼放置到战场
@@ -364,7 +364,8 @@ class GargoyleTester:
 
 
 async def main():
-    async with GargoyleTester() as tester:
+    # 使用端口 8081
+    async with GargoyleTester(http_port=8081) as tester:
         await tester.run_test()
 
 

@@ -112,12 +112,12 @@ func _execute_shadow_step(target: Node2D):
 	_apply_bleed_stacks_to_nearby_enemies(unit.global_position, AoE_radius, 1)
 
 	# 视觉效果
-	GameManager.spawn_floating_text(unit.global_position, "暗影步!", Color.DARK_PURPLE)
+	GameManager.spawn_floating_text(unit.global_position, "暗影步!", Color(0.6, 0.2, 0.8))
 
 	# 记录日志
 	if AILogger:
 		var unit_name = unit.type_key if unit and "type_key" in unit else "影蝠"
-		var target_name = target.type_key if target.has("type_key") else str(target.get_instance_id())
+		var target_name = target.type_key if "type_key" in target else str(target.get_instance_id())
 		AILogger.event("[SKILL] %s 暗影步 | 目标：%s | 距离：%.0f | 流血范围：%.0f" % [unit_name, target_name, shadow_step_target.distance_to(original_position), AoE_radius])
 		if AIManager:
 			AIManager.broadcast_text("[SKILL] %s 暗影步瞬移 | 目标：%s" % [unit_name, target_name])
@@ -200,7 +200,7 @@ func _apply_trail_effect(start_pos: Vector2, end_pos: Vector2):
 						if enemy.has_method("take_damage"):
 							enemy.take_damage(trail_damage, unit, "physical")
 							damage_count += 1
-							GameManager.spawn_floating_text(enemy.global_position, "-%d" % int(trail_damage), Color.DARK_PURPLE)
+							GameManager.spawn_floating_text(enemy.global_position, "-%d" % int(trail_damage), Color(0.6, 0.2, 0.8))
 
 					affected_count += 1
 
@@ -261,7 +261,7 @@ func _check_trail_damage(pos: Vector2):
 				var trail_damage = unit.damage * trail_damage_percent
 				enemy.take_damage(trail_damage, unit, "physical")
 				damage_count += 1
-				GameManager.spawn_floating_text(enemy.global_position, "-%d" % int(trail_damage), Color.DARK_PURPLE)
+				GameManager.spawn_floating_text(enemy.global_position, "-%d" % int(trail_damage), Color(0.6, 0.2, 0.8))
 
 	if damage_count > 0 and AILogger:
 		var unit_name = unit.type_key if unit and "type_key" in unit else "影蝠"

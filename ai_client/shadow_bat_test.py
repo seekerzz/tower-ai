@@ -199,9 +199,9 @@ class ShadowBatTester:
         await self.send_actions([{"type": "select_totem", "totem_id": "bat_totem"}])
         await asyncio.sleep(1)
 
-        # 购买影蝠 (假设在商店位置)
-        self.log("购买影蝠")
-        await self.send_actions([{"type": "buy_unit", "shop_index": 1}])  # 调整索引
+        # 使用作弊 API 直接生成影蝠
+        self.log("使用 spawn_unit 生成影蝠")
+        await self.send_actions([{"type": "spawn_unit", "unit_id": "shadow_bat"}])
         await asyncio.sleep(1)
 
         # 将影蝠放置到战场中心位置
@@ -426,7 +426,8 @@ class ShadowBatTester:
 
 
 async def main():
-    async with ShadowBatTester() as tester:
+    # 使用端口 8081
+    async with ShadowBatTester(http_port=8081) as tester:
         await tester.run_test()
 
 

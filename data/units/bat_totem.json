@@ -302,5 +302,115 @@
 		},
 		"type_key": "life_chain",
 		"faction": "bat_totem"
+	},
+	"gargoyle": {
+		"name": "石像鬼",
+		"icon": "🗿",
+		"size": [
+			1,
+			1
+		],
+		"range": 150,
+		"atkSpeed": 1.0,
+		"manaCost": 0,
+		"attackType": "melee",
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"levels": {
+			"1": {
+				"damage": 70,
+				"hp": 220,
+				"cost": 65,
+				"desc": "石化：核心 HP<30% 时进入石像形态，停止主动攻击，反弹敌人 20% 伤害；>60%HP 时变回正常形态",
+				"mechanics": {
+					"reflect_count": 1,
+					"reflect_damage_percent": 0.2
+				}
+			},
+			"2": {
+				"damage": 105,
+				"hp": 330,
+				"cost": 130,
+				"desc": "石化：反弹敌人 20% 伤害，反弹 2 次",
+				"mechanics": {
+					"reflect_count": 2,
+					"reflect_damage_percent": 0.2,
+					"crit_rate_bonus": 0.1
+				}
+			},
+			"3": {
+				"damage": 157,
+				"hp": 495,
+				"cost": 260,
+				"desc": "石化：反弹敌人 20% 伤害，反弹 3 次",
+				"mechanics": {
+					"reflect_count": 3,
+					"reflect_damage_percent": 0.2,
+					"crit_rate_bonus": 0.2
+				}
+			}
+		},
+		"type_key": "gargoyle",
+		"faction": "bat_totem"
+	},
+	"shadow_bat": {
+		"name": "影蝠",
+		"icon": "🦇",
+		"size": [
+			1,
+			1
+		],
+		"range": 120,
+		"atkSpeed": 1.2,
+		"manaCost": 0,
+		"attackType": "melee",
+		"damageType": "physical",
+		"crit_rate": 0.1,
+		"crit_dmg": 1.5,
+		"skill": "shadow_step",
+		"skillCd": 6.0,
+		"levels": {
+			"1": {
+				"damage": 60,
+				"hp": 180,
+				"cost": 55,
+				"desc": "暗影步：每 6 秒瞬移到最远敌人身边，落点周围敌人获得 1 层流血，然后返回原位",
+				"mechanics": {
+					"shadow_step_interval": 6.0,
+					"bleed_on_land": 1,
+					"aoe_range": 100.0
+				}
+			},
+			"2": {
+				"damage": 90,
+				"hp": 270,
+				"cost": 110,
+				"desc": "暗影步：冷却 6 秒→4 秒，瞬移路径留下暗影轨迹，经过的敌人移速 -30%",
+				"mechanics": {
+					"shadow_step_interval": 4.0,
+					"bleed_on_land": 1,
+					"aoe_range": 100.0,
+					"slow_factor": 0.7,
+					"trail_duration": 2.0
+				}
+			},
+			"3": {
+				"damage": 135,
+				"hp": 405,
+				"cost": 220,
+				"desc": "暗影步：暗影轨迹持续 3 秒，且经过的敌人每秒受到攻击力 30% 伤害",
+				"mechanics": {
+					"shadow_step_interval": 4.0,
+					"bleed_on_land": 1,
+					"aoe_range": 100.0,
+					"slow_factor": 0.7,
+					"trail_duration": 3.0,
+					"trail_damage_percent": 0.3
+				}
+			}
+		},
+		"type_key": "shadow_bat",
+		"faction": "bat_totem"
 	}
 }
