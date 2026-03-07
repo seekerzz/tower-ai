@@ -363,7 +363,7 @@ func _handle_hit(target_node):
 			# 记录暴击触发日志
 			if AILogger:
 				var unit_id = source_unit.name if source_unit and "name" in source_unit else "未知"
-				var crit_rate = source_unit.crit_rate if source_unit and "crit_rate" in source_unit else 0.0
+				var crit_rate = source_unit.get_node("Stats").crit_rate if source_unit and "crit_rate" in source_unit else 0.0
 				AILogger.mechanic_crit_triggered(unit_id, damage, crit_rate)
 			# Emit global crit signal for units like Storm Eagle
 			if GameManager.has_signal("projectile_crit"):
@@ -680,7 +680,7 @@ func _log_combat_hit(source, target, dmg: float, dmg_type: String, is_crit: bool
 		elif target.has_method("get_name"):
 			target_name = target.get_name()
 		if "current_hp" in target:
-			target_hp = target.current_hp
+			target_hp = target.get_node("Stats").current_hp
 
 	var crit_str = "【暴击】" if is_crit else ""
 	var dmg_type_str = ""

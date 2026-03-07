@@ -81,7 +81,7 @@ func perform_skill_life_drain():
 
     # 恢复生命
     if enemy:
-        enemy.hp = min(enemy.hp + heal_amount, enemy.max_hp)
+        enemy.get_node("Stats").current_hp = min(enemy.get_node("Stats").current_hp + heal_amount, enemy.get_node("Stats").max_hp)
         GameManager.spawn_floating_text(enemy.global_position + Vector2(0, -30),
             "+%.0f" % heal_amount, Color.RED)
 
@@ -126,7 +126,7 @@ func physics_process(delta: float) -> bool:
     # 自动释放技能
     if is_skill_ready(SKILL_DOOM_PROPHECY):
         perform_skill_doom_prophecy()
-    elif is_skill_ready(SKILL_LIFE_DRAIN) and enemy and enemy.hp < enemy.max_hp * 0.7:
+    elif is_skill_ready(SKILL_LIFE_DRAIN) and enemy and enemy.get_node("Stats").current_hp < enemy.get_node("Stats").max_hp * 0.7:
         perform_skill_life_drain()
     elif is_skill_ready(SKILL_WITHER_CURSE):
         perform_skill_wither_curse()

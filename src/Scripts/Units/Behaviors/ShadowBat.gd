@@ -196,7 +196,7 @@ func _apply_trail_effect(start_pos: Vector2, end_pos: Vector2):
 
 					# 施加轨迹伤害（LV.3）
 					if unit.level >= 3 and trail_damage_percent > 0:
-						var trail_damage = unit.damage * trail_damage_percent
+						var trail_damage = unit.get_node("Stats").damage * trail_damage_percent
 						if enemy.has_method("take_damage"):
 							enemy.take_damage(trail_damage, unit, "physical")
 							damage_count += 1
@@ -258,7 +258,7 @@ func _check_trail_damage(pos: Vector2):
 			continue
 		if enemy.global_position.distance_to(pos) <= radius:
 			if enemy.has_method("take_damage"):
-				var trail_damage = unit.damage * trail_damage_percent
+				var trail_damage = unit.get_node("Stats").damage * trail_damage_percent
 				enemy.take_damage(trail_damage, unit, "physical")
 				damage_count += 1
 				GameManager.spawn_floating_text(enemy.global_position, "-%d" % int(trail_damage), Color(0.6, 0.2, 0.8))

@@ -834,7 +834,7 @@ func _spawn_enemy_at_pos(pos: Vector2, type_key: String):
 		# 安全获取HP，避免属性不存在导致崩溃
 		var boss_hp = 0
 		if "hp" in enemy:
-			boss_hp = enemy.hp
+			boss_hp = enemy.get_node("Stats").current_hp
 		elif "health" in enemy:
 			boss_hp = enemy.health
 		# 确保 [BOSS生成] 日志总是被记录
@@ -845,7 +845,7 @@ func _spawn_enemy_at_pos(pos: Vector2, type_key: String):
 	else:
 		# 普通敌人通过AILogger记录生成日志
 		if AILogger:
-			AILogger.enemy_spawned(current_wave, type_key, enemy.hp if "hp" in enemy else 0, pos)
+			AILogger.enemy_spawned(current_wave, type_key, enemy.get_node("Stats").current_hp if "hp" in enemy else 0, pos)
 
 func _apply_difficulty_scaling(enemy: Node):
 	"""应用难度缩放到敌人"""

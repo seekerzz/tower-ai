@@ -122,7 +122,7 @@ func refresh_skills():
 		# Cost (Bottom Right - inside cell)
 		var cost_lbl = Label.new()
 		cost_lbl.name = "CostLabel"
-		cost_lbl.text = "💧%d" % unit.skill_mana_cost
+		cost_lbl.text = "💧%d" % unit.get_node("Stats").skill_mana_cost
 		cost_lbl.add_theme_font_size_override("font_size", 14)
 		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		cost_lbl.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
@@ -201,7 +201,7 @@ func _process(_delta):
 		# 安全类型检查：避免 StyleBoxFlat 类为 null 时崩溃
 		if StyleBoxFlat != null and style is StyleBoxFlat:
 			# Check Mana
-			if GameManager.mana < unit.skill_mana_cost:
+			if GameManager.mana < unit.get_node("Stats").skill_mana_cost:
 				if unit.skill_cooldown <= 0:
 					# No mana but ready -> Grey out / Red Border
 					card.modulate = Color(0.6, 0.6, 0.6)

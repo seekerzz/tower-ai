@@ -8,14 +8,14 @@ var is_splitting: bool = false
 func init(enemy_node: CharacterBody2D, enemy_data: Dictionary):
 	super.init(enemy_node, enemy_data)
 	if split_generation == 0:
-		ancestor_max_hp = enemy.max_hp
+		ancestor_max_hp = enemy.get_node("Stats").max_hp
 		enemy.scale = Vector2(1.5, 1.5)
 
 func on_hit(damage_info: Dictionary) -> bool:
 	if is_splitting: return true
 
 	hit_count += 1
-	if hit_count >= 5 and split_generation < 2 and enemy.hp > 0:
+	if hit_count >= 5 and split_generation < 2 and enemy.get_node("Stats").current_hp > 0:
 		is_splitting = true
 		_perform_split()
 		return true
@@ -27,7 +27,7 @@ func set_split_info(gen: int, anc_hp: float):
 	ancestor_max_hp = anc_hp
 
 func _perform_split():
-	var child_hp = min(enemy.hp, enemy.max_hp / 2.0)
+	var child_hp = min(enemy.get_node("Stats").current_hp, enemy.get_node("Stats").max_hp / 2.0)
 	var parent = enemy.get_parent()
 	var spawn_position = enemy.global_position
 	var type_key = enemy.type_key

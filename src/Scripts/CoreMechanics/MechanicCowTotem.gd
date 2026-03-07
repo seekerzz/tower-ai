@@ -71,9 +71,9 @@ func _on_timer_timeout():
 			for enemy in enemies:
 				if is_instance_valid(enemy) and enemy.is_node_ready():
 					hit_count_actual += 1
-					var old_hp = enemy.hp if "hp" in enemy else 0
+					var old_hp = enemy.get_node("Stats").current_hp if "hp" in enemy else 0
 					enemy.take_damage(damage, GameManager, "magic")
-					if enemy.hp <= 0 and old_hp > 0:
+					if enemy.get_node("Stats").current_hp <= 0 and old_hp > 0:
 						kill_count += 1
 
 			# 记录[TOTEM_DAMAGE]图腾伤害日志

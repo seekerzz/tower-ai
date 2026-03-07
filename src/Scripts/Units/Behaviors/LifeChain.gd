@@ -16,7 +16,7 @@ func _update_chain_targets():
 
 	var valid_enemies = []
 	for enemy in enemies:
-		if is_instance_valid(enemy) and enemy.hp > 0:
+		if is_instance_valid(enemy) and enemy.get_node("Stats").current_hp > 0:
 			valid_enemies.append(enemy)
 
 	valid_enemies.sort_custom(func(a, b):
@@ -32,7 +32,7 @@ func _drain_life():
 
 	var total_drained = 0.0
 	for enemy in chained_enemies:
-		if not is_instance_valid(enemy) or enemy.hp <= 0:
+		if not is_instance_valid(enemy) or enemy.get_node("Stats").current_hp <= 0:
 			continue
 
 		var drain_amount = 4.0

@@ -28,14 +28,14 @@ func on_projectile_crit(projectile, target):
 				GameManager.totem_echo_triggered.emit(projectile.source_unit, echo_damage)
 				# 记录鹰图腾暴击回响日志
 				if AILogger:
-					var unit_name = projectile.source_unit.name if projectile.source_unit and "name" in projectile.source_unit else "未知"
-					var target_name = target.name if target and "name" in target else "未知"
-					AILogger.totem_triggered("鹰图腾", target_name, "暴击回响 %.0f 伤害" % echo_damage)
-					AILogger.mechanic_crit_echo(unit_name, target_name, echo_damage)
+					var echo_unit_name = projectile.source_unit.name if projectile.source_unit and "name" in projectile.source_unit else "未知"
+					var echo_target_name = target.name if target and "name" in target else "未知"
+					AILogger.totem_triggered("鹰图腾", echo_target_name, "暴击回响 %.0f 伤害" % echo_damage)
+					AILogger.mechanic_crit_echo(echo_unit_name, echo_target_name, echo_damage)
 					# 记录[TOTEM_EFFECT]图腾特效日志
-					AILogger.event("[TOTEM_EFFECT] 鹰图腾 触发暴击回响 | 来源: %s | 目标: %s | 回响伤害: %.0f | 触发概率: %.0f%%" % [unit_name, target_name, echo_damage, echo_chance * 100])
+					AILogger.event("[TOTEM_EFFECT] 鹰图腾 触发暴击回响 | 来源: %s | 目标: %s | 回响伤害: %.0f | 触发概率: %.0f%%" % [echo_unit_name, echo_target_name, echo_damage, echo_chance * 100])
 					if AIManager:
-						AIManager.broadcast_text("[TOTEM_EFFECT] 鹰图腾 触发暴击回响 | 来源: %s | 目标: %s | 回响伤害: %.0f | 触发概率: %.0f%%" % [unit_name, target_name, echo_damage, echo_chance * 100])
+						AIManager.broadcast_text("[TOTEM_EFFECT] 鹰图腾 触发暴击回响 | 来源: %s | 目标: %s | 回响伤害: %.0f | 触发概率: %.0f%%" % [echo_unit_name, echo_target_name, echo_damage, echo_chance * 100])
 				# Emit echo_triggered signal for test logging
 				if GameManager.has_signal("echo_triggered"):
 					GameManager.echo_triggered.emit(projectile.source_unit, target, projectile.damage, echo_damage)

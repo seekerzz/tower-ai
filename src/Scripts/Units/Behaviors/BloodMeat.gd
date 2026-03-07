@@ -92,10 +92,10 @@ func _apply_wolf_aura():
 			# 为了正确计算，我们需要追踪原始伤害值
 			# 如果单位没有原始伤害记录，我们需要先保存
 			if not buffed_unit.has_meta("original_damage"):
-				buffed_unit.set_meta("original_damage", buffed_unit.damage)
+				buffed_unit.set_meta("original_damage", buffed_unit.get_node("Stats").damage)
 			else:
 				# 恢复到原始伤害值
-				buffed_unit.damage = buffed_unit.get_meta("original_damage")
+				buffed_unit.get_node("Stats").damage = buffed_unit.get_meta("original_damage")
 	buffed_units.clear()
 
 	for neighbor in neighbors:
@@ -105,9 +105,9 @@ func _apply_wolf_aura():
 			if faction == "wolf_totem" or neighbor.unit_data.get("type_key", "").find("wolf") != -1:
 				# 保存原始伤害值（如果尚未保存）
 				if not neighbor.has_meta("original_damage"):
-					neighbor.set_meta("original_damage", neighbor.damage)
+					neighbor.set_meta("original_damage", neighbor.get_node("Stats").damage)
 				# 计算新的伤害值
-				neighbor.damage = neighbor.get_meta("original_damage") * (1.0 + total_buff)
+				neighbor.get_node("Stats").damage = neighbor.get_meta("original_damage") * (1.0 + total_buff)
 				buffed_units.append(neighbor)
 				neighbor.spawn_buff_effect("🥩")
 
@@ -200,7 +200,7 @@ func on_cleanup():
 	# Remove buffs from buffed units
 	for buffed_unit in buffed_units:
 		if is_instance_valid(buffed_unit) and buffed_unit != unit:
-			buffed_unit.damage /= (1.0 + adjacent_wolf_buff)
+			buffed_unit.get_node("Stats").damage /= (1.0 + adjacent_wolf_buff)
 	buffed_units.clear()
 
 	if GameManager.wave_system_manager and GameManager.wave_system_manager.wave_started.is_connected(_on_wave_started):

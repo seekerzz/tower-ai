@@ -15,8 +15,6 @@ var state: State = State.MOVE
 
 var faction: String = "enemy"
 var type_key: String
-var hp: float
-var max_hp: float
 var speed: float
 var enemy_data: Dictionary
 
@@ -53,6 +51,7 @@ var rotational_damping: float = 5.0
 var rotation_sensitivity = 5.0
 
 var invincible_timer: float = 0.0
+var hit_flash_timer: float = 0.0
 var last_hit_direction: Vector2 = Vector2.ZERO
 
 var behavior: EnemyBehavior
@@ -96,13 +95,20 @@ func setup(key: String, wave: int):
 	add_child(visuals)
 	_ensure_visual_controller()
 
+	# Mount Stats Node for component compatibility
+	var stats = get_node_or_null("Stats")
+	if not stats:
+		stats = preload("res://src/Scripts/Units/Components/UnitStats.gd").new()
+		stats.name = "Stats"
+		add_child(stats)
+
 	type_key = key
 	enemy_data = Constants.ENEMY_VARIANTS[key]
 	anim_config = enemy_data.get("anim_config", {})
 
 	var base_hp = 100 + (wave * 80)
-	hp = base_hp * enemy_data.hpMod
-	max_hp = hp
+	stats.max_hp = base_hp * enemy_data.hpMod
+	stats.current_hp = stats.max_hp
 
 	speed = (40 + (wave * 2)) * enemy_data.spdMod
 	base_speed = speed
@@ -159,7 +165,7 @@ func setup(key: String, wave: int):
 		var current_wave = 1
 		if GameManager.wave_system_manager:
 			current_wave = GameManager.wave_system_manager.current_wave
-		AILogger.enemy_spawned(current_wave, type_key, hp, global_position)
+		AILogger.enemy_spawned(current_wave, type_key, get_node("Stats").current_hp, global_position)
 
 func _init_behavior():
 	if type_key == "mutant_slime":
@@ -237,6 +243,42 @@ func update_visuals():
 
 	queue_redraw()
 
+func _draw():
+	if visual_controller:
+		draw_set_transform(visual_controller.visual_offset, visual_controller.visual_rotation, visual_controller.wobble_scale)
+	var color = enemy_data.color
+	if hit_flash_timer > 0:
+		color = Color.WHITE
+
+	if enemy_data.get("shape") == "rect":
+		var size_grid = enemy_data.get("size_grid", [2, 1])
+		var tile_size = 60
+		if GameManager.grid_manager:
+			tile_size = GameManager.grid_manager.TILE_SIZE
+
+		var w = size_grid[0] * tile_size
+		var h = size_grid[1] * tile_size
+		var rect = Rect2(-w/2, -h/2, w, h)
+		draw_rect(rect, color)
+	else:
+		draw_circle(Vector2.ZERO, enemy_data.radius, color)
+
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	if get_node("Stats").current_hp < get_node("Stats").max_hp and get_node("Stats").current_hp > 0:
+		var hp_pct = get_node("Stats").current_hp / get_node("Stats").max_hp
+		var bar_w = 20
+		var bar_h = 4
+		var bar_pos = Vector2(-bar_w/2, -enemy_data.radius - 8)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color.RED)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_pct, bar_h)), Color.GREEN)
+
+	# Bleed Indicator
+	if bleed_stacks > 0:
+		var bleed_pos = Vector2(0, -enemy_data.radius - 20)
+		var font = ThemeDB.fallback_font
+		var font_size = 12
+		draw_string(font, bleed_pos, str(bleed_stacks), HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color.RED)
 func _physics_process(delta):
 	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	if !is_wave_active: return
@@ -549,8 +591,8 @@ func is_trap(node):
 	return false
 
 func heal(amount: float):
-	if hp <= 0: return
-	hp = min(hp + amount, max_hp)
+	if get_node("Stats").current_hp <= 0: return
+	get_node("Stats").current_hp = min(get_node("Stats").current_hp + amount, get_node("Stats").max_hp)
 	queue_redraw()
 
 func add_bleed_stacks(stacks: int, source_unit = null):
@@ -611,7 +653,7 @@ func _take_bleed_damage(amount: float, source_unit = null, show_text: bool = tru
 		if child.has_method("get_damage_multiplier"):
 			amount *= child.get_damage_multiplier()
 
-	hp -= amount
+	get_node("Stats").current_hp -= amount
 
 	# Note: Bleed damage logging is now handled in _process_bleed_damage with accumulated damage
 	# to show meaningful numbers instead of per-frame tiny amounts
@@ -631,7 +673,7 @@ func _take_bleed_damage(amount: float, source_unit = null, show_text: bool = tru
 	if source_unit:
 		GameManager.damage_dealt.emit(source_unit, amount)
 
-	if hp <= 0:
+	if get_node("Stats").current_hp <= 0:
 		die(source_unit)
 
 func add_debuff(type: String, stacks: int, duration: float):
@@ -660,9 +702,11 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 		if child.has_method("get_damage_multiplier"):
 			amount *= child.get_damage_multiplier()
 
-	var old_hp = hp
-	hp -= amount
-	hp_changed.emit(old_hp, hp)
+	var old_hp = get_node("Stats").current_hp
+	get_node("Stats").current_hp -= amount
+	hp_changed.emit(old_hp, get_node("Stats").current_hp)
+	hit_flash_timer = 0.1
+	queue_redraw()
 	var hit_dir = Vector2.ZERO
 	if hit_source and is_instance_valid(hit_source) and "speed" in hit_source:
 		hit_dir = Vector2.RIGHT.rotated(hit_source.rotation)
@@ -700,12 +744,12 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 				source_name = source_unit.type_key
 			elif source_unit == GameManager:
 				source_name = "图腾/状态效果"
-		AILogger.enemy_hit(type_key, amount, source_name, hp)
+		AILogger.enemy_hit(type_key, amount, source_name, get_node("Stats").current_hp)
 
 	if source_unit:
 		GameManager.damage_dealt.emit(source_unit, amount)
 
-	if hp <= 0:
+	if get_node("Stats").current_hp <= 0:
 		die(source_unit)
 
 func _on_death():
@@ -789,7 +833,7 @@ func _play_petrified_death_effect():
 	shatter.global_position = global_position
 	shatter.launch_direction = last_hit_direction
 	shatter.damage_percent = damage_percent
-	shatter.source_max_hp = max_hp
+	shatter.source_max_hp = get_node("Stats").max_hp
 	shatter.enemy_texture = AssetLoader.get_enemy_icon(type_key)
 	shatter.enemy_color = enemy_data.color
 
@@ -799,11 +843,11 @@ func _play_petrified_death_effect():
 	_enhance_petrified_shatter_effect(global_position, damage_percent)
 
 	if AILogger:
-		AILogger.mechanic_petrified_shatter(str(get_instance_id()), max_hp * damage_percent)
+		AILogger.mechanic_petrified_shatter(str(get_instance_id()), get_node("Stats").max_hp * damage_percent)
 		# 记录石块破碎日志 - 使用测试脚本可检测的格式
-		AILogger.event("[SKILL] 美杜莎石块破碎 | 目标: %s | 伤害: %.0f (%.0f%%)" % [type_key, max_hp * damage_percent, damage_percent * 100])
+		AILogger.event("[SKILL] 美杜莎石块破碎 | 目标: %s | 伤害: %.0f (%.0f%%)" % [type_key, get_node("Stats").max_hp * damage_percent, damage_percent * 100])
 		if AIManager:
-			AIManager.broadcast_text("[SKILL] 美杜莎石块破碎 | 伤害: %.0f" % (max_hp * damage_percent))
+			AIManager.broadcast_text("[SKILL] 美杜莎石块破碎 | 伤害: %.0f" % (get_node("Stats").max_hp * damage_percent))
 
 func _enhance_petrified_shatter_effect(pos: Vector2, damage_percent: float):
 	# 屏幕震动 - 强度8像素，持续时间0.3秒

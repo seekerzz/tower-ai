@@ -13,8 +13,8 @@ func _get_target() -> Node2D:
 		if !is_instance_valid(enemy): continue
 		var dist = unit.global_position.distance_to(enemy.global_position)
 		if dist <= unit.stats.range_val:
-			if enemy.hp > max_hp:
-				max_hp = enemy.hp
+			if enemy.get_node("Stats").current_hp > max_hp:
+				max_hp = enemy.get_node("Stats").current_hp
 				best_target = enemy
 
 	if best_target:
@@ -32,8 +32,8 @@ func _calculate_damage(target: Node2D) -> float:
 	var dmg = unit.calculate_damage_against(target)
 
 	var hp_percent = 1.0
-	if target.max_hp > 0:
-		hp_percent = target.hp / target.max_hp
+	if target.get_node("Stats").max_hp > 0:
+		hp_percent = target.get_node("Stats").current_hp / target.get_node("Stats").max_hp
 
 	# Lv2: +30% vs >50% HP
 	if unit.level >= 2 and hp_percent > 0.5:

@@ -18,7 +18,7 @@ func _on_host_attack(target_node):
 	var host = unit.get_host_unit()
 	if !host: return
 
-	var damage = host.damage
+	var damage = host.get_node("Stats").damage
 	var extra_damage = damage * extra_attack_damage_percent
 
 	if target_node.has_method("take_damage"):

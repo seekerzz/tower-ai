@@ -68,7 +68,7 @@ func physics_process(delta: float) -> bool:
 		perform_skill_wind_step()
 	elif is_skill_ready(SKILL_GALE_STRIKE):
 		perform_skill_gale_strike()
-	elif is_skill_ready(SKILL_SPRING_HEAL) and enemy and enemy.hp < enemy.max_hp * 0.6:
+	elif is_skill_ready(SKILL_SPRING_HEAL) and enemy and enemy.get_node("Stats").current_hp < enemy.get_node("Stats").max_hp * 0.6:
 		perform_skill_spring_heal()
 	elif is_skill_ready(SKILL_ILLUSION):
 		perform_skill_illusion()
@@ -141,7 +141,7 @@ func perform_skill_spring_heal():
 
 	# 恢复生命
 	if enemy:
-		enemy.hp = min(enemy.hp + spring_heal_amount, enemy.max_hp)
+		enemy.get_node("Stats").current_hp = min(enemy.get_node("Stats").current_hp + spring_heal_amount, enemy.get_node("Stats").max_hp)
 		GameManager.spawn_floating_text(enemy.global_position + Vector2(0, -30),
 			"+%.0f" % spring_heal_amount, Color.GREEN)
 

@@ -78,7 +78,7 @@ func perform_skill_regeneration():
 
 	# 恢复自身生命
 	if enemy:
-		enemy.hp = min(enemy.hp + regeneration_amount, enemy.max_hp)
+		enemy.get_node("Stats").current_hp = min(enemy.get_node("Stats").current_hp + regeneration_amount, enemy.get_node("Stats").max_hp)
 		# 显示治疗数字
 		GameManager.spawn_floating_text(enemy.global_position + Vector2(0, -30),
 			"+%.0f" % regeneration_amount, Color.GREEN)
@@ -107,7 +107,7 @@ func physics_process(delta: float) -> bool:
 	# 自动释放可用技能
 	if is_skill_ready(SKILL_SUMMON_SEEDLING):
 		perform_skill_summon_seedling()
-	elif is_skill_ready(SKILL_REGENERATION) and enemy and enemy.hp < enemy.max_hp * 0.7:
+	elif is_skill_ready(SKILL_REGENERATION) and enemy and enemy.get_node("Stats").current_hp < enemy.get_node("Stats").max_hp * 0.7:
 		perform_skill_regeneration()
 	elif is_skill_ready(SKILL_THORN_WAVE):
 		perform_skill_thorn_wave()

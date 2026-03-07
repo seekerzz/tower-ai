@@ -58,12 +58,9 @@ func _count_injured_enemies() -> int:
 			continue
 
 		# 检查敌人是否受伤（生命值低于最大值）
-		if enemy.has_method("get"):
-			var hp = enemy.get("hp")
-			var max_hp = enemy.get("max_hp")
-			if hp != null and max_hp != null and max_hp > 0:
-				if hp < max_hp:
-					count += 1
+		var stats = enemy.get_node("Stats")
+		if stats.current_hp < stats.max_hp:
+			count += 1
 
 	return count
 

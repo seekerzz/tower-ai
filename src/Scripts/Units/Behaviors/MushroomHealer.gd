@@ -61,7 +61,7 @@ func _apply_bonus_poison_damage(ally: Node):
 
 	# Find target near ally
 	var range_val = 200.0
-	if "range_val" in ally: range_val = ally.range_val
+	if "range_val" in ally: range_val = ally.get_node("Stats").range_val
 
 	var target = GameManager.combat_manager.find_nearest_enemy(ally.global_position, range_val)
 	if target:

@@ -140,7 +140,7 @@ func physics_process(delta: float) -> bool:
 
 	# 被动：死亡抗拒 - 检查是否触发
 	if not is_death_resistance_active and enemy:
-		var hp_percent = enemy.hp / enemy.max_hp
+		var hp_percent = enemy.get_node("Stats").current_hp / enemy.get_node("Stats").max_hp
 		if hp_percent <= death_resistance_hp_threshold:
 			_trigger_death_resistance()
 

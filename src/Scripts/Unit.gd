@@ -37,43 +37,11 @@ var combat: CombatController
 var visual: VisualController
 var interact: InteractController
 
-# Legacy Properties
-var damage: float:
-	get: return stats.damage if stats else 0.0
-	set(value): if stats: stats.damage = value
-var range_val: float:
-	get: return stats.range_val if stats else 0.0
-	set(value): if stats: stats.range_val = value
-var atk_speed: float:
-	get: return stats.atk_speed if stats else 0.0
-	set(value): if stats: stats.atk_speed = value
-var attack_cost_mana: float:
-	get: return stats.attack_cost_mana if stats else 0.0
-	set(value): if stats: stats.attack_cost_mana = value
-var skill_mana_cost: float:
-	get: return stats.skill_mana_cost if stats else 0.0
-	set(value): if stats: stats.skill_mana_cost = value
-
-var max_hp: float:
-	get: return stats.max_hp if stats else 0.0
-	set(value): if stats: stats.max_hp = value
-var current_hp: float:
-	get: return stats.current_hp if stats else 0.0
-	set(value): if stats: stats.current_hp = value
-var hp: float:
-	get: return stats.current_hp if stats else 0.0
-	set(value): if stats: stats.current_hp = value
 
 # Visual Holder for animations and structure
 var visual_holder: Node2D = null
 
 var is_no_mana: bool = false
-var crit_rate: float:
-	get: return stats.crit_rate if stats else 0.0
-	set(value): if stats: stats.crit_rate = value
-var crit_dmg: float:
-	get: return stats.crit_dmg if stats else 1.5
-	set(value): if stats: stats.crit_dmg = value
 var bounce_count: int = 0
 var split_count: int = 0
 
@@ -143,18 +111,28 @@ func setup(key: String):
 	unit_data = Constants.UNIT_TYPES[key].duplicate()
 
 	buff_manager = BuffManager.new()
+	buff_manager.name = "BuffManager"
+	add_child(buff_manager)
 	buff_manager.unit = self
 
 	stats = UnitStats.new()
+	stats.name = "Stats"
+	add_child(stats)
 	stats.unit = self
 
 	combat = CombatController.new()
+	combat.name = "CombatController"
+	add_child(combat)
 	combat.unit = self
 
 	visual = VisualController.new()
+	visual.name = "VisualController"
+	add_child(visual)
 	visual.unit = self
 
 	interact = InteractController.new()
+	interact.name = "InteractController"
+	add_child(interact)
 	interact.unit = self
 
 	_load_behavior()
@@ -259,7 +237,7 @@ func capture_bullet(bullet_snapshot: Dictionary):
 		behavior.capture_bullet(bullet_snapshot)
 
 func calculate_damage_against(target_node: Node2D) -> float:
-	var final_damage = damage
+	var final_damage = stats.damage if stats else 0.0
 
 	if GameManager.reward_manager and "focus_fire" in GameManager.reward_manager.acquired_artifacts:
 		if target_node == focus_target:
@@ -330,11 +308,11 @@ func apply_buff(buff_type: String, source_unit: Node2D = null):
 
 	match buff_type:
 		"range":
-			range_val *= 1.25
+			if stats: stats.range_val *= 1.25
 		"speed":
-			atk_speed *= 1.2
+			if stats: stats.atk_speed *= 1.2
 		"crit":
-			crit_rate += 0.25
+			if stats: stats.crit_rate += 0.25
 		"bounce":
 			bounce_count += 1
 		"split":
@@ -485,9 +463,9 @@ func _process_combat(delta):
 		cooldown -= delta
 		return
 
-	if attack_cost_mana > 0:
+	if stats and stats.attack_cost_mana > 0:
 		var GameManager = get_node_or_null("/root/GameManager")
-		if GameManager and !GameManager.check_resource("mana", attack_cost_mana):
+		if GameManager and !GameManager.check_resource("mana", stats.attack_cost_mana):
 			is_no_mana = true
 			return
 		else:
@@ -608,7 +586,8 @@ func return_to_start():
 	if interact: interact.return_to_start()
 
 func heal(amount: float):
-	current_hp = min(current_hp + amount, max_hp)
+	if stats:
+		stats.current_hp = min(stats.current_hp + amount, stats.max_hp)
 	GameManager.spawn_floating_text(global_position, "+%d" % int(amount), Color.GREEN)
 
 func play_buff_receive_anim():
@@ -620,7 +599,7 @@ func spawn_buff_effect(icon_char: String):
 func add_stat_bonus(stat: String, amount: float):
 	match stat:
 		"attack_speed":
-			atk_speed *= (1.0 + amount)
+			if stats: stats.atk_speed *= (1.0 + amount)
 		"defense":
 			# No defense stat on unit currently?
 			pass
@@ -628,7 +607,7 @@ func add_stat_bonus(stat: String, amount: float):
 			# Units don't move.
 			pass
 		"crit_chance":
-			crit_rate += amount
+			if stats: stats.crit_rate += amount
 
 func add_temporary_buff(stat: String, amount: float, duration: float):
 	temporary_buffs.append({
@@ -649,16 +628,16 @@ func _update_temporary_buffs(delta: float):
 func _apply_temp_buff_effect(stat: String, amount: float):
 	match stat:
 		"attack_speed":
-			atk_speed *= (1.0 + amount)
+			if stats: stats.atk_speed *= (1.0 + amount)
 		"crit_chance":
-			crit_rate += amount
+			if stats: stats.crit_rate += amount
 
 func _remove_temp_buff_effect(stat: String, amount: float):
 	match stat:
 		"attack_speed":
-			atk_speed /= (1.0 + amount)
+			if stats: stats.atk_speed /= (1.0 + amount)
 		"crit_chance":
-			crit_rate -= amount
+			if stats: stats.crit_rate -= amount
 
 # 获取指定范围内的友方单位
 # center_unit: 中心单位（通常是self）

@@ -65,14 +65,14 @@ func create_summon(data: Dictionary):
 
 func _inherit_stats(summon, source, ratio: float):
 	if "damage" in source:
-		summon.damage = source.damage * ratio
+		summon.damage = source.get_node("Stats").damage * ratio
 	if "max_hp" in source:
-		summon.max_hp = source.max_hp * ratio
+		summon.max_hp = source.get_node("Stats").max_hp * ratio
 		summon.current_hp = summon.max_hp
 	if "atk_speed" in source:
-		summon.atk_speed = source.atk_speed
+		summon.atk_speed = source.get_node("Stats").atk_speed
 	if "range_val" in source:
-		summon.range_val = source.range_val # Also inherit range often useful for clones
+		summon.range_val = source.get_node("Stats").range_val # Also inherit range often useful for clones
 
 func _on_summon_removed(summon):
 	if summon in active_summons:
