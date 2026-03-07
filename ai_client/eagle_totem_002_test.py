@@ -291,28 +291,41 @@ class EagleTotemRetestTester:
         if not await self.wait_for_server():
             return self.generate_report()
 
-        # 1. 选择鹰图腾
-        self.log("\n=== 步骤 1: 选择鹰图腾 ===")
-        await self.select_totem("eagle_totem")
+        # 1. 先选择牛图腾作为主图腾（提高生存能力）
+        self.log("\n=== 步骤 1: 选择牛图腾 (主图腾) ===")
+        await self.select_totem("cow_totem")
+        await asyncio.sleep(1.0)
 
-        # 2. 购买角雕 (harpy_eagle) - 第 3 次攻击必定暴击
-        self.log("\n=== 步骤 2: 购买角雕 ===")
-        await self.purchase_unit("harpy_eagle")
+        # 2. 选择鹰图腾作为次级图腾
+        self.log("\n=== 步骤 2: 选择鹰图腾 (次级图腾) ===")
+        await self.select_secondary_totem("eagle_totem")
+        await asyncio.sleep(1.0)
 
-        # 3. 部署单位到 (-1, 0) 避开核心
-        self.log("\n=== 步骤 3: 部署单位 ===")
-        # 尝试多个坐标
-        for coord in [(-1, 0), (1, 0), (-1, -1), (1, 1)]:
-            if await self.deploy_unit("harpy_eagle", coord[0], coord[1]):
-                break
-            await asyncio.sleep(0.5)
+        # 3. 使用作弊 API 生成角雕
+        self.log("\n=== 步骤 3: 使用作弊 API 生成角雕 ===")
+        await self.spawn_unit("harpy_eagle")
+        await asyncio.sleep(0.5)
 
-        # 4. 开始波次
-        self.log("\n=== 步骤 4: 开始波次 ===")
+        # 4. 部署单位到战场
+        self.log("\n=== 步骤 4: 部署单位 ===")
+        await self.deploy_unit("harpy_eagle", 0, 1)
+        await asyncio.sleep(0.5)
+
+        # 5. 开启上帝模式
+        self.log("\n=== 步骤 5: 开启上帝模式 ===")
+        await self.set_god_mode(True)
+        await asyncio.sleep(0.5)
+
+        # 6. 等待游戏状态稳定
+        self.log("\n=== 步骤 6: 等待游戏状态稳定 ===")
+        await asyncio.sleep(2.0)
+
+        # 7. 开始波次
+        self.log("\n=== 步骤 7: 开始波次 ===")
         await self.start_wave()
 
-        # 5. 观察战斗
-        self.log("\n=== 步骤 5: 观察战斗 ===")
+        # 8. 观察战斗
+        self.log("\n=== 步骤 8: 观察战斗 ===")
         await self.observe_battle(duration=30)
 
         # 生成报告
@@ -326,6 +339,60 @@ class EagleTotemRetestTester:
 
         await self.cleanup()
         return report
+
+    async def spawn_unit(self, unit_id: str) -> bool:
+        """使用作弊 API 生成单位"""
+        try:
+            async with self.session.post(
+                f"{self.base_url}/action",
+                json={"actions": [{"type": "spawn_unit", "unit_id": unit_id}]}
+            ) as resp:
+                result = await resp.json()
+                if result.get("status") == "ok" or result.get("success"):
+                    self.log(f"✅ 生成单位成功：{unit_id}")
+                    return True
+                else:
+                    self.log(f"❌ 生成单位失败：{result}")
+                    return False
+        except Exception as e:
+            self.log(f"❌ 生成单位异常：{e}")
+            return False
+
+    async def set_god_mode(self, enabled: bool) -> bool:
+        """开启/关闭上帝模式"""
+        try:
+            async with self.session.post(
+                f"{self.base_url}/action",
+                json={"actions": [{"type": "set_god_mode", "enabled": enabled}]}
+            ) as resp:
+                result = await resp.json()
+                if result.get("status") == "ok" or result.get("success"):
+                    self.log(f"✅ 上帝模式：{'开启' if enabled else '关闭'}")
+                    return True
+                else:
+                    self.log(f"❌ 上帝模式设置失败：{result}")
+                    return False
+        except Exception as e:
+            self.log(f"❌ 上帝模式异常：{e}")
+            return False
+
+    async def select_secondary_totem(self, totem_id: str) -> bool:
+        """选择次级图腾"""
+        try:
+            async with self.session.post(
+                f"{self.base_url}/action",
+                json={"actions": [{"type": "select_secondary_totem", "totem_id": totem_id}]}
+            ) as resp:
+                result = await resp.json()
+                if result.get("status") == "ok" or result.get("success"):
+                    self.log(f"✅ 次级图腾选择成功：{totem_id}")
+                    return True
+                else:
+                    self.log(f"❌ 次级图腾选择失败：{result}")
+                    return False
+        except Exception as e:
+            self.log(f"❌ 次级图腾选择异常：{e}")
+            return False
 
 
 async def main():

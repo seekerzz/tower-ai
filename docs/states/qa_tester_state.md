@@ -16,23 +16,18 @@
    - 已完成：构造新测试任务 `docs/qa_tasks/task_viper_totem_002.md`
    - 已投递：AI Player 执行复测
 
-3. `[P0]` 审查鹰图腾复测报告 (002) - 待审查
+3. ⚠️ `[P0]` 审查鹰图腾复测报告 (002) - 发现问题
    - 来源：AI Player
    - 测试任务：`docs/qa_tasks/task_eagle_totem_002.md`
    - 测试结果：3/6 验证项通过
    - 报告：`docs/player_reports/eagle_totem_test_report_002.md`
-   - 问题：单位部署成功但波次未真正开始 (is_wave_active: false)
+   - 发现的问题：
+     - 单位部署成功，波次开始命令返回成功
+     - 但 `is_wave_active: false` - 单位行为标志未激活
+     - 游戏客户端输出只有 UNIT DEBUG 日志，没有战斗事件
    - 需要行动：
-     - 检查是否游戏需要完成双图腾选择流程
-     - 或需要等待波次准备就绪后再发送 start_wave
-     - 或需要构造特定测试场景（如已有防御单位）
-
-4. `[P0]` 审查毒蛇图腾复测报告 (002) - 测试失败
-   - 来源：AI Player
-   - 测试任务：`docs/qa_tasks/task_viper_totem_002.md`
-   - 测试结果：HTTP 超时
-   - 报告：未生成
-   - 问题：游戏客户端状态异常或 HTTP 端口不可用
+     - 向技术总监投递修复请求，检查波次激活逻辑
+     - 或检查是否需要特定的敌人数量才能激活单位行为
 
 ## [Archive - 历史归档]
 
