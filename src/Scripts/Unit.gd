@@ -10,12 +10,7 @@ var level: int = 1
 var stats_multiplier: float = 1.0
 var cooldown: float = 0.0
 var skill_cooldown: float = 0.0
-var active_buffs: Array:
-	get: return buff_manager.active_buffs if buff_manager else []
-	set(value): if buff_manager: buff_manager.active_buffs = value
-var buff_sources: Dictionary:
-	get: return buff_manager.buff_sources if buff_manager else {}
-	set(value): if buff_manager: buff_manager.buff_sources = value
+
 var temporary_buffs: Array = [] # Array of {stat, amount, duration, source}
 var traits: Array = []
 var unit_data: Dictionary
@@ -254,15 +249,15 @@ func calculate_damage_against(target_node: Node2D) -> float:
 
 func apply_buff(buff_type: String, source_unit: Node2D = null):
 	var is_stackable = buff_type == "bounce" or buff_type == "split"
-	var is_new_buff = not (buff_type in active_buffs)
+	var is_new_buff = not (buff_type in buff_manager.active_buffs)
 
-	if buff_type in active_buffs and not is_stackable: return
+	if buff_type in buff_manager.active_buffs and not is_stackable: return
 
 	if is_new_buff:
-		active_buffs.append(buff_type)
+		buff_manager.active_buffs.append(buff_type)
 
 	if source_unit:
-		buff_sources[buff_type] = source_unit
+		buff_manager.buff_sources[buff_type] = source_unit
 
 	# 记录[BUFF]日志
 	if AILogger:
@@ -414,7 +409,7 @@ func _update_buff_icons():
 	for child in buff_container.get_children():
 		child.queue_free()
 
-	for buff in active_buffs:
+	for buff in buff_manager.active_buffs:
 		var lbl = Label.new()
 		lbl.add_theme_font_size_override("font_size", 10)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -379,7 +379,7 @@ func _handle_hit(target_node):
 			_log_combat_hit(source_unit, target_node, damage, final_damage_type, is_critical)
 
 		# Apply Splash Damage if source has splash buff (Dog unit)
-		if source_unit and "active_buffs" in source_unit and "splash" in source_unit.active_buffs:
+		if source_unit and "buff_manager" in source_unit and "splash" in source_unit.buff_manager.active_buffs:
 			_apply_splash_damage(target_node.global_position, damage, source_unit)
 
 		# Apply Status Effects via Payload (New System)
