@@ -9,12 +9,12 @@ func _calculate_damage(target: Node2D) -> float:
 	var crit_rate_bonus = mechanics.get("crit_rate_bonus", 0.0)
 
 	# 基础伤害计算
-	var dmg = unit.damage
+	var dmg = unit.stats.damage
 
 	# 计算暴击率（包含等级3的额外暴击）
-	var total_crit_rate = unit.crit_rate + crit_rate_bonus
+	var total_crit_rate = unit.stats.crit_rate + crit_rate_bonus
 	if randf() < total_crit_rate:
-		dmg *= unit.crit_dmg
+		dmg *= unit.stats.crit_dmg
 
 	return dmg
 
@@ -63,7 +63,7 @@ func _apply_lifesteal(damage: float):
 	var low_hp_bonus = mechanics.get("low_hp_bonus", 0.5)
 
 	# 计算自身生命值比例
-	var unit_hp_percent = unit.current_hp / unit.max_hp if unit.max_hp > 0 else 1.0
+	var unit_hp_percent = unit.stats.current_hp / unit.stats.max_hp if unit.stats.max_hp > 0 else 1.0
 
 	# 计算吸血比例：生命值越低，吸血越高
 	var lifesteal_pct = base_lifesteal
@@ -94,14 +94,14 @@ func _apply_lifesteal(damage: float):
 
 		# 记录[CORE_HEAL]吸血治疗日志和[RESOURCE]资源变化日志
 		var unit_name = unit.type_key if unit and "type_key" in unit else "吸血蝠"
-		var current_hp = int(min(unit.current_hp + heal_amt, unit.max_hp)) if unit.has_method("heal") else int(unit.current_hp)
+		var current_hp = int(min(unit.stats.current_hp + heal_amt, unit.stats.max_hp)) if unit.has_method("heal") else int(unit.stats.current_hp)
 
 		if AILogger:
 			AILogger.core_heal(heal_amt, GameManager.core_health, GameManager.max_core_health, unit_name)
 			AILogger.event("[CORE_HEAL] 核心回复 %.0f HP，来源: %s吸血，当前HP: %.0f/%.0f" % [heal_amt, unit_name, GameManager.core_health, GameManager.max_core_health])
-			AILogger.event("[RESOURCE] %s 吸血治疗 | 伤害: %.0f | 吸血比例: %.0f%% | 治疗量: %.0f | 当前生命: %d/%d" % [unit_name, damage, lifesteal_pct * 100, heal_amt, current_hp, int(unit.max_hp)])
+			AILogger.event("[RESOURCE] %s 吸血治疗 | 伤害: %.0f | 吸血比例: %.0f%% | 治疗量: %.0f | 当前生命: %d/%d" % [unit_name, damage, lifesteal_pct * 100, heal_amt, current_hp, int(unit.stats.max_hp)])
 
 		# 广播吸血日志
 		if AIManager and AIManager.has_method("broadcast_text"):
-			AIManager.broadcast_text("【吸血效果】单位 %s 攻击流血敌人，吸血: %d，当前生命: %d/%d" % [str(unit.get_instance_id()), int(heal_amt), current_hp, int(unit.max_hp)])
+			AIManager.broadcast_text("【吸血效果】单位 %s 攻击流血敌人，吸血: %d，当前生命: %d/%d" % [str(unit.get_instance_id()), int(heal_amt), current_hp, int(unit.stats.max_hp)])
 			AIManager.broadcast_text("[CORE_HEAL] 核心回复 %.0f HP，来源: %s吸血" % [heal_amt, unit_name])

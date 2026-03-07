@@ -88,7 +88,7 @@ func _cast_meteor_fall(center: Vector2, count_factor: int):
 		var stats = {
 			"is_meteor": true,
 			"ground_pos": target_pos,
-			"damage": unit.damage * 2.0
+			"damage": unit.stats.damage * 2.0
 		}
 
 		if GameManager.combat_manager:

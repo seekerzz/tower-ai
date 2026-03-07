@@ -12,7 +12,7 @@ func _get_target() -> Node2D:
 	for enemy in enemies:
 		if !is_instance_valid(enemy): continue
 		var dist = unit.global_position.distance_to(enemy.global_position)
-		if dist <= unit.range_val:
+		if dist <= unit.stats.range_val:
 			if enemy.hp > max_hp:
 				max_hp = enemy.hp
 				best_target = enemy

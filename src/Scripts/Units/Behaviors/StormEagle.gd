@@ -26,7 +26,7 @@ func _update_mechanics():
 	can_crit = mechanics.get("lightning_can_crit", false)
 
 	# 雷击伤害基于单位攻击力
-	lightning_damage = unit.damage * 2.0
+	lightning_damage = unit.stats.damage * 2.0
 
 func on_stats_updated():
 	_update_mechanics()
@@ -82,8 +82,8 @@ func _spawn_lightning_on_enemy(enemy: Node2D) -> float:
 		var dmg = lightning_damage
 
 		# L3雷击可暴击
-		if can_crit and randf() < unit.crit_rate:
-			dmg *= unit.crit_dmg
+		if can_crit and randf() < unit.stats.crit_rate:
+			dmg *= unit.stats.crit_dmg
 
 		# 创建闪电弧效果
 		var lightning_scene = load("res://src/Scenes/Game/LightningArc.tscn")

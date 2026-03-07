@@ -55,7 +55,7 @@ func _perform_shockwave(targets: Array):
 	# Deal damage to all targets
 	for target in targets:
 		if is_instance_valid(target):
-			var damage = unit.damage
+			var damage = unit.stats.damage
 			target.take_damage(damage, unit, unit.unit_data.get("damageType", "physical"))
 
 			# Knockback chance (Lv2+)
@@ -117,7 +117,7 @@ func _create_delayed_secondary_shockwave():
 	# Deal 50% damage to all targets
 	for target in targets_in_range:
 		if is_instance_valid(target):
-			var damage = unit.damage * 0.5
+			var damage = unit.stats.damage * 0.5
 			target.take_damage(damage, unit, unit.unit_data.get("damageType", "physical"))
 
 			# Secondary shockwave always has knockback

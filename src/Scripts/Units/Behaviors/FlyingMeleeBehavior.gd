@@ -74,7 +74,7 @@ func start_attack_sequence():
 	if GameManager.has_method("get_stat_modifier"):
 		interval_mod = GameManager.get_stat_modifier("attack_interval")
 
-	var total_duration = max(0.1, unit.atk_speed * interval_mod)
+	var total_duration = max(0.1, unit.stats.atk_speed * interval_mod)
 	unit.cooldown = total_duration
 
 	# Phase Durations
@@ -266,4 +266,4 @@ func _get_target() -> Node2D:
 	return null
 
 func _calculate_damage(target: Node2D) -> float:
-	return unit.damage
+	return unit.stats.damage

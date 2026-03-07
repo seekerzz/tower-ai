@@ -43,7 +43,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	# 记录瘟疫使者攻击日志（无论是否成功施加中毒）
 	if AILogger:
 		var target_name = target.type_key if target.has("type_key") else str(target.get_instance_id())
-		var debuff_msg = "[DEBUFF] 瘟疫使者施加腐坏 | 目标: %s | 单位伤害: %.0f | 毒伤: %.0f/秒" % [target_name, unit.damage, unit.damage * 0.2]
+		var debuff_msg = "[DEBUFF] 瘟疫使者施加腐坏 | 目标: %s | 单位伤害: %.0f | 毒伤: %.0f/秒" % [target_name, unit.stats.damage, unit.stats.damage * 0.2]
 		AILogger.event(debuff_msg)
 		if AIManager:
 			AIManager.broadcast_text(debuff_msg)
@@ -52,7 +52,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	if target.has_method("apply_status"):
 		var poison_params = {
 			"duration": 5.0,
-			"damage": unit.damage * 0.2,
+			"damage": unit.stats.damage * 0.2,
 			"stacks": 1,
 			"source": unit
 		}
@@ -118,7 +118,7 @@ func _on_infected_enemy_died(infected_enemy: Node2D, spread_range: float):
 			if enemy.has_method("apply_status"):
 				var poison_params = {
 					"duration": 4.0,
-					"damage": unit.damage * 0.15,
+					"damage": unit.stats.damage * 0.15,
 					"stacks": 1,
 					"source": unit
 				}

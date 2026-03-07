@@ -5,8 +5,8 @@ extends "res://src/Scripts/Units/UnitBehavior.gd"
 # No special setup, tick, or damage handling by default.
 
 func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
-	if "forest_blessing" in unit.active_buffs:
-		var source = unit.buff_sources.get("forest_blessing")
+	if unit.buff_manager and unit.buff_manager.has_buff("forest_blessing"):
+		var source = unit.buff_manager.buff_sources.get("forest_blessing")
 		if source and is_instance_valid(source) and source.get("behavior") != null:
 			if source.behavior.has_method("get_debuff_chance") and source.behavior.has_method("get"):
 				if randf() < source.behavior.get_debuff_chance():

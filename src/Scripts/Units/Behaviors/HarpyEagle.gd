@@ -30,7 +30,7 @@ func on_stats_updated():
 func _get_target() -> Node2D:
 	var enemies = unit.get_tree().get_nodes_in_group("enemies")
 	var nearest = null
-	var min_dist = unit.range_val
+	var min_dist = unit.stats.range_val
 
 	for enemy in enemies:
 		if not is_instance_valid(enemy): continue
@@ -41,10 +41,10 @@ func _get_target() -> Node2D:
 	return nearest
 
 func _calculate_damage(target: Node2D) -> float:
-	var dmg = unit.damage * damage_per_claw
+	var dmg = unit.stats.damage * damage_per_claw
 
 	# Check crit logic for 3rd strike
-	var effective_crit_rate = unit.crit_rate
+	var effective_crit_rate = unit.stats.crit_rate
 
 	if _current_claw == 2:
 		if unit.level == 1: effective_crit_rate *= 2
@@ -52,7 +52,7 @@ func _calculate_damage(target: Node2D) -> float:
 		elif unit.level >= 3: effective_crit_rate = 1.0
 
 	if randf() < effective_crit_rate:
-		dmg *= unit.crit_dmg
+		dmg *= unit.stats.crit_dmg
 		GameManager.spawn_floating_text(target.global_position, "CRIT!", Color.RED)
 		GameManager.projectile_crit.emit(unit, target, dmg)
 
@@ -93,8 +93,8 @@ func _start_claw_attack():
 	if GameManager.has_method("get_stat_modifier"):
 		interval_mod = GameManager.get_stat_modifier("attack_interval")
 
-	var claw_interval = max(0.1, unit.atk_speed * interval_mod / claw_count)
-	unit.cooldown = unit.atk_speed * interval_mod
+	var claw_interval = max(0.1, unit.stats.atk_speed * interval_mod / claw_count)
+	unit.cooldown = unit.stats.atk_speed * interval_mod
 
 	var t_windup = claw_interval * 0.3
 	var t_attack = claw_interval * 0.2
@@ -209,9 +209,9 @@ func _finish_combo():
 		# 记录[SKILL]三连爪击技能日志
 		var is_crit = false
 		if unit.level == 1:
-			is_crit = randf() < (unit.crit_rate * 2)
+			is_crit = randf() < (unit.stats.crit_rate * 2)
 		elif unit.level == 2:
-			is_crit = randf() < (unit.crit_rate * 3)
+			is_crit = randf() < (unit.stats.crit_rate * 3)
 		elif unit.level >= 3:
 			is_crit = true
 		AILogger.event("[SKILL] 角雕 %s 触发三连爪击 | 目标: %s | 总伤害: %.0f | 第3击暴击: %s" % [unit_name, _last_target_id, _combo_total_damage, "是" if is_crit else "否"])

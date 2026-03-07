@@ -72,7 +72,7 @@ func _start_pool_processing(pool_data: Dictionary):
 
 			var dist = pool_data.center.distance_to(enemy.global_position)
 			if dist <= pool_data.radius:
-				var damage = unit.damage * 0.5 * pool_data.efficiency # Buffed from 0.3 to 0.5 due to 1s interval
+				var damage = unit.stats.damage * 0.5 * pool_data.efficiency # Buffed from 0.3 to 0.5 due to 1s interval
 				if enemy.has_method("take_damage"):
 					enemy.take_damage(damage, unit, "magic")
 					total_damage_dealt += damage

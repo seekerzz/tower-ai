@@ -30,8 +30,8 @@ func _on_totem_attack(totem_type: String):
 	if totem_type != "cow":
 		return
 
-	var bonus_damage = unit.max_hp * 0.15
-	var enemies = unit.get_enemies_in_range(unit.range_val)
+	var bonus_damage = unit.stats.max_hp * 0.15
+	var enemies = unit.get_enemies_in_range(unit.stats.range_val)
 	var hit_count = 0
 	for enemy in enemies:
 		enemy.take_damage(bonus_damage, unit, "physical")

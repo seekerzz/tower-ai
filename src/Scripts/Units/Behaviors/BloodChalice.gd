@@ -60,7 +60,7 @@ func _apply_core_loss_damage():
 	# Apply to enemies in range
 	var enemies = unit.get_tree().get_nodes_in_group("enemies")
 	for enemy in enemies:
-		if is_instance_valid(enemy) and unit.global_position.distance_to(enemy.global_position) <= unit.range_val:
+		if is_instance_valid(enemy) and unit.global_position.distance_to(enemy.global_position) <= unit.stats.range_val:
 			enemy.take_damage(damage * 0.5, unit)
 
 func on_cleanup():

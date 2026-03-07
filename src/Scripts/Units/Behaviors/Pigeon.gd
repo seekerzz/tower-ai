@@ -45,12 +45,12 @@ func _on_dodge_success(attacker: Node2D):
 
 func _counter_attack(enemy: Node2D):
 	if not is_instance_valid(enemy): return
-	var counter_damage = unit.damage * 0.6
+	var counter_damage = unit.stats.damage * 0.6
 
 	enemy.take_damage(counter_damage, unit, "physical")
 
 	# Trigger Echo manually if crit
-	if randf() < unit.crit_rate:
+	if randf() < unit.stats.crit_rate:
 		GameManager.projectile_crit.emit(unit, enemy, counter_damage)
 
 func _apply_dodge_buff_to_allies():

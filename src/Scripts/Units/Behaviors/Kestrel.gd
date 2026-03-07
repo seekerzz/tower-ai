@@ -50,7 +50,7 @@ func _apply_dive_stun(enemy: Node2D, duration: float):
 
 func _sonic_boom(position: Vector2):
 	var radius = 80.0
-	var damage = unit.damage * 0.4
+	var damage = unit.stats.damage * 0.4
 
 	var enemies = unit.get_tree().get_nodes_in_group("enemies")
 	for e in enemies:

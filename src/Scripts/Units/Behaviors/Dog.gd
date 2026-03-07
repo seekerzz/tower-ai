@@ -13,21 +13,21 @@ func on_skill_activated():
 
 	skill_active_timer = 5.0
 	_is_skill_active = true
-	unit.set_highlight(true, Color.RED)
-	original_atk_speed = unit.atk_speed
+	unit.visual.set_highlight(true, Color.RED)
+	original_atk_speed = unit.stats.atk_speed
 	# Rage increases attack speed (lower atk_speed value = faster attacks)
-	unit.atk_speed *= 0.3
+	unit.stats.atk_speed *= 0.3
 
 func on_tick(delta: float):
 	if skill_active_timer > 0:
 		skill_active_timer -= delta
 		if skill_active_timer <= 0:
 			_is_skill_active = false
-			unit.set_highlight(false)
+			unit.visual.set_highlight(false)
 			# Only restore if original_atk_speed was properly set
 			if original_atk_speed > 0:
-				unit.atk_speed = original_atk_speed
+				unit.stats.atk_speed = original_atk_speed
 			else:
 				# Fallback: restore to base value from unit_data if available
 				if unit and unit.unit_data:
-					unit.atk_speed = unit.unit_data.get("atkSpeed", 0.8)
+					unit.stats.atk_speed = unit.unit_data.get("atkSpeed", 0.8)
