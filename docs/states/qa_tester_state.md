@@ -36,6 +36,16 @@
    - 已创建测试任务：
      - `docs/qa_tasks/task_viper_totem_001.md` - 毒蛇图腾核心机制
      - `docs/qa_tasks/task_eagle_totem_001.md` - 鹰图腾核心机制
-     - `docs/qa_tasks/task_gargoyle_002.md` - 石像鬼反弹伤害
-     - `docs/qa_tasks/task_shadow_bat_002.md` - 影蝠暗影步机制
+     - `docs/qa_tasks/task_gargoyle_002.md` - 石像鬼反弹伤害 (已删除 ✅)
+     - `docs/qa_tasks/task_shadow_bat_002.md` - 影蝠暗影步机制 (已删除 ✅)
    - 已投递 AI Player 执行测试
+
+4. ✅ `[P1]` 石像鬼反弹伤害验证 - 已完成
+   - 测试任务：`docs/qa_tasks/task_gargoyle_002.md` (已删除)
+   - 测试结果：3/6 验证项通过
+   - 测试报告：`docs/player_reports/gargoyle_test_report.md`
+
+5. ✅ `[P1]` 影蝠暗影步机制验证 - 已完成
+   - 测试任务：`docs/qa_tasks/task_shadow_bat_002.md` (已删除)
+   - 测试结果：2/7 验证项通过
+   - 测试报告：`docs/player_reports/shadow_bat_test_report.md`
