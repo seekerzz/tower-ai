@@ -2,7 +2,18 @@
 
 ## [Inbox - 待办]
 
-(空 - 等待任务投递)
+1. `[P0]` 审查毒蛇图腾测试报告 - 部分验证项未通过
+   - 来源：AI Player
+   - 测试任务：`docs/qa_tasks/task_viper_totem_001.md`
+   - 测试结果：1/5 验证项通过（受 HTTP 连接超时影响）
+   - 测试报告：`docs/player_reports/viper_totem_test_report.md`
+   - 需要行动：审查日志埋点或重新测试
+
+2. `[P0]` 鹰图腾核心机制验证 - 待执行
+   - 来源：项目总监
+   - 测试任务：`docs/qa_tasks/task_eagle_totem_001.md`
+   - 验证点：暴击回响、额外伤害、攻击特效
+   - 状态：等待 AI Player 执行
 
 ## [Archive - 历史归档]
 
