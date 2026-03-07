@@ -6,6 +6,8 @@ const AssetLoader = preload("res://src/Scripts/Utils/AssetLoader.gd")
 const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
 
 signal died
+signal hp_changed(old_hp: float, new_hp: float)
+signal status_applied(type_key: String, duration: float, source: Object)
 signal attack_missed(enemy)
 
 enum State { MOVE, ATTACK_BASE, STUNNED, SUPPORT }
@@ -21,12 +23,8 @@ var enemy_data: Dictionary
 # Status Effects
 # Refactored to use child nodes
 # Preserving freeze/stun as timers for now (or could be effects too, but keeping scope focused)
-var freeze_timer: float = 0.0
-var stun_timer: float = 0.0
-var blind_timer: float = 0.0
 var _env_cooldowns = {} # Trap Instance ID -> Cooldown Timer
 
-var hit_flash_timer: float = 0.0
 
 var temp_speed_mod: float = 1.0
 
@@ -93,6 +91,9 @@ func _ready():
 	GameManager.enemy_spawned.emit(self)
 
 func setup(key: String, wave: int):
+	var visuals = load("res://src/Scripts/Enemies/EnemyVisuals.gd").new()
+	visuals.name = "EnemyVisuals"
+	add_child(visuals)
 	_ensure_visual_controller()
 
 	type_key = key
@@ -236,43 +237,6 @@ func update_visuals():
 
 	queue_redraw()
 
-func _draw():
-	if visual_controller:
-		draw_set_transform(visual_controller.visual_offset, visual_controller.visual_rotation, visual_controller.wobble_scale)
-	var color = enemy_data.color
-	if hit_flash_timer > 0:
-		color = Color.WHITE
-
-	if enemy_data.get("shape") == "rect":
-		var size_grid = enemy_data.get("size_grid", [2, 1])
-		var tile_size = 60
-		if GameManager.grid_manager:
-			tile_size = GameManager.grid_manager.TILE_SIZE
-
-		var w = size_grid[0] * tile_size
-		var h = size_grid[1] * tile_size
-		var rect = Rect2(-w/2, -h/2, w, h)
-		draw_rect(rect, color)
-	else:
-		draw_circle(Vector2.ZERO, enemy_data.radius, color)
-
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-	if hp < max_hp and hp > 0:
-		var hp_pct = hp / max_hp
-		var bar_w = 20
-		var bar_h = 4
-		var bar_pos = Vector2(-bar_w/2, -enemy_data.radius - 8)
-		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color.RED)
-		draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_pct, bar_h)), Color.GREEN)
-
-	# Bleed Indicator
-	if bleed_stacks > 0:
-		var bleed_pos = Vector2(0, -enemy_data.radius - 20)
-		var font = ThemeDB.fallback_font
-		var font_size = 12
-		draw_string(font, bleed_pos, str(bleed_stacks), HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color.RED)
-
 func _physics_process(delta):
 	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
 	if !is_wave_active: return
@@ -299,8 +263,6 @@ func _physics_process(delta):
 		else:
 			_update_facing_logic()
 
-	if blind_timer > 0:
-		blind_timer -= delta
 
 	_process_effects(delta)
 	_process_bleed_damage(delta)
@@ -322,12 +284,12 @@ func _physics_process(delta):
 		handle_collisions(delta)
 		return
 
-	if stun_timer > 0:
+	if has_status("stun"):
 		state = State.STUNNED
 	elif state == State.STUNNED:
 		state = State.MOVE
 
-	if freeze_timer > 0:
+	if has_status("freeze"):
 		return
 
 	if state == State.STUNNED:
@@ -392,7 +354,6 @@ func _process_effects(delta):
 			if c.get("type_key") == "poison": has_poison = true
 		$PoisonParticles.emitting = has_poison
 
-	if stun_timer > 0: stun_timer -= delta
 
 	# Apply Visual Controller transforms
 	if visual_controller:
@@ -425,23 +386,6 @@ func _process_effects(delta):
 		# Max bleed stacks effect
 		if bleed_stacks >= max_bleed_stacks:
 			_show_max_bleed_effect(delta)
-
-	if hit_flash_timer > 0:
-		hit_flash_timer -= delta
-		if hit_flash_timer <= 0: queue_redraw()
-
-	if freeze_timer > 0:
-		freeze_timer -= delta
-		modulate = Color(0.5, 0.5, 1.0)
-	else:
-		# If not frozen, color is white OR handled by PoisonEffect/SlowEffect
-		# We should not forcibly reset to White if effects are active,
-		# but PoisonEffect resets on exit.
-		# However, if we were frozen, we want to return to whatever state we should be.
-		# For simplicity, if not frozen, we don't touch modulate here, letting effects drive it.
-		# But we must ensure if we just unfroze, we don't stay blue.
-		if modulate == Color(0.5, 0.5, 1.0):
-			modulate = Color.WHITE
 
 
 func handle_collisions(delta):
@@ -562,19 +506,27 @@ func add_poison_stacks(amount: int):
 		"source": null # Or pass self/GameManager if needed
 	})
 
+func _apply_simple_status(type_key: String, duration: float):
+	var effect = StatusEffect.new()
+	effect.type_key = type_key
+	effect.setup(self, null, {"duration": duration})
+	effect.name = type_key.capitalize() + "Effect"
+	add_child(effect)
+	status_applied.emit(type_key, duration, null)
+
 func apply_stun(duration: float):
-	stun_timer = duration
+	_apply_simple_status("stun", duration)
 	GameManager.spawn_floating_text(global_position, "Stunned!", Color.GRAY)
 
 func apply_freeze(duration: float):
-	freeze_timer = duration
+	_apply_simple_status("freeze", duration)
 	GameManager.spawn_floating_text(global_position, "Frozen!", Color.CYAN)
 	# Emit signal for test logging
 	if GameManager.has_signal("freeze_applied"):
 		GameManager.freeze_applied.emit(self, duration, null)
 
 func apply_blind(duration: float):
-	blind_timer = duration
+	_apply_simple_status("blind", duration)
 	GameManager.spawn_floating_text(global_position, "Blind!", Color.GRAY)
 
 func apply_debuff(type: String, stacks: int = 1):
@@ -666,7 +618,6 @@ func _take_bleed_damage(amount: float, source_unit = null, show_text: bool = tru
 
 	# Only show floating text periodically
 	if show_text:
-		hit_flash_timer = 0.1
 		queue_redraw()
 		var display_val = max(1, int(amount))
 		GameManager.spawn_floating_text(global_position, str(display_val), "bleed", Vector2.ZERO)
@@ -709,9 +660,9 @@ func take_damage(amount: float, source_unit = null, damage_type: String = "physi
 		if child.has_method("get_damage_multiplier"):
 			amount *= child.get_damage_multiplier()
 
+	var old_hp = hp
 	hp -= amount
-	hit_flash_timer = 0.1
-	queue_redraw()
+	hp_changed.emit(old_hp, hp)
 	var hit_dir = Vector2.ZERO
 	if hit_source and is_instance_valid(hit_source) and "speed" in hit_source:
 		hit_dir = Vector2.RIGHT.rotated(hit_source.rotation)
