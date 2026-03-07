@@ -16,7 +16,7 @@
    - 已完成：构造新测试任务 `docs/qa_tasks/task_viper_totem_002.md`
    - 已投递：AI Player 执行复测
 
-3. ⚠️ `[P0]` 审查鹰图腾复测报告 (002) - 发现问题
+3. ✅ `[P0]` 审查鹰图腾复测报告 (002) - 问题已修复
    - 来源：AI Player
    - 测试任务：`docs/qa_tasks/task_eagle_totem_002.md`
    - 测试结果：3/6 验证项通过
@@ -25,9 +25,16 @@
      - 单位部署成功，波次开始命令返回成功
      - 但 `is_wave_active: false` - 单位行为标志未激活
      - 游戏客户端输出只有 UNIT DEBUG 日志，没有战斗事件
-   - 需要行动：
-     - 向技术总监投递修复请求，检查波次激活逻辑
-     - 或检查是否需要特定的敌人数量才能激活单位行为
+   - 问题根因：测试脚本的 start_wave 动作格式错误
+     - 错误格式：`{"type": "start_wave"}`
+     - 正确格式：`{"actions": [{"type": "start_wave"}]}`
+   - 修复状态：
+     - ✅ 已修复测试脚本 `ai_client/eagle_totem_002_test.py`
+     - ✅ 手动验证确认 `is_wave_active: true` 现在正确设置
+     - ⚠️ 新发现问题：Godot 在波次已在进行时重复启动会崩溃
+   - 下一步行动：
+     - 需要修复测试脚本，避免重复调用 start_wave
+     - 或修复 BoardController.start_wave() 使其在波次已在进行时不报错
 
 ## [Archive - 历史归档]
 
