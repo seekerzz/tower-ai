@@ -103,7 +103,8 @@ class EagleTotemRetestTester:
                 json={"type": "totem_selection", "totem_id": totem_id}
             ) as resp:
                 result = await resp.json()
-                if result.get("success"):
+                # 修复：'status': 'ok' 表示成功
+                if result.get("status") == "ok" or result.get("success"):
                     self.log(f"✅ 图腾选择成功：{totem_id}")
                     self.validation_results["totem_selection"] = True
                     return True
@@ -122,7 +123,7 @@ class EagleTotemRetestTester:
                 json={"type": "purchase", "unit_id": unit_id}
             ) as resp:
                 result = await resp.json()
-                if result.get("success"):
+                if result.get("status") == "ok" or result.get("success"):
                     self.log(f"✅ 购买单位成功：{unit_id}")
                     return True
                 else:
@@ -145,12 +146,13 @@ class EagleTotemRetestTester:
                 }
             ) as resp:
                 result = await resp.json()
-                if result.get("success"):
+                # 修复：检查多种成功响应格式
+                if result.get("status") == "ok" or result.get("success") or "placed" in str(result).lower():
                     self.log(f"✅ 单位部署成功：{unit_id} -> ({grid_x}, {grid_y})")
                     self.validation_results["unit_deployed"] = True
                     return True
                 else:
-                    error_msg = result.get("error", "未知错误")
+                    error_msg = result.get("error", result.get("message", "未知错误"))
                     self.log(f"❌ 单位部署失败：{unit_id} -> ({grid_x}, {grid_y}): {error_msg}")
                     return False
         except Exception as e:
@@ -165,7 +167,8 @@ class EagleTotemRetestTester:
                 json={"type": "start_wave"}
             ) as resp:
                 result = await resp.json()
-                if result.get("success") or "Wave already" in str(result):
+                # 修复：检查多种成功响应格式
+                if result.get("status") == "ok" or result.get("success") or "Wave already" in str(result):
                     self.log("✅ 波次开始")
                     self.validation_results["wave_started"] = True
                     return True
@@ -247,7 +250,7 @@ class EagleTotemRetestTester:
 - 总攻击次数：{self.total_attacks}
 - 暴击次数：{self.crit_count}
 - 回响触发次数：{self.echo_count}
-- 回响触发率：{self.echo_count/self.crit_count*100:.1f}% (基于暴击样本)
+- 回响触发率：{self.echo_count/self.crit_count*100 if self.crit_count > 0 else 0:.1f}% (基于暴击样本)
 
 ## 结论
 

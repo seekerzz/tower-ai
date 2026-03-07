@@ -100,7 +100,7 @@ class ViperTotemRetestTester:
                 json={"type": "totem_selection", "totem_id": totem_id}
             ) as resp:
                 result = await resp.json()
-                if result.get("success"):
+                if result.get("status") == "ok" or result.get("success"):
                     self.log(f"✅ 图腾选择成功：{totem_id}")
                     self.validation_results["totem_selection"] = True
                     return True
@@ -119,7 +119,7 @@ class ViperTotemRetestTester:
                 json={"type": "purchase", "unit_id": unit_id}
             ) as resp:
                 result = await resp.json()
-                if result.get("success"):
+                if result.get("status") == "ok" or result.get("success"):
                     self.log(f"✅ 购买单位成功：{unit_id}")
                     return True
                 else:
@@ -142,12 +142,12 @@ class ViperTotemRetestTester:
                 }
             ) as resp:
                 result = await resp.json()
-                if result.get("success"):
+                if result.get("status") == "ok" or result.get("success"):
                     self.log(f"✅ 单位部署成功：{unit_id} -> ({grid_x}, {grid_y})")
                     self.validation_results["unit_deployed"] = True
                     return True
                 else:
-                    error_msg = result.get("error", "未知错误")
+                    error_msg = result.get("error", result.get("message", "未知错误"))
                     self.log(f"❌ 单位部署失败：{unit_id} -> ({grid_x}, {grid_y}): {error_msg}")
                     return False
         except Exception as e:
@@ -162,7 +162,7 @@ class ViperTotemRetestTester:
                 json={"type": "start_wave"}
             ) as resp:
                 result = await resp.json()
-                if result.get("success") or "Wave already" in str(result):
+                if result.get("status") == "ok" or result.get("success"):
                     self.log("✅ 波次开始")
                     self.validation_results["wave_started"] = True
                     return True
