@@ -4,80 +4,8 @@ const PROJECTILE_SCENE = preload("res://src/Scenes/Game/Projectile.tscn")
 const LIGHTNING_SCENE = preload("res://src/Scenes/Game/LightningArc.tscn")
 const SLASH_EFFECT_SCRIPT = preload("res://src/Scripts/Effects/SlashEffect.gd")
 
-var explosion_queue: Array = []
-const MAX_EXPLOSIONS_PER_FRAME = 10
-
 func _ready():
 	GameManager.combat_manager = self
-
-func _process(delta):
-	if explosion_queue.size() > 0:
-		var process_count = min(explosion_queue.size(), MAX_EXPLOSIONS_PER_FRAME)
-		for i in range(process_count):
-			var expl = explosion_queue.pop_front()
-			if expl.type == "poison":
-				_process_poison_explosion_logic(expl.pos, expl.damage, expl.stacks, expl.source)
-			else:
-				_process_burn_explosion_logic(expl.pos, expl.damage, expl.source)
-
-func start_meteor_shower(center_pos: Vector2, damage: float):
-	# Wave Loop: 5 Waves, 0.1s interval (using async/await)
-	for w in range(5):
-		# Spawn Loop: 8 projectiles per wave
-		for i in range(8):
-			# land_pos: Random point within 1.5 * TILE_SIZE (3x3 grid)
-			var spread = 1.5 * Constants.TILE_SIZE
-			var offset = Vector2(randf_range(-spread, spread), randf_range(-spread, spread))
-			var land_pos = center_pos + offset
-
-			# start_pos: land_pos + Vector2(-300, -800) (Angle from top-left)
-			var start_pos = land_pos + Vector2(-300, -800)
-
-			var stats = {
-				"is_meteor": true,
-				"ground_pos": land_pos,
-				"pierce": 2,
-				"bounce": 0
-			}
-
-			# Call spawn (passing null as source_unit for now, or we could pass a dummy if needed)
-			# But _spawn_single_projectile expects a source_unit to get 'damage', 'crit_rate' etc.
-			# Or we can pass 'damage' directly if we modify _spawn_single_projectile to handle manual damage override more gracefully.
-			# Let's see _spawn_single_projectile...
-			# It uses source_unit.calculate_damage_against...
-			# I need to create a dummy source unit or modify _spawn_single_projectile to accept direct damage.
-			# Actually, I can pass a dummy dictionary acting as object if GDScript allows (duck typing),
-			# but 'calculate_damage_against' is a method.
-
-			# Workaround: Create a lightweight object or struct, OR better:
-			# create a specialized spawn function for this, OR reuse _spawn_single_projectile but fix the source dependency.
-
-			# Let's check _spawn_single_projectile again.
-			# `var base_dmg = source_unit.calculate_damage_against(target) if target else source_unit.damage`
-			# So if I pass a duck-typed object with `damage` property, it works if target is null.
-			# Here target is null.
-
-			var dummy_source = MeteorSource.new(damage)
-			_spawn_single_projectile(dummy_source, start_pos, null, stats)
-
-		await get_tree().create_timer(0.1).timeout
-
-# Inner class to act as a source unit for meteors
-class MeteorSource:
-	var damage: float
-	var crit_rate: float = 0.0
-	var crit_dmg: float = 1.5
-	var type_key: String = "phoenix"
-	var unit_data: Dictionary = {"proj": "fireball", "damageType": "fire"}
-
-	func _init(dmg):
-		damage = dmg
-
-	func calculate_damage_against(_target):
-		return damage
-
-	func is_in_group(_group):
-		return false
 
 func find_nearest_enemy(pos: Vector2, range_val: float):
 	var nearest = null
@@ -271,63 +199,6 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 						neighbor.capture_bullet(snapshot)
 
 	return proj
-
-func trigger_burn_explosion(pos: Vector2, damage: float, source: Object):
-	explosion_queue.append({ "type": "burn", "pos": pos, "damage": damage, "source": source, "stacks": 1 })
-
-func trigger_poison_explosion(pos: Vector2, damage: float, stacks: int, source: Object):
-	explosion_queue.append({ "type": "poison", "pos": pos, "damage": damage, "source": source, "stacks": stacks })
-
-func _process_burn_explosion_logic(pos: Vector2, damage: float, source: Object):
-	var radius = 120.0
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var burn_script = load("res://src/Scripts/Effects/BurnEffect.gd")
-	var affected_targets = []
-
-	for enemy in enemies:
-		if !is_instance_valid(enemy): continue
-
-		var dist = pos.distance_to(enemy.global_position)
-		if dist <= radius:
-			enemy.take_damage(damage, source, "fire")
-			affected_targets.append(enemy)
-			# Chain reaction: Apply burn
-			if enemy.has_method("apply_status"):
-				enemy.apply_status(burn_script, {
-					"duration": 5.0,
-					"damage": damage,
-					"stacks": 1
-				})
-
-	# Emit signal for test logging with affected targets
-	if GameManager.has_signal("burn_explosion"):
-		GameManager.burn_explosion.emit(pos, damage, source, affected_targets)
-
-func _process_poison_explosion_logic(pos: Vector2, damage: float, stacks: int, source: Object):
-	var radius = 100.0
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var poison_script = load("res://src/Scripts/Effects/PoisonEffect.gd")
-	var affected_targets = []
-
-	for enemy in enemies:
-		if !is_instance_valid(enemy): continue
-
-		var dist = pos.distance_to(enemy.global_position)
-		if dist <= radius:
-			enemy.take_damage(damage, source, "poison")
-			affected_targets.append(enemy)
-			# Spread poison with reduced stacks (half of original, min 1)
-			if enemy.has_method("apply_status"):
-				var spread_stacks = max(1, int(stacks * 0.5))
-				enemy.apply_status(poison_script, {
-					"duration": 5.0,
-					"damage": damage / spread_stacks if spread_stacks > 0 else damage,
-					"stacks": spread_stacks
-				})
-
-	# Emit signal for test logging with affected targets
-	if GameManager.has_signal("poison_explosion"):
-		GameManager.poison_explosion.emit(pos, damage, stacks, source)
 
 func check_kill_bonuses(killer_unit, victim = null):
 	if killer_unit and "active_buffs" in killer_unit:
