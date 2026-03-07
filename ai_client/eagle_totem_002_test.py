@@ -96,14 +96,13 @@ class EagleTotemRetestTester:
         return False
 
     async def select_totem(self, totem_id: str) -> bool:
-        """选择图腾"""
+        """选择图腾 - 使用 select_totem 动作类型"""
         try:
             async with self.session.post(
                 f"{self.base_url}/action",
-                json={"type": "totem_selection", "totem_id": totem_id}
+                json={"actions": [{"type": "select_totem", "totem_id": totem_id}]}
             ) as resp:
                 result = await resp.json()
-                # 修复：'status': 'ok' 表示成功
                 if result.get("status") == "ok" or result.get("success"):
                     self.log(f"✅ 图腾选择成功：{totem_id}")
                     self.validation_results["totem_selection"] = True
@@ -116,11 +115,20 @@ class EagleTotemRetestTester:
             return False
 
     async def purchase_unit(self, unit_id: str) -> bool:
-        """购买单位"""
+        """购买单位 - 使用 refresh_shop 和 buy_unit 动作"""
         try:
+            # 先刷新商店
             async with self.session.post(
                 f"{self.base_url}/action",
-                json={"type": "purchase", "unit_id": unit_id}
+                json={"actions": [{"type": "refresh_shop"}]}
+            ) as resp:
+                await resp.json()
+            await asyncio.sleep(0.5)
+
+            # 购买单位 (shop_index 0 表示第一个)
+            async with self.session.post(
+                f"{self.base_url}/action",
+                json={"actions": [{"type": "buy_unit", "shop_index": 0}]}
             ) as resp:
                 result = await resp.json()
                 if result.get("status") == "ok" or result.get("success"):
@@ -134,15 +142,18 @@ class EagleTotemRetestTester:
             return False
 
     async def deploy_unit(self, unit_id: str, grid_x: int, grid_y: int) -> bool:
-        """部署单位到指定坐标"""
+        """部署单位到指定坐标 - 使用 move_unit 动作"""
         try:
             async with self.session.post(
                 f"{self.base_url}/action",
                 json={
-                    "type": "place_unit",
-                    "unit_id": unit_id,
-                    "grid_x": grid_x,
-                    "grid_y": grid_y
+                    "actions": [{
+                        "type": "move_unit",
+                        "from_zone": "bench",
+                        "to_zone": "grid",
+                        "from_pos": 0,
+                        "to_pos": {"x": grid_x, "y": grid_y}
+                    }]
                 }
             ) as resp:
                 result = await resp.json()
@@ -185,12 +196,13 @@ class EagleTotemRetestTester:
 
         for i in range(duration):
             try:
-                async with self.session.get(f"{self.base_url}/logs") as resp:
+                # 使用 /observations 端点获取日志
+                async with self.session.get(f"{self.base_url}/observations") as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        logs = data.get("logs", [])
-                        for log_entry in logs:
-                            await self.process_log(log_entry)
+                        observations = data.get("observations", [])
+                        for obs in observations:
+                            await self.process_log(obs)
             except Exception as e:
                 self.log(f"获取日志失败：{e}")
             await asyncio.sleep(1)
