@@ -368,8 +368,9 @@ class EagleTotemTester:
 
 async def main():
     """主入口"""
-    # 使用固定的 HTTP 端口（与运行中的游戏客户端匹配）
-    http_port = 10002  # 游戏客户端 HTTP 端口
+    # HTTP 端口将从环境变量获取，默认为 10002
+    import os
+    http_port = int(os.environ.get("AI_HTTP_PORT", 10002))
 
     print(f"使用 HTTP 端口：{http_port}")
 

@@ -2,21 +2,19 @@
 
 ## [Inbox - 待办]
 
-1. ⏳ `[P0]` 审查鹰图腾复测报告 (003) - 等待测试执行
+1. ⏳ `[P0]` 审查鹰图腾复测报告 (003) - 等待审查
    - 来源：AI Player
-   - 测试任务：`docs/qa_tasks/task_eagle_totem_002.md`
-   - 测试脚本：`ai_client/eagle_totem_002_test.py` (已更新)
-   - 状态：测试脚本已修复，等待执行
-   - 修复内容：
-     - 改进检测逻辑，支持更多关键词格式
-     - 修复图腾选择状态检测
-     - 优化单位购买逻辑，尝试刷新商店找到 harpy_eagle
+   - 测试报告：`docs/player_reports/eagle_totem_test_report_003.md`
+   - 测试结果：3/6 验证项通过
+   - 问题：观察战斗阶段 HTTP 连接超时，无法获取战斗日志
+   - 待分析：需要检查代码实现或日志埋点
 
-2. ⏳ `[P0]` 审查毒蛇图腾复测报告 (002) - 等待测试执行
+2. ⏳ `[P0]` 审查毒蛇图腾复测报告 (002) - 等待审查
    - 来源：AI Player
-   - 测试任务：`docs/qa_tasks/task_viper_totem_002.md`
-   - 测试脚本：`ai_client/viper_totem_002_test.py` (已创建)
-   - 状态：等待执行
+   - 测试报告：`docs/player_reports/viper_totem_test_report_002.md`
+   - 测试结果：2/8 验证项通过
+   - 问题：观察战斗阶段 HTTP 连接超时，无法获取战斗日志
+   - 待分析：需要检查代码实现或日志埋点
 
 ## [Archive - 历史归档]
 
@@ -50,8 +48,6 @@
    - 已创建测试任务：
      - `docs/qa_tasks/task_viper_totem_001.md` - 毒蛇图腾核心机制
      - `docs/qa_tasks/task_eagle_totem_001.md` - 鹰图腾核心机制
-     - `docs/qa_tasks/task_gargoyle_002.md` - 石像鬼反弹伤害 (已删除 ✅)
-     - `docs/qa_tasks/task_shadow_bat_002.md` - 影蝠暗影步机制 (已删除 ✅)
    - 已投递 AI Player 执行测试
 
 4. ✅ `[P1]` 石像鬼反弹伤害验证 - 已完成

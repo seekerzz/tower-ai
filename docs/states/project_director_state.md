@@ -22,24 +22,24 @@
      - 毒蛇图腾核心机制验证 - 1/5 通过 (报告：viper_totem_test_report.md) - HTTP 连接超时
      - 鹰图腾核心机制验证 - 1/6 通过 (报告：eagle_totem_test_report.md) - 测试坐标错误
      - 鹰图腾复测 (002) - 3/6 通过 (报告：eagle_totem_test_report_002.md) - start_wave 格式错误已修复
-     - 鹰图腾复测 (003) - 2/6 通过 (报告：eagle_totem_test_report_003.md) - 单位类型不对 (Parrot 需要收集子弹)
-   - 进行中：
-     - 毒蛇图腾复测 (P0) - 测试脚本已创建，等待执行
-     - 鹰图腾复测 (P0) - 测试脚本已更新，使用 harpy_eagle 单位
+     - 鹰图腾复测 (003) - 3/6 通过 (报告：eagle_totem_test_report_003.md) - HTTP 连接超时
+     - 毒蛇图腾复测 (002) - 2/8 通过 (报告：viper_totem_test_report_002.md) - HTTP 连接超时
+   - 问题根因：观察战斗阶段 HTTP 连接超时，无法获取战斗日志
+   - 下一步：QA Tester 审查测试报告，确定是否需要修复代码或增加日志埋点
 
 3. `[P3]` 下一步计划
-   - 待 AI Player 完成剩余测试后，QA Tester 审查结果
+   - 待 QA Tester 审查测试报告
    - 更新 GameDesign.md 验证状态
-   - 规划新一轮深度测试（ Boss 机制、其他单位技能）
+   - 规划新一轮深度测试（Boss 机制、其他单位技能）
 
 ## [Archive - 归档]
 
-1. ✅ 推进未验证机制的代码实现 - 已完成
+1. ✅ `[P0]` 推进未验证机制的代码实现 - 已完成
    - 技术总监已完成所有单位代码实现
    - 石像鬼 (Gargoyle.gd)：石化反弹机制
    - 影蝠 (ShadowBat.gd)：暗影步瞬移机制
    - GameDesign.md 已更新验证状态
 
-2. ✅ 更新 GameDesign.md 验证状态 - 已完成
+2. ✅ `[P1]` 更新 GameDesign.md 验证状态 - 已完成
    - 所有单位 ❌ → ⚠️ (已实现待验证)
    - 总计：64 单位全部实现

@@ -3,12 +3,14 @@
 测试运行脚本 - 启动游戏客户端并执行测试
 """
 
+import os
 import subprocess
 import sys
 import time
-import signal
-import os
+import aiohttp
+import asyncio
 from pathlib import Path
+
 
 def run_test(test_name: str, test_script: str):
     """运行单个测试"""
@@ -17,7 +19,7 @@ def run_test(test_name: str, test_script: str):
     print(f"测试脚本：{test_script}")
     print(f"{'='*60}\n")
 
-    # 1. 启动游戏客户端
+    # 1. 启动游戏客户端（使用动态端口）
     print("启动 Godot 游戏客户端...")
 
     godot_process = subprocess.Popen(
@@ -35,9 +37,60 @@ def run_test(test_name: str, test_script: str):
 
     print(f"Godot 客户端 PID: {godot_process.pid}")
 
-    # 2. 等待客户端就绪
+    # 2. 等待客户端就绪（检测端口）
     print("等待游戏客户端就绪...")
-    time.sleep(5)  # 等待启动
+
+    max_wait = 30  # 最长等待 30 秒
+    http_port = None
+
+    for i in range(max_wait):
+        try:
+            # 从 Godot 进程输出中查找 HTTP 端口
+            # Godot 启动后会打印 "HTTP API: http://127.0.0.1:{port}"
+            recent_output = godot_process.stdout.readline().strip()
+            if recent_output:
+                print(recent_output)
+                if "HTTP API:" in recent_output:
+                    # 提取端口号
+                    import re
+                    match = re.search(r'http://127\.0\.0\.1:(\d+)', recent_output)
+                    if match:
+                        http_port = int(match.group(1))
+                        print(f"检测到 HTTP 端口：{http_port}")
+                        break
+        except:
+            pass
+        time.sleep(0.5)
+
+    # 如果从输出中未找到端口，尝试通过轮询状态接口发现
+    if not http_port:
+        # 尝试常见端口范围
+        for port in range(10000, 11000):
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    async def check_port(p):
+                        async with aiohttp.ClientSession() as session:
+                            async with session.get(f"http://127.0.0.1:{p}/status", timeout=1) as resp:
+                                if resp.status == 200:
+                                    data = await resp.json()
+                                    if data.get("godot_running"):
+                                        return p
+                                return None
+                    result = loop.run_until_complete(check_port(port))
+                    if result:
+                        http_port = port
+                        print(f"发现运行中的 HTTP 端口：{http_port}")
+                        break
+                except:
+                    pass
+                finally:
+                    loop.close()
+            except:
+                pass
+        else:
+            print("等待游戏客户端就绪超时 - 未找到 HTTP 端口")
 
     # 检查进程是否还在运行
     if godot_process.poll() is not None:
@@ -46,14 +99,22 @@ def run_test(test_name: str, test_script: str):
         print(stdout)
         return False
 
-    # 3. 运行测试脚本
-    print("运行测试脚本...")
+    if not http_port:
+        print("无法获取 HTTP 端口，测试无法继续")
+        return False
+
+    # 3. 运行测试脚本（传递 HTTP 端口环境变量）
+    print(f"运行测试脚本 (HTTP 端口：{http_port})...")
+    test_env = os.environ.copy()
+    test_env["AI_HTTP_PORT"] = str(http_port)
+
     test_process = subprocess.Popen(
         [sys.executable, test_script],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=1,
+        env=test_env
     )
 
     # 实时输出测试日志
@@ -77,6 +138,7 @@ def run_test(test_name: str, test_script: str):
 def main():
     """主函数"""
     import argparse
+    import os
 
     parser = argparse.ArgumentParser(description="运行测试")
     parser.add_argument("--test", choices=["eagle", "viper", "both"], default="both",
