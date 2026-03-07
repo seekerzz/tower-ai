@@ -20,13 +20,18 @@
    - 测试任务：
      - task_viper_totem_001.md - 毒蛇图腾核心机制 (P0)
      - task_eagle_totem_001.md - 鹰图腾核心机制 (P0)
-     - task_gargoyle_002.md - 石像鬼反弹伤害 (P1)
-     - task_shadow_bat_002.md - 影蝠暗影步机制 (P1)
+     - task_gargoyle_002.md - 石像鬼反弹伤害 (P1) - 已完成 ✅
+     - task_shadow_bat_002.md - 影蝠暗影步机制 (P1) - 已完成 ✅
 
 3. `[P2]` 深度测试执行 - 进行中
    - 来源：AI Player
-   - 状态：AI Player 正在执行测试任务
-   - 下一步：等待测试报告生成
+   - 状态：AI Player 正在执行剩余 2 个 P0 测试任务
+   - 已完成：
+     - 石像鬼反弹伤害验证 - 3/6 通过
+     - 影蝠暗影步验证 - 2/7 通过
+   - 进行中：
+     - 毒蛇图腾核心机制验证
+     - 鹰图腾核心机制验证
 
 ## [Archive - 归档]
 
