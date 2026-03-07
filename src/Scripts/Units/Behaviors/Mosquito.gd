@@ -49,7 +49,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 						AIManager.broadcast_text(skill_msg)
 
 		# Check for kill with proper hp property check
-		if target.has_method("die") and "hp" in target and target.hp <= 0:
+		if target.has_method("die") and "hp" in target and target.get_node("Stats").current_hp <= 0:
 			_explode_on_kill(target.global_position, damage * 0.4)
 
 func _explode_on_kill(position: Vector2, damage: float):

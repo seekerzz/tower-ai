@@ -152,7 +152,7 @@ func perform_skill_nature_shelter():
 
 	# 恢复生命
 	if enemy:
-		enemy.hp = min(enemy.hp + nature_shelter_heal, enemy.max_hp)
+		enemy.get_node("Stats").current_hp = min(enemy.get_node("Stats").current_hp + nature_shelter_heal, enemy.get_node("Stats").max_hp)
 		GameManager.spawn_floating_text(enemy.global_position + Vector2(0, -30),
 			"+%.0f" % nature_shelter_heal, Color.GREEN)
 
@@ -166,7 +166,7 @@ func physics_process(delta: float) -> bool:
 		return true
 
 	# 自动释放可用技能（按优先级）
-	if is_skill_ready(SKILL_NATURE_SHELTER) and enemy and enemy.hp < enemy.max_hp * 0.5:
+	if is_skill_ready(SKILL_NATURE_SHELTER) and enemy and enemy.get_node("Stats").current_hp < enemy.get_node("Stats").max_hp * 0.5:
 		perform_skill_nature_shelter()
 	elif is_skill_ready(SKILL_SPIKE_BURST):
 		perform_skill_spike_burst()

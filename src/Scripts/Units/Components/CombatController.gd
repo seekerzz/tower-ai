@@ -1,4 +1,4 @@
-extends RefCounted
+extends Node
 class_name CombatController
 
 var unit: Node2D
@@ -86,14 +86,14 @@ func execute_skill_at(grid_pos: Vector2i):
 
 
 func _do_melee_attack(target: Node2D):
-	if unit.get("attack_cost_mana") != null and unit.attack_cost_mana > 0:
+	if unit.get("attack_cost_mana") != null and unit.get_node("Stats").attack_cost_mana > 0:
 		if unit.get_tree().root.has_node("GameManager"):
-			unit.get_node("/root/GameManager").consume_resource("mana", unit.attack_cost_mana)
+			unit.get_node("/root/GameManager").consume_resource("mana", unit.get_node("Stats").attack_cost_mana)
 
 	if unit.get("atk_speed") != null:
 		var GameManager = unit.get_node_or_null("/root/GameManager")
 		if GameManager:
-			unit.cooldown = unit.atk_speed * GameManager.get_stat_modifier("attack_interval")
+			unit.cooldown = unit.get_node("Stats").atk_speed * GameManager.get_stat_modifier("attack_interval")
 
 	if unit.has_method("play_attack_anim"):
 		unit.play_attack_anim("melee", target.global_position)
@@ -110,11 +110,11 @@ func _do_standard_ranged_attack(target: Node2D):
 		combat_manager = GameManager.combat_manager
 	if !combat_manager: return
 
-	if unit.get("attack_cost_mana") != null and unit.attack_cost_mana > 0:
-		GameManager.consume_resource("mana", unit.attack_cost_mana)
+	if unit.get("attack_cost_mana") != null and unit.get_node("Stats").attack_cost_mana > 0:
+		GameManager.consume_resource("mana", unit.get_node("Stats").attack_cost_mana)
 
 	if unit.get("atk_speed") != null:
-		unit.cooldown = unit.atk_speed * GameManager.get_stat_modifier("attack_interval")
+		unit.cooldown = unit.get_node("Stats").atk_speed * GameManager.get_stat_modifier("attack_interval")
 
 	if unit.get("unit_data") != null and typeof(unit.unit_data) == TYPE_DICTIONARY:
 		if unit.unit_data.get("proj") == "lightning":

@@ -23,13 +23,15 @@ func setup(target: Node, source: Object, params: Dictionary):
 		target.set_meta("stun_source", source)
 
 		# 保存原始攻击速度并设为0
-		if target.get("atk_speed"):
-			original_atk_speed = target.atk_speed
-			target.atk_speed = 0.0
+		var stats = target.get_node_or_null("Stats")
+		if stats:
+			original_atk_speed = stats.atk_speed
+			stats.atk_speed = 0.0
 
 		# 显示眩晕视觉效果
-		if target.get("visual_controller"):
-			target.visual_controller.set_idle_enabled(false)
+		var visual = target.get_node_or_null("VisualController")
+		if visual:
+			visual.set_idle_enabled(false)
 
 		# 显示眩晕图标或文字
 		GameManager.spawn_floating_text(target.global_position, "💫 眩晕!", Color.YELLOW)
@@ -41,12 +43,14 @@ func _exit_tree():
 		target.remove_meta("stun_source")
 
 		# 恢复攻击速度
-		if target.get("atk_speed") and original_atk_speed > 0:
-			target.atk_speed = original_atk_speed
+		var stats = target.get_node_or_null("Stats")
+		if stats and original_atk_speed > 0:
+			stats.atk_speed = original_atk_speed
 
 		# 恢复动画
-		if target.get("visual_controller"):
-			target.visual_controller.set_idle_enabled(true)
+		var visual = target.get_node_or_null("VisualController")
+		if visual:
+			visual.set_idle_enabled(true)
 
 		# 显示恢复文字
 		GameManager.spawn_floating_text(target.global_position, "✨ 恢复", Color.GREEN)

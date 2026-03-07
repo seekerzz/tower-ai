@@ -22,7 +22,7 @@ func update_range():
 	for u in neighbors:
 		if u.unit_data.get("attackType") == "ranged":
 			has_ranged = true
-			if u.range_val < min_range: min_range = u.range_val
+			if u.get_node("Stats").range_val < min_range: min_range = u.get_node("Stats").range_val
 
 	if has_ranged: unit.stats.range_val = min_range
 	else: unit.stats.range_val = 0.0

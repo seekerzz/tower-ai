@@ -138,10 +138,10 @@ func on_hit(attacker, damage: float) -> float:
 	var actual_damage = super.on_hit(attacker, damage)
 
 	# 被动：涅槃重生 - HP首次归零时恢复30%生命，攻速+50%
-	if not has_rebirth_triggered and enemy and enemy.hp <= 0:
+	if not has_rebirth_triggered and enemy and enemy.get_node("Stats").current_hp <= 0:
 		has_rebirth_triggered = true
-		var heal_amount = enemy.max_hp * rebirth_hp_percent
-		enemy.hp = heal_amount
+		var heal_amount = enemy.get_node("Stats").max_hp * rebirth_hp_percent
+		enemy.get_node("Stats").current_hp = heal_amount
 		_log_boss_skill("涅槃重生", "自身", "恢复%.0f HP，攻速+%.0f%%" % [heal_amount, rebirth_attack_speed_bonus * 100])
 		GameManager.spawn_floating_text(enemy.global_position, "🔥 涅槃重生!", Color.ORANGE_RED)
 		# 增加攻速（这里简化处理，实际应该修改enemy的攻击速度）

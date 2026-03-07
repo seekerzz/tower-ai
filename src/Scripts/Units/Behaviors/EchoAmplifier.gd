@@ -51,7 +51,7 @@ func _apply_echo_buff():
 			if faction == "eagle_totem" or u.unit_data.get("type_key", "").find("eagle") != -1:
 				# Store original damage if not already stored
 				if not u.has_meta("original_damage"):
-					u.set_meta("original_damage", u.damage)
+					u.set_meta("original_damage", u.get_node("Stats").damage)
 
 				# Apply echo damage bonus (this is a multiplier to their echo effects)
 				u.set_meta("echo_damage_bonus", echo_damage_bonus)

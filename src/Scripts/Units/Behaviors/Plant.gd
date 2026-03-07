@@ -47,7 +47,7 @@ func _apply_nearby_hp_buff():
 	var nearby = unit.get_units_in_cell_range(unit, 1)
 	for u in nearby:
 		# Apply HP buff directly
-		u.max_hp *= 1.05
+		u.get_node("Stats").max_hp *= 1.05
 		u.spawn_buff_effect("💚")
 
 func on_cleanup():

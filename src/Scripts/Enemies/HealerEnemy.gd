@@ -10,13 +10,13 @@ func find_support_target() -> Node2D:
 	for enemy in potential_targets:
 		if enemy == self: continue
 		if !is_instance_valid(enemy): continue
-		if enemy.hp >= enemy.max_hp: continue # Full health
+		if enemy.get_node("Stats").current_hp >= enemy.get_node("Stats").max_hp: continue # Full health
 		if enemy.is_dying: continue
 
 		var dist = global_position.distance_to(enemy.global_position)
 		if dist > support_range: continue
 
-		var hp_pct = enemy.hp / enemy.max_hp
+		var hp_pct = enemy.get_node("Stats").current_hp / enemy.get_node("Stats").max_hp
 		if hp_pct < lowest_hp_pct:
 			lowest_hp_pct = hp_pct
 			best_target = enemy

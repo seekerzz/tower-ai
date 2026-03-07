@@ -32,7 +32,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	# 计算斩杀阈值 - 调整为更容易触发的阈值
 	var execute_threshold = debuff_stacks * 50.0  # 每层debuff对应50点斩杀阈值，更容易触发
 
-	print("[ARROW_FROG DEBUG] Debuff层数: %d, 斩杀阈值: %f, 实际伤害: %f, 目标HP: %f" % [debuff_stacks, execute_threshold, damage, target.hp])
+	print("[ARROW_FROG DEBUG] Debuff层数: %d, 斩杀阈值: %f, 实际伤害: %f, 目标HP: %f" % [debuff_stacks, execute_threshold, damage, target.get_node("Stats").current_hp])
 
 	# 更新斩杀预警显示
 	_update_execute_warning(target, debuff_stacks, execute_threshold)
@@ -40,8 +40,8 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 	# 检查是否触发斩杀（Lv.3 解锁斩杀机制）- 简化条件，确保更容易触发
 	if unit.level >= 3:
 		# 降低斩杀条件，确保测试时能触发
-		var easy_execute_threshold = max(execute_threshold, target.max_hp * 0.3)  # 至少30%最大生命值的阈值
-		if target.hp <= easy_execute_threshold:
+		var easy_execute_threshold = max(execute_threshold, target.get_node("Stats").max_hp * 0.3)  # 至少30%最大生命值的阈值
+		if target.get_node("Stats").current_hp <= easy_execute_threshold:
 			# Execute!
 			if GameManager.has_method("spawn_floating_text"):
 				GameManager.spawn_floating_text(target.global_position, "斩杀!", Color.RED)
@@ -60,9 +60,9 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 			target.die(unit)
 		else:
 			# 即使没有达到斩杀阈值，也输出调试日志，帮助排查问题
-			print("[ARROW_FROG DEBUG] 未触发斩杀 | 目标HP: %.0f, 斩杀阈值: %.0f, Debuff层数: %d" % [target.hp, easy_execute_threshold, debuff_stacks])
+			print("[ARROW_FROG DEBUG] 未触发斩杀 | 目标HP: %.0f, 斩杀阈值: %.0f, Debuff层数: %d" % [target.get_node("Stats").current_hp, easy_execute_threshold, debuff_stacks])
 			if AILogger:
-				AILogger.event("[ARROW_FROG_DEBUG] 未触发斩杀 | 目标HP: %.0f, 斩杀阈值: %.0f, Debuff层数: %d" % [target.hp, easy_execute_threshold, debuff_stacks])
+				AILogger.event("[ARROW_FROG_DEBUG] 未触发斩杀 | 目标HP: %.0f, 斩杀阈值: %.0f, Debuff层数: %d" % [target.get_node("Stats").current_hp, easy_execute_threshold, debuff_stacks])
 			# 3. 常规攻击：施加中毒
 			_apply_poison(target, damage)
 	else:
@@ -77,7 +77,7 @@ func _update_execute_warning(target: Node2D, debuff_stacks: int, threshold: floa
 	if not is_instance_valid(target):
 		return
 
-	var can_execute = target.hp <= threshold and debuff_stacks > 0
+	var can_execute = target.get_node("Stats").current_hp <= threshold and debuff_stacks > 0
 
 	# Call enemy method to show/hide execute warning
 	if target.has_method("set_execute_warning"):

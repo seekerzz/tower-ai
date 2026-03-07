@@ -116,8 +116,8 @@ func _get_target() -> Node2D:
 		if !is_instance_valid(enemy): continue
 		var dist = unit.global_position.distance_to(enemy.global_position)
 		if dist <= unit.stats.range_val:
-			if enemy.hp < min_hp:
-				min_hp = enemy.hp
+			if enemy.get_node("Stats").current_hp < min_hp:
+				min_hp = enemy.get_node("Stats").current_hp
 				best_target = enemy
 	return best_target
 
@@ -126,7 +126,7 @@ func _calculate_damage(target: Node2D) -> float:
 
 	# Lv.2+：对低HP敌人伤害+30%
 	if unit.level >= 2 and is_instance_valid(target):
-		var hp_percent = target.hp / target.max_hp if target.max_hp > 0 else 1.0
+		var hp_percent = target.get_node("Stats").current_hp / target.get_node("Stats").max_hp if target.get_node("Stats").max_hp > 0 else 1.0
 		if hp_percent < 0.3:  # 低于30%血量
 			dmg *= 1.3
 			GameManager.spawn_floating_text(target.global_position, "死神!", Color.RED)
