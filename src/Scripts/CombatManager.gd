@@ -7,61 +7,6 @@ const SLASH_EFFECT_SCRIPT = preload("res://src/Scripts/Effects/SlashEffect.gd")
 func _ready():
 	GameManager.combat_manager = self
 
-var explosion_queue: Array = []
-const MAX_EXPLOSIONS_PER_FRAME = 10
-
-func _process(delta):
-	if explosion_queue.size() > 0:
-		var process_count = min(explosion_queue.size(), MAX_EXPLOSIONS_PER_FRAME)
-		for i in range(process_count):
-			var expl = explosion_queue.pop_front()
-			if expl.type == "poison":
-				_process_poison_explosion_logic(expl.pos, expl.damage, expl.stacks, expl.source)
-			else:
-				_process_burn_explosion_logic(expl.pos, expl.damage, expl.source)
-
-func start_meteor_shower(center_pos: Vector2, damage: float):
-	# Wave Loop: 5 Waves, 0.1s interval (using async/await)
-	for w in range(5):
-		# Spawn Loop: 8 projectiles per wave
-		for i in range(8):
-			# land_pos: Random point within 1.5 * TILE_SIZE (3x3 grid)
-			var spread = 1.5 * Constants.TILE_SIZE
-			var offset = Vector2(randf_range(-spread, spread), randf_range(-spread, spread))
-			var land_pos = center_pos + offset
-
-			# start_pos: land_pos + Vector2(-300, -800) (Angle from top-left)
-			var start_pos = land_pos + Vector2(-300, -800)
-
-			var stats = {
-				"is_meteor": true,
-				"ground_pos": land_pos,
-				"pierce": 2,
-				"bounce": 0
-			}
-
-			var dummy_source = MeteorSource.new(damage)
-			_spawn_single_projectile(dummy_source, start_pos, null, stats)
-
-		await get_tree().create_timer(0.1).timeout
-
-# Inner class to act as a source unit for meteors
-class MeteorSource:
-	var damage: float
-	var crit_rate: float = 0.0
-	var crit_dmg: float = 1.5
-	var type_key: String = "phoenix"
-	var unit_data: Dictionary = {"proj": "fireball", "damageType": "fire"}
-
-	func _init(dmg):
-		damage = dmg
-
-	func calculate_damage_against(_target):
-		return damage
-
-	func is_in_group(_group):
-		return false
-
 func find_nearest_enemy(pos: Vector2, range_val: float):
 	var nearest = null
 	var min_dist = range_val
@@ -132,12 +77,7 @@ func spawn_projectile(source_unit, pos, target, extra_stats = {}):
 	return _spawn_single_projectile(source_unit, pos, target, extra_stats)
 
 func _spawn_single_projectile(source_unit, pos, target, extra_stats):
-	# Safe Data Access
-	var data_source = {}
-	if "unit_data" in source_unit:
-		data_source = source_unit.unit_data
-	elif "enemy_data" in source_unit:
-		data_source = source_unit.enemy_data
+	var data_source = source_unit.unit_data
 
 	# FIX: Shotgun logic - force straight flight by removing target
 	if data_source.get("proj") == "ink" or extra_stats.has("angle"):
@@ -183,8 +123,8 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 
 	# Merge buffs from Unit.gd (if present)
 	var effects = {}
-	if "active_buffs" in source_unit:
-		for buff in source_unit.active_buffs:
+	if "buff_manager" in source_unit:
+		for buff in source_unit.buff_manager.active_buffs:
 			if buff == "bounce": stats["bounce"] += 1
 			if buff == "split": stats["split"] += 1
 			if buff == "fire": effects["burn"] = 3.0
@@ -257,8 +197,8 @@ func _spawn_single_projectile(source_unit, pos, target, extra_stats):
 	return proj
 
 func check_kill_bonuses(killer_unit, victim = null):
-	if killer_unit and "active_buffs" in killer_unit:
-		if "wealth" in killer_unit.active_buffs:
+	if killer_unit and "buff_manager" in killer_unit:
+		if "wealth" in killer_unit.buff_manager.active_buffs:
 			GameManager.add_gold(1)
 			GameManager.spawn_floating_text(killer_unit.global_position, "+1 Gold", Color.YELLOW)
 

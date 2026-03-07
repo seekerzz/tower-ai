@@ -1079,8 +1079,8 @@ func _spawn_provider_icon_at(grid_pos: Vector2i, buff_type: String, provider_uni
 		if target_unit and target_unit != provider_unit:
 			# Validate that target actually received the buff from this provider
 			var received = false
-			if target_unit.buff_sources.has(buff_type):
-				if target_unit.buff_sources[buff_type] == provider_unit:
+			if target_unit.buff_manager.buff_sources.has(buff_type):
+				if target_unit.buff_manager.buff_sources[buff_type] == provider_unit:
 					received = true
 
 			if not received: return

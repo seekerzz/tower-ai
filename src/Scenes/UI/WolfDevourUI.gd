@@ -54,7 +54,7 @@ func _create_unit_button(unit: Unit):
 
 	# Show buff icons if any relevant buffs
 	var buff_text = ""
-	for buff in unit.active_buffs:
+	for buff in unit.buff_manager.active_buffs:
 		var icon = unit._get_buff_icon(buff)
 		if icon != "?":
 			buff_text += " " + icon

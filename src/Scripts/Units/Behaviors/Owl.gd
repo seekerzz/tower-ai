@@ -31,9 +31,9 @@ func broadcast_buffs():
 		# Add to active buffs for UI if not present
 		if neighbor.get("buff_manager") != null and neighbor.buff_manager.has_method("add_buff"):
 			neighbor.buff_manager.add_buff("crit_chance", unit)
-		elif not ("crit_chance" in neighbor.active_buffs):
-			neighbor.active_buffs.append("crit_chance")
-			neighbor.buff_sources["crit_chance"] = unit
+		elif not ("crit_chance" in neighbor.buff_manager.active_buffs):
+			neighbor.buff_manager.active_buffs.append("crit_chance")
+			neighbor.buff_manager.buff_sources["crit_chance"] = unit
 
 			if AILogger:
 				var unit_name = unit.name if unit and "name" in unit else "未知"

@@ -18,7 +18,7 @@ func _ready():
 	modulate = Color(1, 1, 1, 0.7)
 
 	# Initialize current_hp from max_hp which might be set by setup() or manager
-	current_hp = max_hp
+	stats.current_hp = stats.max_hp
 
 	if lifetime > 0:
 		lifetime_timer = Timer.new()
@@ -41,14 +41,14 @@ func take_damage(amount: float, source_enemy = null):
 			amount = amount * (1.0 - reduction)
 
 	# Apply damage
-	current_hp -= amount
+	stats.current_hp -= amount
 
 	if visual_holder:
 		var tween = create_tween()
 		tween.tween_property(visual_holder, "modulate", Color(1, 0, 0, 0.7), 0.1)
 		tween.tween_property(visual_holder, "modulate", Color(1, 1, 1, 0.7), 0.1)
 
-	if current_hp <= 0:
+	if stats.current_hp <= 0:
 		_die()
 
 func _die():
