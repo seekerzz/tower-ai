@@ -47,6 +47,7 @@ class WolfTotemTestRunner:
             "/usr/bin/godot4",
             "/usr/local/bin/godot4",
             "/usr/bin/godot",
+            "/home/jules/.local/bin/godot",
         ]
         godot_exe = None
         for path in godot_paths:
