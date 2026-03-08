@@ -3,13 +3,13 @@ extends Node2D
 
 const UnitBehavior = preload("res://src/Scripts/Units/UnitBehavior.gd")
 const AssetLoader = preload("res://src/Scripts/Utils/AssetLoader.gd")
+const UnitCombat = preload("res://src/Scripts/Components/UnitCombat.gd")
 
 var is_summoned: bool = false
 var type_key: String
 var level: int = 1
 var stats_multiplier: float = 1.0
-var cooldown: float = 0.0
-var skill_cooldown: float = 0.0
+
 var active_buffs: Array = []
 var buff_sources: Dictionary = {} # Key: buff_type, Value: source_unit (Node2D)
 var temporary_buffs: Array = [] # Array of {stat, amount, duration, source}
@@ -17,6 +17,7 @@ var traits: Array = []
 var unit_data: Dictionary
 
 var behavior: UnitBehavior
+var combat: UnitCombat
 
 var attachment: Node2D = null
 var host: Node2D = null
@@ -33,8 +34,6 @@ var current_hp: float = 0.0
 
 # Visual Holder for animations and structure
 var visual_holder: Node2D = null
-
-var is_no_mana: bool = false
 var crit_rate: float = 0.0
 var crit_dmg: float = 1.5
 var bounce_count: int = 0
@@ -72,12 +71,15 @@ signal merged(consumed_unit)
 signal damage_blocked(damage: float, source: Node)
 
 func _start_skill_cooldown(base_duration: float):
-	if GameManager.cheat_fast_cooldown and base_duration > 1.0:
-		skill_cooldown = 1.0
-	else:
-		skill_cooldown = base_duration * GameManager.get_stat_modifier("cooldown")
+	if combat:
+		combat.start_skill_cooldown(base_duration, GameManager.cheat_fast_cooldown)
 
 func _ready():
+	combat = UnitCombat.new()
+	combat.attack_performed.connect(_on_combat_attack_performed)
+	combat.skill_activated.connect(_on_combat_skill_activated)
+	combat.on_no_mana.connect(_on_combat_no_mana)
+
 	_ensure_visual_hierarchy()
 	tree_exiting.connect(_on_cleanup)
 
@@ -216,6 +218,19 @@ func reset_stats():
 	if GameManager.reward_manager and "focus_fire" in GameManager.reward_manager.acquired_artifacts:
 		range_val *= 1.2
 
+	if combat:
+		combat.update_stats({
+			"damage": damage,
+			"range_val": range_val,
+			"atk_speed": atk_speed,
+			"attack_cost_mana": attack_cost_mana,
+			"skill_mana_cost": skill_mana_cost,
+			"skill_cd": unit_data.get("skillCd", 10.0),
+			"attack_interval_modifier": GameManager.get_stat_modifier("attack_interval"),
+			"cooldown_modifier": GameManager.get_stat_modifier("cooldown"),
+			"skill_cost_reduction": GameManager.get_global_buff("skill_mana_cost_reduction", 0.0)
+		})
+
 	if behavior:
 		behavior.on_stats_updated()
 
@@ -320,27 +335,13 @@ func set_force_highlight(active: bool):
 	queue_redraw()
 
 func execute_skill_at(grid_pos: Vector2i):
-	if skill_cooldown > 0: return
 	if not unit_data.has("skill"): return
 
-	var final_cost = skill_mana_cost
-	var cost_reduction = GameManager.get_global_buff("skill_mana_cost_reduction", 0.0)
-	if cost_reduction > 0:
-		final_cost *= (1.0 - cost_reduction)
+	# Pass targeting context before executing
+	set_meta("pending_skill_target_pos", grid_pos)
 
-	if GameManager.consume_resource("mana", final_cost):
-		is_no_mana = false
-		_start_skill_cooldown(unit_data.get("skillCd", 10.0))
-
-		var skill_name = unit_data.skill
-		GameManager.spawn_floating_text(global_position, skill_name.capitalize() + "!", Color.CYAN)
-		GameManager.skill_activated.emit(self)
-
-		behavior.on_skill_executed_at(grid_pos)
-
-	else:
-		is_no_mana = true
-		GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
+	# Component handles the condition, cooldown and signals
+	combat.execute_skill(GameManager.mana)
 
 func add_crit_stacks(amount: int):
 	guaranteed_crit_stacks += amount
@@ -350,38 +351,38 @@ func _on_skill_ended():
 	set_highlight(false)
 
 func activate_skill():
-	if !unit_data.has("skill"): return
-	if skill_cooldown > 0: return
-
-	behavior.on_skill_activated()
+	if not unit_data.has("skill"): return
 
 	if unit_data.get("skillType") == "point":
-		# Behavior handles targeting initiation
+		if combat.skill_cooldown <= 0:
+			behavior.on_skill_activated()
 		return
 
-	var final_cost = skill_mana_cost
-	if GameManager.skill_cost_reduction > 0:
-		final_cost *= (1.0 - GameManager.skill_cost_reduction)
+	set_meta("pending_skill_target_pos", null)
+	combat.execute_skill(GameManager.mana)
 
-	if GameManager.consume_resource("mana", final_cost):
-		is_no_mana = false
-		_start_skill_cooldown(unit_data.get("skillCd", 10.0))
+func _on_combat_no_mana():
+	GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
 
+func _on_combat_skill_activated(cost):
+	if GameManager.consume_resource("mana", cost):
 		var skill_name = unit_data.skill
 		GameManager.spawn_floating_text(global_position, skill_name.capitalize() + "!", Color.CYAN)
 		GameManager.skill_activated.emit(self)
-		# 中文技能日志
+
 		if AILogger:
-			AILogger.action("[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [type_key, level, skill_name, final_cost])
+			AILogger.action("[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [type_key, level, skill_name, cost])
 
 		if visual_holder:
 			var tween = create_tween()
 			tween.tween_property(visual_holder, "scale", Vector2(1.2, 1.2), 0.1)
 			tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.1)
 
-	else:
-		is_no_mana = true
-		GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
+		var pending_pos = get_meta("pending_skill_target_pos", null)
+		if pending_pos != null:
+			behavior.on_skill_executed_at(pending_pos)
+		else:
+			behavior.on_skill_activated()
 
 func update_visuals():
 	_ensure_visual_hierarchy()
@@ -498,38 +499,19 @@ func _process(delta):
 
 	_update_temporary_buffs(delta)
 
-	if !behavior.on_combat_tick(delta):
-		_process_combat(delta)
+	if combat:
+		combat.process_tick(delta)
 
-	if skill_cooldown > 0:
-		skill_cooldown -= delta
+	if !behavior.on_combat_tick(delta) and combat and unit_data.has("attackType") and unit_data.attackType != "none":
+		var enemies = get_tree().get_nodes_in_group("enemies")
+		combat.process_combat(delta, global_position, enemies, GameManager.mana)
 
-	if is_no_mana and unit_data.has("skill"):
+	if combat and combat.is_no_mana and unit_data.has("skill"):
 		modulate = Color(0.7, 0.7, 1.0, 1.0)
 	else:
 		modulate = Color.WHITE
 
-func _process_combat(delta):
-	if !unit_data.has("attackType") or unit_data.attackType == "none":
-		return
-
-	if cooldown > 0:
-		cooldown -= delta
-		return
-
-	if attack_cost_mana > 0:
-		if !GameManager.check_resource("mana", attack_cost_mana):
-			is_no_mana = true
-			return
-		else:
-			is_no_mana = false
-
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	var target = combat_manager.find_nearest_enemy(global_position, range_val)
-	if !target: return
-
+func _on_combat_attack_performed(target):
 	if unit_data.attackType == "melee":
 		_do_melee_attack(target)
 	else:
@@ -541,11 +523,10 @@ func _do_melee_attack(target):
 	if attack_cost_mana > 0:
 		GameManager.consume_resource("mana", attack_cost_mana)
 
-	cooldown = atk_speed * GameManager.get_stat_modifier("attack_interval")
-
 	play_attack_anim("melee", target_last_pos)
 
-	await get_tree().create_timer(Constants.ANIM_WINDUP_TIME).timeout
+	var timer = get_tree().create_timer(Constants.ANIM_WINDUP_TIME)
+	await timer.timeout
 	if !is_instance_valid(self): return
 
 	if is_instance_valid(target):
@@ -630,8 +611,6 @@ func _do_standard_ranged_attack(target):
 
 	if attack_cost_mana > 0:
 		GameManager.consume_resource("mana", attack_cost_mana)
-
-	cooldown = atk_speed * GameManager.get_stat_modifier("attack_interval")
 
 	if unit_data.get("proj") == "lightning":
 		play_attack_anim("lightning", target.global_position)
