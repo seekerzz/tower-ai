@@ -2,6 +2,8 @@ class_name Unit
 extends Node2D
 
 const UnitBehavior = preload("res://src/Scripts/Units/UnitBehavior.gd")
+const UnitVisuals = preload("res://src/Scripts/Units/UnitVisuals.gd")
+const UnitInteraction = preload("res://src/Scripts/Units/UnitInteraction.gd")
 const AssetLoader = preload("res://src/Scripts/Utils/AssetLoader.gd")
 const UnitCombat = preload("res://src/Scripts/Components/UnitCombat.gd")
 
@@ -32,8 +34,7 @@ var skill_mana_cost: float = 30.0
 var max_hp: float = 0.0
 var current_hp: float = 0.0
 
-# Visual Holder for animations and structure
-var visual_holder: Node2D = null
+var is_no_mana: bool = false
 var crit_rate: float = 0.0
 var crit_dmg: float = 1.5
 var bounce_count: int = 0
@@ -50,17 +51,10 @@ var interaction_target_pos = null # Vector2i or null
 var associated_traps: Array = [] # Stores references to traps placed by this unit
 
 # Dragging
-var is_dragging: bool = false
-var drag_offset: Vector2 = Vector2.ZERO
-var ghost_node: Node2D = null
-var is_hovered: bool = false
 var focus_target: Node2D = null
 var focus_stacks: int = 0
 
 # Highlighting
-var _is_skill_highlight_active: bool = false
-var _highlight_color: Color = Color.WHITE
-var is_force_highlighted: bool = false
 
 const MAX_LEVEL = 3
 const DRAG_HANDLER_SCRIPT = preload("res://src/Scripts/UI/UnitDragHandler.gd")
@@ -69,6 +63,26 @@ signal unit_clicked(unit)
 signal attack_performed(target_node)
 signal merged(consumed_unit)
 signal damage_blocked(damage: float, source: Node)
+
+signal on_damage_taken_visual()
+signal attack_started_visual(attack_type: String, target_pos: Vector2, duration: float)
+signal buff_received_visual()
+signal level_up_visual()
+signal skill_cast_visual()
+signal visual_update_requested()
+signal spawn_buff_effect_visual(icon_char: String)
+
+signal interaction_mouse_entered()
+signal interaction_mouse_exited()
+signal interaction_input_event(viewport, event, shape_idx)
+signal highlight_requested(active: bool, color: Color)
+signal force_highlight_requested(active: bool)
+signal drag_started(mouse_pos_global: Vector2)
+
+var _unit_visuals = null
+var _unit_interaction = null
+
+
 
 func _start_skill_cooldown(base_duration: float):
 	if combat:
@@ -80,18 +94,22 @@ func _ready():
 	combat.skill_activated.connect(_on_combat_skill_activated)
 	combat.on_no_mana.connect(_on_combat_no_mana)
 
-	_ensure_visual_hierarchy()
+	_unit_visuals = UnitVisuals.new(self)
+	add_child(_unit_visuals)
+
+	_unit_interaction = UnitInteraction.new(self)
+	add_child(_unit_interaction)
+
 	tree_exiting.connect(_on_cleanup)
 
 	if !unit_data.is_empty():
-		update_visuals()
+		visual_update_requested.emit()
 
 func _on_cleanup():
 	if behavior:
 		behavior.on_cleanup()
 
 func setup(key: String):
-	_ensure_visual_hierarchy()
 	type_key = key
 	unit_data = Constants.UNIT_TYPES[key].duplicate()
 
@@ -101,8 +119,8 @@ func setup(key: String):
 	current_hp = max_hp
 	behavior.on_setup()
 
-	update_visuals()
-	start_breathe_anim()
+	visual_update_requested.emit()
+	attack_started_visual.emit('breathe', Vector2.ZERO, 0.0)
 
 	var drag_handler = Control.new()
 	drag_handler.set_script(DRAG_HANDLER_SCRIPT)
@@ -120,39 +138,6 @@ func _load_behavior():
 		script_res = load("res://src/Scripts/Units/Behaviors/DefaultBehavior.gd")
 
 	behavior = script_res.new(self)
-
-func _ensure_visual_hierarchy():
-	if visual_holder and is_instance_valid(visual_holder):
-		return
-
-	visual_holder = get_node_or_null("VisualHolder")
-	if !visual_holder:
-		visual_holder = Node2D.new()
-		visual_holder.name = "VisualHolder"
-		add_child(visual_holder)
-
-		var visual_elements = ["Label", "StarLabel"]
-		for child_name in visual_elements:
-			var child = get_node_or_null(child_name)
-			if child:
-				remove_child(child)
-				visual_holder.add_child(child)
-
-	var highlight = visual_holder.get_node_or_null("HighlightBorder")
-	if !highlight:
-		highlight = ReferenceRect.new()
-		highlight.name = "HighlightBorder"
-		highlight.border_width = 4.0
-		highlight.editor_only = false
-		highlight.visible = false
-		highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		visual_holder.add_child(highlight)
-
-	if unit_data and unit_data.has("size"):
-		var size_val = unit_data["size"]
-		var target_size = Vector2(size_val.x * Constants.TILE_SIZE - 4, size_val.y * Constants.TILE_SIZE - 4)
-		highlight.size = target_size
-		highlight.position = -(target_size / 2)
 
 func take_damage(amount: float, source_enemy = null):
 	var original_amount = amount
@@ -174,10 +159,7 @@ func take_damage(amount: float, source_enemy = null):
 	current_hp = max(0, current_hp - amount)
 	GameManager.damage_core(amount)
 
-	if visual_holder:
-		var tween = create_tween()
-		tween.tween_property(visual_holder, "position", Vector2(randf_range(-2,2), randf_range(-2,2)), 0.05).set_trans(Tween.TRANS_BOUNCE)
-		tween.tween_property(visual_holder, "position", Vector2.ZERO, 0.05)
+	on_damage_taken_visual.emit()
 
 func reset_stats():
 	var stats = {}
@@ -325,15 +307,6 @@ func apply_buff(buff_type: String, source_unit: Node2D = null):
 			# 牦牛守护的减伤buff，效果在take_damage中处理
 			pass
 
-func set_highlight(active: bool, color: Color = Color.WHITE):
-	_is_skill_highlight_active = active
-	_highlight_color = color
-	queue_redraw()
-
-func set_force_highlight(active: bool):
-	is_force_highlighted = active
-	queue_redraw()
-
 func execute_skill_at(grid_pos: Vector2i):
 	if not unit_data.has("skill"): return
 
@@ -373,109 +346,13 @@ func _on_combat_skill_activated(cost):
 		if AILogger:
 			AILogger.action("[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [type_key, level, skill_name, cost])
 
-		if visual_holder:
-			var tween = create_tween()
-			tween.tween_property(visual_holder, "scale", Vector2(1.2, 1.2), 0.1)
-			tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.1)
+		skill_cast_visual.emit()
 
 		var pending_pos = get_meta("pending_skill_target_pos", null)
 		if pending_pos != null:
 			behavior.on_skill_executed_at(pending_pos)
 		else:
 			behavior.on_skill_activated()
-
-func update_visuals():
-	_ensure_visual_hierarchy()
-	var label = visual_holder.get_node_or_null("Label")
-	var star_label = visual_holder.get_node_or_null("StarLabel")
-
-	var icon_texture = AssetLoader.get_unit_icon(type_key)
-
-	var tex_rect = visual_holder.get_node_or_null("TextureRect")
-	if !tex_rect:
-		tex_rect = TextureRect.new()
-		tex_rect.name = "TextureRect"
-		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		visual_holder.add_child(tex_rect)
-		if label: visual_holder.move_child(tex_rect, label.get_index())
-
-	if icon_texture:
-		tex_rect.texture = icon_texture
-		tex_rect.show()
-		if label: label.hide()
-	else:
-		tex_rect.hide()
-		if label:
-			label.text = unit_data.icon
-			label.show()
-	
-	var size = unit_data["size"]
-	var target_size = Vector2(size.x * Constants.TILE_SIZE - 4, size.y * Constants.TILE_SIZE - 4)
-	var target_pos = -(target_size / 2)
-
-	if tex_rect:
-		tex_rect.size = target_size
-		tex_rect.position = target_pos
-		tex_rect.pivot_offset = tex_rect.size / 2
-
-	if label:
-		label.size = target_size
-		label.position = target_pos
-		label.pivot_offset = label.size / 2
-
-	if level > 1:
-		if star_label:
-			star_label.text = "⭐%d" % level
-			star_label.show()
-	else:
-		if star_label:
-			star_label.hide()
-
-	_update_buff_icons()
-
-func _update_buff_icons():
-	var buff_container = get_node_or_null("BuffContainer")
-	if !buff_container:
-		buff_container = HBoxContainer.new()
-		buff_container.name = "BuffContainer"
-		buff_container.alignment = BoxContainer.ALIGNMENT_CENTER
-
-		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit_data and unit_data.has("size"):
-			size = Vector2(unit_data["size"].x * Constants.TILE_SIZE, unit_data["size"].y * Constants.TILE_SIZE)
-
-		buff_container.position = Vector2(-size.x/2, size.y/2 - 20)
-		buff_container.size = Vector2(size.x, 15)
-
-		buff_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(buff_container)
-
-	for child in buff_container.get_children():
-		child.queue_free()
-
-	for buff in active_buffs:
-		var lbl = Label.new()
-		lbl.add_theme_font_size_override("font_size", 10)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-
-		lbl.text = _get_buff_icon(buff)
-		buff_container.add_child(lbl)
-
-func _get_buff_icon(buff_type: String) -> String:
-	match buff_type:
-		"fire": return "🔥"
-		"poison": return "🧪"
-		"range": return "🔭"
-		"speed": return "⚡"
-		"crit": return "💥"
-		"bounce": return "🪞"
-		"split": return "💠"
-		"multishot": return "📶"
-		"wealth": return "💰"
-	return "?"
 
 func _process(delta):
 	# Debug: Check if _process is being called
@@ -523,7 +400,7 @@ func _do_melee_attack(target):
 	if attack_cost_mana > 0:
 		GameManager.consume_resource("mana", attack_cost_mana)
 
-	play_attack_anim("melee", target_last_pos)
+	attack_started_visual.emit("melee", target_last_pos, -1.0)
 
 	var timer = get_tree().create_timer(Constants.ANIM_WINDUP_TIME)
 	await timer.timeout
@@ -613,11 +490,11 @@ func _do_standard_ranged_attack(target):
 		GameManager.consume_resource("mana", attack_cost_mana)
 
 	if unit_data.get("proj") == "lightning":
-		play_attack_anim("lightning", target.global_position)
+		attack_started_visual.emit("lightning", target.global_position, -1.0)
 		combat_manager.perform_lightning_attack(self, global_position, target, unit_data.get("chain", 0))
 		return
 
-	play_attack_anim("ranged", target.global_position)
+	attack_started_visual.emit("ranged", target.global_position, -1.0)
 
 	var proj_count = unit_data.get("projCount", 1)
 	var spread = unit_data.get("spread", 0.5)
@@ -656,79 +533,12 @@ func _do_standard_ranged_attack(target):
 				wave_info, type_key, target_name, damage
 			])
 
-func play_attack_anim(attack_type: String, target_pos: Vector2, duration: float = -1.0):
-	if !visual_holder: return
-
-	if breathe_tween: breathe_tween.kill()
-	if attack_tween: attack_tween.kill()
-
-	attack_tween = create_tween()
-
-	if attack_type == "melee":
-		var dir = (target_pos - global_position).normalized()
-		var original_pos = Vector2.ZERO
-
-		attack_tween.tween_property(visual_holder, "position", -dir * Constants.ANIM_WINDUP_DIST, Constants.ANIM_WINDUP_TIME)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Constants.ANIM_WINDUP_SCALE, Constants.ANIM_WINDUP_TIME)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-
-		attack_tween.tween_property(visual_holder, "position", dir * Constants.ANIM_STRIKE_DIST, Constants.ANIM_STRIKE_TIME)\
-			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Constants.ANIM_STRIKE_SCALE, Constants.ANIM_STRIKE_TIME)\
-			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-
-		attack_tween.tween_property(visual_holder, "position", original_pos, Constants.ANIM_RECOVERY_TIME)\
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Vector2.ONE, Constants.ANIM_RECOVERY_TIME)\
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-	elif attack_type == "bow":
-		var total_time = duration if duration > 0 else 0.5
-		var pull_time = total_time * 0.6
-		var recover_time = total_time * 0.3
-
-		var dir = (target_pos - global_position).normalized()
-
-		attack_tween.tween_property(visual_holder, "position", -dir * 10.0, pull_time)\
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Vector2(0.8, 1.2), pull_time)\
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
-		attack_tween.tween_callback(func():
-			visual_holder.position = Vector2.ZERO
-			visual_holder.scale = Vector2.ONE
-		)
-
-		attack_tween.tween_property(visual_holder, "scale", Vector2(1.1, 0.9), recover_time * 0.5)\
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		attack_tween.tween_property(visual_holder, "scale", Vector2.ONE, recover_time * 0.5)
-
-	elif attack_type == "ranged" or attack_type == "lightning":
-		attack_tween.tween_property(visual_holder, "scale", Vector2(0.8, 0.8), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		attack_tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.2)
-		attack_tween.parallel().tween_property(visual_holder, "position", Vector2.ZERO, 0.3)
-
-	attack_tween.finished.connect(func(): start_breathe_anim())
-
-var breathe_tween: Tween = null
-var attack_tween: Tween = null
-
 func get_interaction_info() -> Dictionary:
 	var info = { "has_interaction": false, "buff_id": "" }
 	if unit_data.has("has_interaction") and unit_data.has_interaction:
 		info.has_interaction = true
 		info.buff_id = unit_data.get("buff_id", "")
 	return info
-
-func start_breathe_anim():
-	if !visual_holder: return
-
-	if breathe_tween: breathe_tween.kill()
-
-	breathe_tween = create_tween().set_loops()
-	breathe_tween.tween_property(visual_holder, "scale", Vector2(1.05, 1.05), 1.0).set_trans(Tween.TRANS_SINE)
-	breathe_tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 1.0).set_trans(Tween.TRANS_SINE)
 
 func can_merge_with(other_unit) -> bool:
 	if other_unit == null: return false
@@ -747,10 +557,7 @@ func merge_with(other_unit):
 
 	GameManager.unit_upgraded.emit(self, old_level, level)
 	GameManager.spawn_floating_text(global_position, "Level Up!", Color.GOLD)
-	if visual_holder:
-		var tween = create_tween()
-		tween.tween_property(visual_holder, "scale", Vector2(1.5, 1.5), 0.2).set_trans(Tween.TRANS_BOUNCE)
-		tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.2)
+	level_up_visual.emit()
 
 func devour(food_unit):
 	var old_level = level
@@ -761,71 +568,13 @@ func devour(food_unit):
 	GameManager.unit_upgraded.emit(self, old_level, level)
 
 func _on_area_2d_input_event(viewport, event, shape_idx):
-	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
-	if !is_wave_active:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			unit_clicked.emit(self)
+	interaction_input_event.emit(viewport, event, shape_idx)
 
 func _on_area_2d_mouse_entered():
-	is_hovered = true
-	queue_redraw()
-
-	for buff_type in buff_sources:
-		var source = buff_sources[buff_type]
-		if is_instance_valid(source) and source.has_method("set_force_highlight"):
-			source.set_force_highlight(true)
-
-	if GameManager.grid_manager and GameManager.grid_manager.has_method("show_provider_icons"):
-		GameManager.grid_manager.show_provider_icons(self)
-
-	var current_stats = {
-		"level": level,
-		"damage": damage,
-		"range": range_val,
-		"atk_speed": atk_speed,
-		"crit_rate": crit_rate,
-		"crit_dmg": crit_dmg
-	}
-	GameManager.show_tooltip.emit(unit_data, current_stats, active_buffs, global_position)
+	interaction_mouse_entered.emit()
 
 func _on_area_2d_mouse_exited():
-	is_hovered = false
-	queue_redraw()
-
-	for buff_type in buff_sources:
-		var source = buff_sources[buff_type]
-		if is_instance_valid(source) and source.has_method("set_force_highlight"):
-			source.set_force_highlight(false)
-
-	if GameManager.grid_manager and GameManager.grid_manager.has_method("hide_provider_icons"):
-		GameManager.grid_manager.hide_provider_icons()
-
-	GameManager.hide_tooltip.emit()
-
-func _draw():
-	if is_hovered:
-		var draw_radius = range_val
-		if unit_data.get("attackType") == "melee":
-			draw_radius = max(range_val, 100.0)
-
-		draw_circle(Vector2.ZERO, draw_radius, Color(1, 1, 1, 0.1))
-		draw_arc(Vector2.ZERO, draw_radius, 0, TAU, 64, Color(1, 1, 1, 0.3), 1.0)
-
-	if _is_skill_highlight_active:
-		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit_data and unit_data.has("size"):
-			size = Vector2(unit_data.size.x * Constants.TILE_SIZE, unit_data.size.y * Constants.TILE_SIZE)
-
-		var rect = Rect2(-size / 2, size)
-		draw_rect(rect, _highlight_color, false, 4.0)
-
-	if is_force_highlighted:
-		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit_data and unit_data.has("size"):
-			size = Vector2(unit_data.size.x * Constants.TILE_SIZE, unit_data.size.y * Constants.TILE_SIZE)
-
-		var rect = Rect2(-size / 2, size)
-		draw_rect(rect, Color.WHITE, false, 4.0)
+	interaction_mouse_exited.emit()
 
 func _get_neighbor_units() -> Array:
 	var list = []
@@ -858,63 +607,6 @@ func _get_neighbor_units() -> Array:
 				list.append(u)
 	return list
 
-func _input(event):
-	if is_dragging:
-		if event is InputEventMouseButton and !event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			end_drag()
-
-func start_drag(mouse_pos_global):
-	is_dragging = true
-	start_position = position
-	drag_offset = global_position - mouse_pos_global
-	z_index = 100
-	create_ghost()
-
-func end_drag():
-	is_dragging = false
-	z_index = 0
-	remove_ghost()
-
-	if GameManager.grid_manager:
-		if GameManager.grid_manager.handle_unit_drop(self):
-			return
-
-		# Check if dropped in bench area (bottom of screen)
-		var viewport_rect = get_viewport_rect()
-		var mouse_pos = get_global_mouse_position()
-		if mouse_pos.y > (viewport_rect.size.y - 200):
-			# Try to move unit from grid to bench using BoardController
-			var bench_index = _find_empty_bench_slot()
-			if bench_index >= 0 and grid_pos != null:
-				var result = BoardController.try_move_unit("grid", grid_pos, "bench", bench_index)
-				if result.success:
-					return
-			return_to_start()
-			return
-
-	return_to_start()
-
-func create_ghost():
-	if ghost_node: return
-	ghost_node = Node2D.new()
-
-	if visual_holder:
-		var dup_visual = visual_holder.duplicate(7)
-		ghost_node.add_child(dup_visual)
-
-	get_parent().add_child(ghost_node)
-	ghost_node.position = start_position
-	ghost_node.modulate.a = 0.5
-	ghost_node.z_index = -1
-
-func remove_ghost():
-	if ghost_node:
-		ghost_node.queue_free()
-		ghost_node = null
-
-func return_to_start():
-	position = start_position
-
 func _find_empty_bench_slot() -> int:
 	"""Find an empty bench slot, returns -1 if full"""
 	if not GameManager.session_data:
@@ -927,38 +619,6 @@ func _find_empty_bench_slot() -> int:
 func heal(amount: float):
 	current_hp = min(current_hp + amount, max_hp)
 	GameManager.spawn_floating_text(global_position, "+%d" % int(amount), Color.GREEN)
-
-func play_buff_receive_anim():
-	if visual_holder:
-		var tween = create_tween()
-		tween.tween_property(visual_holder, "scale", Vector2(1.3, 1.3), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-
-func spawn_buff_effect(icon_char: String):
-	var effect_node = Node2D.new()
-	effect_node.name = "BuffEffect"
-	effect_node.z_index = 101
-
-	var lbl = Label.new()
-	lbl.text = icon_char
-	lbl.add_theme_font_size_override("font_size", 24)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-
-	lbl.anchors_preset = Control.PRESET_CENTER
-	lbl.position = Vector2(-20, -20)
-	lbl.size = Vector2(40, 40)
-
-	effect_node.add_child(lbl)
-	add_child(effect_node)
-
-	effect_node.position = Vector2.ZERO
-
-	var tween = create_tween()
-	tween.tween_property(effect_node, "scale", Vector2(2.5, 2.5), 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(effect_node, "modulate:a", 0.0, 0.6)
-
-	tween.finished.connect(effect_node.queue_free)
 
 func add_stat_bonus(stat: String, amount: float):
 	match stat:
@@ -1030,3 +690,16 @@ func get_units_in_cell_range(center_unit: Node2D, cell_range: int) -> Array:
 				result.append(tile.unit)
 
 	return result
+
+
+func set_highlight(active: bool, color: Color = Color.WHITE):
+	highlight_requested.emit(active, color)
+
+func set_force_highlight(active: bool):
+	force_highlight_requested.emit(active)
+
+func start_drag(mouse_pos_global):
+	drag_started.emit(mouse_pos_global)
+
+func update_visuals():
+	visual_update_requested.emit()
