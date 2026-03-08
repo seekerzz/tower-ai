@@ -50,7 +50,7 @@ func setup(unit):
 
 func _get_drag_data(at_position):
 	if !unit_ref: return null
-	var is_wave_active = GameManager.session_data.is_wave_active if GameManager.session_data else false
+	var is_wave_active = get_node("/root/GameManager").session_data.is_wave_active if get_node("/root/GameManager").session_data else false
 	if !is_wave_active and unit_ref.grid_pos != null:
 		var preview = Control.new()
 		var rect = ColorRect.new()
@@ -95,26 +95,26 @@ func _drop_data(_at_position, data):
 		var id = data.item.get("item_id")
 		if id == "meat":
 			unit_ref.devour(null)
-			if GameManager.inventory_manager:
-				GameManager.inventory_manager.remove_item(data.slot_index)
+			if get_node("/root/GameManager").inventory_manager:
+				get_node("/root/GameManager").inventory_manager.remove_item(data.slot_index)
 			return
 
-	if !GameManager.grid_manager: return
+	if !get_node("/root/GameManager").grid_manager: return
 
 	var grid_pos = unit_ref.grid_pos
-	var target_tile_key = GameManager.grid_manager.get_tile_key(grid_pos.x, grid_pos.y)
+	var target_tile_key = get_node("/root/GameManager").grid_manager.get_tile_key(grid_pos.x, grid_pos.y)
 
-	if GameManager.grid_manager.tiles.has(target_tile_key):
-		var target_tile = GameManager.grid_manager.tiles[target_tile_key]
+	if get_node("/root/GameManager").grid_manager.tiles.has(target_tile_key):
+		var target_tile = get_node("/root/GameManager").grid_manager.tiles[target_tile_key]
 
 		if data.source == "bench":
-			GameManager.grid_manager.handle_bench_drop_at(target_tile, data)
+			get_node("/root/GameManager").grid_manager.handle_bench_drop_at(target_tile, data)
 		elif data.source == "grid":
-			GameManager.grid_manager.handle_grid_move_at(target_tile, data)
+			get_node("/root/GameManager").grid_manager.handle_grid_move_at(target_tile, data)
 
 func _on_units_merged(consumed_unit):
 	# 单位合并时增加狼图腾魂魄
-	TotemManager.add_resource("wolf", 10)
+	get_node("/root/TotemManager").add_resource("wolf", 10)
 
 	# 类型检查：处理狼图腾单位的合并效果
 	if _is_unit_wolf(unit_ref) and _is_unit_wolf(consumed_unit):

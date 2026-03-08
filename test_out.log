@@ -1,0 +1,34 @@
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+Running Unit Refactor tests...
+test_damage_taken_tween_safety PASSED
+test_drag_event_sequence_and_ghost_free PASSED
+All refactor tests passed!
+[DataManager] Starting to load game data...
+[DataManager] Loaded 6 core types
+[DataManager] Loaded 4 barricade types
+[DataManager] Loaded 35 enemy variants
+[DataManager] Loaded 5 traits
+[DataManager] Loaded faction 'universal' with 15 units
+[DataManager] Loaded faction 'cow_totem' with 9 units
+[DataManager] Loaded faction 'bat_totem' with 6 units
+[DataManager] Loaded faction 'viper_totem' with 8 units
+[DataManager] Loaded faction 'butterfly_totem' with 9 units
+[DataManager] Loaded faction 'eagle_totem' with 13 units
+[DataManager] Loaded faction 'wolf_totem' with 6 units
+[DataManager] Total units loaded: 66
+[DataManager] Game data loaded successfully.
+[WaveSystemManager] Wave config loaded successfully
+[11:23:52.081][38;2;46;204;113m[事件] [BOSS种子] 本局种子: 1278909832759004844[39m[0m
+[11:23:52.081][38;2;231;76;60m[BOSS选择] 候选: ["spring_guardian", "thorn_queen", "spring_spirit"] | 季节:春之觉醒 | 选中:荆棘女王 (thorn_queen)[39m[0m
+[11:23:52.081][38;2;231;76;60m[BOSS选择] 候选: ["summer_dragon", "magma_giant", "sun_cheetah"] | 季节:夏之炎阳 | 选中:熔岩巨人 (magma_giant)[39m[0m
+[11:23:52.081][38;2;231;76;60m[BOSS选择] 候选: ["autumn_lord", "death_reaper", "withered_prophet"] | 季节:秋之凋零 | 选中:枯萎先知 (withered_prophet)[39m[0m
+[11:23:52.081][38;2;231;76;60m[BOSS选择] 候选: ["winter_queen", "frost_troll", "snow_commander"] | 季节:冬之严寒 | 选中:冬之女王 (winter_queen)[39m[0m
+[11:23:52.082][38;2;46;204;113m[季节系统] Boss配置完成 | 春季: 荆棘女王 | 夏季: 熔岩巨人 | 秋季: 枯萎先知 | 冬季: 冬之女王[39m[0m
+[11:23:52.082][38;2;46;204;113m[事件] [BOSS选择] 本局配置完成 | 种子:1278909832759004844 | 春季:荆棘女王 | 夏季:熔岩巨人 | 秋季:枯萎先知 | 冬季:冬之女王[39m[0m
+[AILogger] AI 日志系统已初始化
+[11:23:52.113][38;2;46;204;113m[事件] 游戏信号已连接[39m[0m
+[11:23:52.114][38;2;243;156;18m[动作] ActionDispatcher已连接到 AIManager[39m[0m
+[11:23:52.114][38;2;52;152;219m[连接] 服务器已停止[39m[0m
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2514)
