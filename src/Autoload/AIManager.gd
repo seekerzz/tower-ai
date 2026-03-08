@@ -61,6 +61,9 @@ func _ready():
 	call_deferred("_delayed_start_server")
 	_connect_game_signals()
 
+	if AILogger:
+		AILogger.log_broadcasted.connect(broadcast_text)
+
 func _delayed_start_server():
 	await get_tree().create_timer(0.5).timeout
 	_start_server()
