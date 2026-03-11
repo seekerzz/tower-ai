@@ -5,6 +5,9 @@ var unit: Node2D
 
 var breathe_tween: Tween = null
 var attack_tween: Tween = null
+var _is_skill_highlight_active: bool = false
+var _highlight_color: Color = Color.WHITE
+var is_force_highlighted: bool = false
 
 func _init(target_unit: Node2D):
 	unit = target_unit
@@ -41,6 +44,40 @@ func ensure_visual_hierarchy():
 		var target_size = Vector2(size_val.x * Constants.TILE_SIZE - 4, size_val.y * Constants.TILE_SIZE - 4)
 		highlight.size = target_size
 		highlight.position = -(target_size / 2)
+
+func set_skill_highlight(active: bool, color: Color = Color.WHITE):
+	_is_skill_highlight_active = active
+	_highlight_color = color
+	unit.queue_redraw()
+
+func set_force_highlight(active: bool):
+	is_force_highlighted = active
+	unit.queue_redraw()
+
+func draw_overlays():
+	if unit.is_hovered:
+		var draw_radius = unit.range_val
+		if unit.unit_data.get("attackType") == "melee":
+			draw_radius = max(unit.range_val, 100.0)
+
+		unit.draw_circle(Vector2.ZERO, draw_radius, Color(1, 1, 1, 0.1))
+		unit.draw_arc(Vector2.ZERO, draw_radius, 0, TAU, 64, Color(1, 1, 1, 0.3), 1.0)
+
+	if _is_skill_highlight_active:
+		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
+		if unit.unit_data and unit.unit_data.has("size"):
+			size = Vector2(unit.unit_data.size.x * Constants.TILE_SIZE, unit.unit_data.size.y * Constants.TILE_SIZE)
+
+		var rect = Rect2(-size / 2, size)
+		unit.draw_rect(rect, _highlight_color, false, 4.0)
+
+	if is_force_highlighted:
+		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
+		if unit.unit_data and unit.unit_data.has("size"):
+			size = Vector2(unit.unit_data.size.x * Constants.TILE_SIZE, unit.unit_data.size.y * Constants.TILE_SIZE)
+
+		var rect = Rect2(-size / 2, size)
+		unit.draw_rect(rect, Color.WHITE, false, 4.0)
 
 func update_visuals():
 	ensure_visual_hierarchy()
@@ -236,3 +273,21 @@ func spawn_buff_effect(icon_char: String):
 	tween.parallel().tween_property(effect_node, "modulate:a", 0.0, 0.6)
 
 	tween.finished.connect(effect_node.queue_free)
+
+func play_damage_hit_anim():
+	if unit.visual_holder:
+		var tween = unit.create_tween()
+		tween.tween_property(unit.visual_holder, "position", Vector2(randf_range(-2, 2), randf_range(-2, 2)), 0.05).set_trans(Tween.TRANS_BOUNCE)
+		tween.tween_property(unit.visual_holder, "position", Vector2.ZERO, 0.05)
+
+func play_skill_cast_anim():
+	if unit.visual_holder:
+		var tween = unit.create_tween()
+		tween.tween_property(unit.visual_holder, "scale", Vector2(1.2, 1.2), 0.1)
+		tween.tween_property(unit.visual_holder, "scale", Vector2(1.0, 1.0), 0.1)
+
+func play_level_up_anim():
+	if unit.visual_holder:
+		var tween = unit.create_tween()
+		tween.tween_property(unit.visual_holder, "scale", Vector2(1.5, 1.5), 0.2).set_trans(Tween.TRANS_BOUNCE)
+		tween.tween_property(unit.visual_holder, "scale", Vector2(1.0, 1.0), 0.2)

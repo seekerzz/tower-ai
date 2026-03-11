@@ -2,7 +2,6 @@ class_name Unit
 extends Node2D
 
 const UnitBehavior = preload("res://src/Scripts/Units/UnitBehavior.gd")
-const AssetLoader = preload("res://src/Scripts/Utils/AssetLoader.gd")
 
 var is_summoned: bool = false
 var type_key: String
@@ -25,11 +24,18 @@ var combat_component
 var visual_component
 var interaction_component
 
+var skill_service
+var progression_service
+var spatial_query_service
+
 const UNIT_STATS_COMPONENT = preload("res://src/Scripts/Components/UnitStatsComponent.gd")
 const UNIT_BUFF_COMPONENT = preload("res://src/Scripts/Components/UnitBuffComponent.gd")
 const UNIT_COMBAT_COMPONENT = preload("res://src/Scripts/Components/UnitCombatComponent.gd")
 const UNIT_VISUAL_COMPONENT = preload("res://src/Scripts/Components/UnitVisualComponent.gd")
 const UNIT_INTERACTION_COMPONENT = preload("res://src/Scripts/Components/UnitInteractionComponent.gd")
+const UNIT_SKILL_SERVICE = preload("res://src/Scripts/Services/UnitSkillService.gd")
+const UNIT_PROGRESSION_SERVICE = preload("res://src/Scripts/Services/UnitProgressionService.gd")
+const UNIT_SPATIAL_QUERY_SERVICE = preload("res://src/Scripts/Services/UnitSpatialQueryService.gd")
 
 # Proxy properties to components to avoid breaking other files
 var damage: float:
@@ -106,11 +112,6 @@ var is_hovered: bool:
 var focus_target: Node2D = null
 var focus_stacks: int = 0
 
-# Highlighting
-var _is_skill_highlight_active: bool = false
-var _highlight_color: Color = Color.WHITE
-var is_force_highlighted: bool = false
-
 const MAX_LEVEL = 3
 const DRAG_HANDLER_SCRIPT = preload("res://src/Scripts/UI/UnitDragHandler.gd")
 
@@ -131,6 +132,9 @@ func _ready():
 	combat_component = UNIT_COMBAT_COMPONENT.new(self)
 	visual_component = UNIT_VISUAL_COMPONENT.new(self)
 	interaction_component = UNIT_INTERACTION_COMPONENT.new(self)
+	skill_service = UNIT_SKILL_SERVICE.new(self)
+	progression_service = UNIT_PROGRESSION_SERVICE.new(self)
+	spatial_query_service = UNIT_SPATIAL_QUERY_SERVICE.new(self)
 
 	_ensure_visual_hierarchy()
 	tree_exiting.connect(_on_cleanup)
@@ -181,10 +185,8 @@ func take_damage(amount: float, source_enemy = null):
 	if stats_component:
 		stats_component.take_damage(amount, source_enemy)
 
-	if visual_holder:
-		var tween = create_tween()
-		tween.tween_property(visual_holder, "position", Vector2(randf_range(-2,2), randf_range(-2,2)), 0.05).set_trans(Tween.TRANS_BOUNCE)
-		tween.tween_property(visual_holder, "position", Vector2.ZERO, 0.05)
+	if visual_component:
+		visual_component.play_damage_hit_anim()
 
 func reset_stats():
 	if stats_component:
@@ -222,36 +224,16 @@ func apply_buff(buff_type: String, source_unit: Node2D = null):
 		buff_component.apply_buff(buff_type, source_unit)
 
 func set_highlight(active: bool, color: Color = Color.WHITE):
-	_is_skill_highlight_active = active
-	_highlight_color = color
-	queue_redraw()
+	if visual_component:
+		visual_component.set_skill_highlight(active, color)
 
 func set_force_highlight(active: bool):
-	is_force_highlighted = active
-	queue_redraw()
+	if visual_component:
+		visual_component.set_force_highlight(active)
 
 func execute_skill_at(grid_pos: Vector2i):
-	if skill_cooldown > 0: return
-	if not unit_data.has("skill"): return
-
-	var final_cost = skill_mana_cost
-	var cost_reduction = GameManager.get_global_buff("skill_mana_cost_reduction", 0.0)
-	if cost_reduction > 0:
-		final_cost *= (1.0 - cost_reduction)
-
-	if GameManager.consume_resource("mana", final_cost):
-		is_no_mana = false
-		_start_skill_cooldown(unit_data.get("skillCd", 10.0))
-
-		var skill_name = unit_data.skill
-		GameManager.spawn_floating_text(global_position, skill_name.capitalize() + "!", Color.CYAN)
-		GameManager.skill_activated.emit(self)
-
-		behavior.on_skill_executed_at(grid_pos)
-
-	else:
-		is_no_mana = true
-		GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
+	if skill_service:
+		skill_service.execute_skill_at(grid_pos)
 
 func add_crit_stacks(amount: int):
 	guaranteed_crit_stacks += amount
@@ -261,38 +243,8 @@ func _on_skill_ended():
 	set_highlight(false)
 
 func activate_skill():
-	if !unit_data.has("skill"): return
-	if skill_cooldown > 0: return
-
-	behavior.on_skill_activated()
-
-	if unit_data.get("skillType") == "point":
-		# Behavior handles targeting initiation
-		return
-
-	var final_cost = skill_mana_cost
-	if GameManager.skill_cost_reduction > 0:
-		final_cost *= (1.0 - GameManager.skill_cost_reduction)
-
-	if GameManager.consume_resource("mana", final_cost):
-		is_no_mana = false
-		_start_skill_cooldown(unit_data.get("skillCd", 10.0))
-
-		var skill_name = unit_data.skill
-		GameManager.spawn_floating_text(global_position, skill_name.capitalize() + "!", Color.CYAN)
-		GameManager.skill_activated.emit(self)
-		# 中文技能日志
-		if AILogger:
-			AILogger.action("[技能] %s(Lv%d) 使用了技能: %s (消耗%.0f法力)" % [type_key, level, skill_name, final_cost])
-
-		if visual_holder:
-			var tween = create_tween()
-			tween.tween_property(visual_holder, "scale", Vector2(1.2, 1.2), 0.1)
-			tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.1)
-
-	else:
-		is_no_mana = true
-		GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
+	if skill_service:
+		skill_service.activate_skill()
 
 func update_visuals():
 	if visual_component:
@@ -334,34 +286,17 @@ func start_breathe_anim():
 		visual_component.start_breathe_anim()
 
 func can_merge_with(other_unit) -> bool:
-	if other_unit == null: return false
-	if other_unit == self: return false
-	if other_unit.type_key != type_key: return false
-	if other_unit.level != level: return false
-	if level >= MAX_LEVEL: return false
-	return true
+	if progression_service:
+		return progression_service.can_merge_with(other_unit)
+	return false
 
 func merge_with(other_unit):
-	var old_level = level
-	merged.emit(other_unit)
-	level += 1
-	reset_stats()
-	current_hp = max_hp # Full heal on level up
-
-	GameManager.unit_upgraded.emit(self, old_level, level)
-	GameManager.spawn_floating_text(global_position, "Level Up!", Color.GOLD)
-	if visual_holder:
-		var tween = create_tween()
-		tween.tween_property(visual_holder, "scale", Vector2(1.5, 1.5), 0.2).set_trans(Tween.TRANS_BOUNCE)
-		tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.2)
+	if progression_service:
+		progression_service.merge_with(other_unit)
 
 func devour(food_unit):
-	var old_level = level
-	level += 1
-	damage += 5
-	stats_multiplier += 0.2
-	update_visuals()
-	GameManager.unit_upgraded.emit(self, old_level, level)
+	if progression_service:
+		progression_service.devour(food_unit)
 
 func _on_area_2d_input_event(viewport, event, shape_idx):
 	if interaction_component:
@@ -376,60 +311,13 @@ func _on_area_2d_mouse_exited():
 		interaction_component.on_area_2d_mouse_exited()
 
 func _draw():
-	if is_hovered:
-		var draw_radius = range_val
-		if unit_data.get("attackType") == "melee":
-			draw_radius = max(range_val, 100.0)
-
-		draw_circle(Vector2.ZERO, draw_radius, Color(1, 1, 1, 0.1))
-		draw_arc(Vector2.ZERO, draw_radius, 0, TAU, 64, Color(1, 1, 1, 0.3), 1.0)
-
-	if _is_skill_highlight_active:
-		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit_data and unit_data.has("size"):
-			size = Vector2(unit_data.size.x * Constants.TILE_SIZE, unit_data.size.y * Constants.TILE_SIZE)
-
-		var rect = Rect2(-size / 2, size)
-		draw_rect(rect, _highlight_color, false, 4.0)
-
-	if is_force_highlighted:
-		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit_data and unit_data.has("size"):
-			size = Vector2(unit_data.size.x * Constants.TILE_SIZE, unit_data.size.y * Constants.TILE_SIZE)
-
-		var rect = Rect2(-size / 2, size)
-		draw_rect(rect, Color.WHITE, false, 4.0)
+	if visual_component:
+		visual_component.draw_overlays()
 
 func _get_neighbor_units() -> Array:
-	var list = []
-	if !GameManager.grid_manager: return list
-
-	var cx = grid_pos.x
-	var cy = grid_pos.y
-	var w = unit_data.size.x
-	var h = unit_data.size.y
-
-	var neighbors_pos = []
-	for dx in range(-1, w + 1):
-		neighbors_pos.append(Vector2i(cx + dx, cy - 1))
-		neighbors_pos.append(Vector2i(cx + dx, cy + h))
-	for dy in range(0, h):
-		neighbors_pos.append(Vector2i(cx - 1, cy + dy))
-		neighbors_pos.append(Vector2i(cx + w, cy + dy))
-
-	for n_pos in neighbors_pos:
-		var key = GameManager.grid_manager.get_tile_key(n_pos.x, n_pos.y)
-		if GameManager.grid_manager.tiles.has(key):
-			var tile = GameManager.grid_manager.tiles[key]
-			var u = tile.unit
-			if u == null and tile.occupied_by != Vector2i.ZERO:
-				var origin_key = GameManager.grid_manager.get_tile_key(tile.occupied_by.x, tile.occupied_by.y)
-				if GameManager.grid_manager.tiles.has(origin_key):
-					u = GameManager.grid_manager.tiles[origin_key].unit
-
-			if u and is_instance_valid(u) and not (u in list):
-				list.append(u)
-	return list
+	if spatial_query_service:
+		return spatial_query_service.get_neighbor_units()
+	return []
 
 func _input(event):
 	if interaction_component:
@@ -499,25 +387,8 @@ func _update_temporary_buffs(delta: float):
 # cell_range: 格子范围（曼哈顿距离）
 # returns: 范围内友方单位数组（不包含自己）
 func get_units_in_cell_range(center_unit: Node2D, cell_range: int) -> Array:
-	var result = []
-	if not GameManager.grid_manager:
-		return result
+	if spatial_query_service:
+		return spatial_query_service.get_units_in_cell_range(center_unit, cell_range, self)
+	return []
 
-	var center_x = 0
-	var center_y = 0
 
-	if "grid_pos" in center_unit:
-		center_x = center_unit.grid_pos.x
-		center_y = center_unit.grid_pos.y
-	else:
-		return result
-
-	for key in GameManager.grid_manager.tiles:
-		var tile = GameManager.grid_manager.tiles[key]
-		if tile.unit and is_instance_valid(tile.unit) and tile.unit != self:
-			# 计算曼哈顿距离
-			var dist = abs(tile.x - center_x) + abs(tile.y - center_y)
-			if dist <= cell_range:
-				result.append(tile.unit)
-
-	return result
