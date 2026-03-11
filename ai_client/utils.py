@@ -1,6 +1,7 @@
 """AI Client 工具函数"""
 import socket
 import re
+from dataclasses import dataclass
 from typing import Optional, List
 
 
@@ -24,26 +25,60 @@ def find_two_free_ports() -> tuple[int, int]:
     return port1, port2
 
 
-# Godot 错误检测模式
-GODOT_ERROR_PATTERNS = [
-    re.compile(r'SCRIPT ERROR:.*'),  # GDScript 运行时错误
-    re.compile(r'ERROR:.*'),          # Godot 引擎错误
-    re.compile(r'FATAL:.*'),          # 致命错误
-    re.compile(r'CrashHandlerException:.*'),  # Windows 崩溃
-    re.compile(r'Segmentation fault'),        # Linux 崩溃
+@dataclass(frozen=True)
+class GodotIssue:
+    """Godot 日志中检测到的问题"""
+
+    severity: str  # info | warning | runtime_error | fatal
+    category: str
+    line: str
+
+
+_FATAL_PATTERNS = [
+    re.compile(r'FATAL:.*'),
+    re.compile(r'CrashHandlerException:.*'),
+    re.compile(r'Segmentation fault', re.IGNORECASE),
+    re.compile(r'stack overflow', re.IGNORECASE),
 ]
 
+_RUNTIME_ERROR_PATTERNS = [
+    re.compile(r'SCRIPT ERROR:.*'),
+    re.compile(r'Condition ".*" is true\.'),
+    re.compile(r'Invalid call\.'),
+]
 
-def is_error_line(line: str) -> bool:
-    """检查一行输出是否是错误/崩溃标志"""
-    for pattern in GODOT_ERROR_PATTERNS:
-        if pattern.search(line):
-            return True
-    return False
+_WARNING_PATTERNS = [
+    re.compile(r'WARNING:.*'),
+    re.compile(r'W\s+\d+:.*'),
+]
+
+_GENERIC_ERROR_PATTERN = re.compile(r'^ERROR:')
 
 
-def extract_stack_trace(lines: List[str], error_idx: int) -> str:
-    """从错误行开始提取堆栈跟踪"""
-    # 收集错误行及后续 20 行作为上下文
-    context = lines[error_idx:min(error_idx + 20, len(lines))]
+def classify_godot_issue(line: str) -> Optional[GodotIssue]:
+    """将 Godot 输出行分类为告警/运行时错误/致命错误。"""
+    text = line.strip()
+    for pattern in _FATAL_PATTERNS:
+        if pattern.search(text):
+            return GodotIssue(severity="fatal", category="engine_crash", line=text)
+
+    for pattern in _RUNTIME_ERROR_PATTERNS:
+        if pattern.search(text):
+            return GodotIssue(severity="runtime_error", category="script_error", line=text)
+
+    if _GENERIC_ERROR_PATTERN.search(text):
+        return GodotIssue(severity="runtime_error", category="engine_error", line=text)
+
+    for pattern in _WARNING_PATTERNS:
+        if pattern.search(text):
+            return GodotIssue(severity="warning", category="warning", line=text)
+
+    return None
+
+
+def extract_stack_trace(lines: List[str], error_idx: int, context_before: int = 5, context_after: int = 20) -> str:
+    """从错误行附近提取上下文堆栈。"""
+    start = max(0, error_idx - context_before)
+    end = min(error_idx + context_after, len(lines))
+    context = lines[start:end]
     return '\n'.join(context)

@@ -1,5 +1,4 @@
 """HTTP REST API 服务器 - 接收外部请求，转发给 WebSocket"""
-import asyncio
 import json
 import logging
 from typing import Optional, Callable, Awaitable, Dict, Any
@@ -7,21 +6,13 @@ from aiohttp import web
 
 logger = logging.getLogger(__name__)
 
-
-# 类型定义
-ActionHandler = Callable[[list], Awaitable[Dict[str, Any]]]
+ActionHandler = Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]
 StatusHandler = Callable[[], Awaitable[Dict[str, Any]]]
-ObservationsHandler = Callable[[], Awaitable[Dict[str, Any]]]
+ObservationsHandler = Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]
 
 
 class AIHTTPServer:
-    """
-    HTTP REST API 服务器
-
-    端点：
-    - POST /action - 发送动作，返回游戏状态
-    - GET  /status - 获取服务器状态
-    """
+    """HTTP REST API 服务器。"""
 
     def __init__(
         self,
@@ -29,7 +20,7 @@ class AIHTTPServer:
         port: int = 8080,
         action_handler: Optional[ActionHandler] = None,
         status_handler: Optional[StatusHandler] = None,
-        observations_handler: Optional[ObservationsHandler] = None
+        observations_handler: Optional[ObservationsHandler] = None,
     ):
         self.host = host
         self.port = port
@@ -41,14 +32,12 @@ class AIHTTPServer:
         self.runner: Optional[web.AppRunner] = None
         self.site: Optional[web.TCPSite] = None
 
-        # 注册路由
         self.app.router.add_post("/action", self._handle_action)
         self.app.router.add_get("/status", self._handle_status)
         self.app.router.add_get("/health", self._handle_health)
         self.app.router.add_get("/observations", self._handle_observations)
 
     async def start(self) -> bool:
-        """启动 HTTP 服务器"""
         try:
             self.runner = web.AppRunner(self.app)
             await self.runner.setup()
@@ -61,67 +50,43 @@ class AIHTTPServer:
             return False
 
     async def stop(self):
-        """停止 HTTP 服务器"""
         if self.runner:
             await self.runner.cleanup()
             logger.info("HTTP 服务器已停止")
 
     async def _handle_action(self, request: web.Request) -> web.Response:
-        """处理 POST /action 请求"""
         try:
-            # 解析请求体
             body = await request.json()
+            if not isinstance(body, dict):
+                return web.json_response({"error": "request body must be an object"}, status=400)
+
             actions = body.get("actions", [])
-
             if not isinstance(actions, list):
-                return web.json_response(
-                    {"error": "actions must be an array"},
-                    status=400
-                )
+                return web.json_response({"error": "actions must be an array"}, status=400)
 
-            # 调用处理器（由主程序注入）
             if self.action_handler:
-                result = await self.action_handler(actions)
+                result = await self.action_handler(body)
                 return web.json_response(result)
-            else:
-                return web.json_response(
-                    {"error": "Action handler not configured"},
-                    status=503
-                )
 
+            return web.json_response({"error": "Action handler not configured"}, status=503)
         except json.JSONDecodeError:
-            return web.json_response(
-                {"error": "Invalid JSON"},
-                status=400
-            )
+            return web.json_response({"error": "Invalid JSON"}, status=400)
         except Exception as e:
             logger.error(f"处理 action 请求时出错: {e}")
-            return web.json_response(
-                {"error": str(e)},
-                status=500
-            )
+            return web.json_response({"error": str(e)}, status=500)
 
     async def _handle_status(self, request: web.Request) -> web.Response:
-        """处理 GET /status 请求"""
         if self.status_handler:
             status = await self.status_handler()
             return web.json_response(status)
-        else:
-            return web.json_response({
-                "status": "running",
-                "http_port": self.port
-            })
+        return web.json_response({"status": "running", "http_port": self.port})
 
     async def _handle_health(self, request: web.Request) -> web.Response:
-        """健康检查端点"""
         return web.json_response({"status": "ok"})
 
     async def _handle_observations(self, request: web.Request) -> web.Response:
-        """处理 GET /observations 请求"""
         if self.observations_handler:
-            observations = await self.observations_handler()
+            query = {k: v for k, v in request.query.items()}
+            observations = await self.observations_handler(query)
             return web.json_response(observations)
-        else:
-            return web.json_response({
-                "observations": []
-            })
+        return web.json_response({"events": [], "next_seq": 0})
