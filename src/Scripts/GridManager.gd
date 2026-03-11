@@ -8,6 +8,7 @@ var BARRICADE_SCENE = null
 const GHOST_TILE_SCRIPT = preload("res://src/Scripts/UI/GhostTile.gd")
 const GridBuffService = preload("res://src/Scripts/Services/GridBuffService.gd")
 const GridExpansionService = preload("res://src/Scripts/Services/GridExpansionService.gd")
+const GridInteractionService = preload("res://src/Scripts/Services/GridInteractionService.gd")
 const TILE_SIZE = 60
 
 var tiles: Dictionary = {} # Key: "x,y", Value: Tile Instance
@@ -45,6 +46,7 @@ var selection_overlay: Node2D = null
 var astar_grid: AStarGrid2D
 var grid_buff_service: GridBuffService
 var grid_expansion_service: GridExpansionService
+var grid_interaction_service: GridInteractionService
 
 signal grid_updated
 
@@ -52,6 +54,7 @@ func _ready():
 	GameManager.grid_manager = self
 	grid_buff_service = GridBuffService.new(self)
 	grid_expansion_service = GridExpansionService.new(self)
+	grid_interaction_service = GridInteractionService.new(self)
 
 	selection_overlay = Node2D.new()
 	selection_overlay.name = "SelectionOverlay"
@@ -397,17 +400,7 @@ func _process(_delta):
 			print("[Debug] Hiding preview cursor. Dist: ", dist, " Frames: ", frame_diff)
 			placement_preview_cursor.visible = false
 
-	if interaction_state == STATE_SELECTING_INTERACTION_TARGET:
-		selection_overlay.queue_redraw()
-
-	if interaction_state == STATE_SEQUENCE_TRAP_PLACEMENT:
-		_process_trap_placement_preview()
-
-	if interaction_state == STATE_SKILL_TARGETING and skill_preview_node and is_instance_valid(skill_preview_node):
-		var mouse_pos = get_local_mouse_position()
-		var gx = round(mouse_pos.x / TILE_SIZE)
-		var gy = round(mouse_pos.y / TILE_SIZE)
-		skill_preview_node.position = grid_to_local(Vector2i(gx, gy))
+	grid_interaction_service.process(_delta)
 
 func _update_environment_shader_globals():
 	var plant_container = get_node_or_null("PlantContainer")
@@ -424,85 +417,16 @@ func _update_environment_shader_globals():
 				mat.set_shader_parameter("camera_global_pos", cam_pos)
 
 func _input(event):
-	match interaction_state:
-		STATE_SKILL_TARGETING:
-			_handle_input_skill_targeting(event)
-		STATE_SELECTING_INTERACTION_TARGET:
-			_handle_input_interaction_selection(event)
-		STATE_SEQUENCE_TRAP_PLACEMENT:
-			_handle_input_trap_placement(event)
-		STATE_IDLE:
-			_handle_input_idle(event)
-		_:
-			_handle_input_idle(event)
+	grid_interaction_service.handle_input(event)
 
 func _handle_input_skill_targeting(event):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			var mouse_pos_global = get_global_mouse_position()
-			var mouse_pos = get_local_mouse_position()
-			var gx = int(round(mouse_pos.x / TILE_SIZE))
-			var gy = int(round(mouse_pos.y / TILE_SIZE))
-
-			if skill_source_unit and is_instance_valid(skill_source_unit):
-				skill_source_unit.execute_skill_at(Vector2i(gx, gy))
-
-			exit_skill_targeting()
-			get_viewport().set_input_as_handled()
-
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			exit_skill_targeting()
-			get_viewport().set_input_as_handled()
+	grid_interaction_service.handle_input_skill_targeting(event)
 
 func _handle_input_interaction_selection(event):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			var mouse_pos = get_local_mouse_position()
-			var gx = int(round(mouse_pos.x / TILE_SIZE))
-			var gy = int(round(mouse_pos.y / TILE_SIZE))
-			var grid_pos = Vector2i(gx, gy)
-
-			if grid_pos in valid_interaction_targets:
-				if interaction_source_unit and is_instance_valid(interaction_source_unit):
-					interaction_source_unit.interaction_target_pos = grid_pos
-					recalculate_buffs()
-
-					# Interaction Feedback
-					var targets = [grid_pos]
-					if interaction_source_unit.unit_data.get("interaction_pattern") == "neighbor_pair":
-						var neighbors = _get_clockwise_neighbors(interaction_source_unit.grid_pos)
-						var idx = neighbors.find(grid_pos)
-						if idx != -1:
-							var next_idx = (idx + 1) % neighbors.size()
-							targets.append(neighbors[next_idx])
-
-					for target_pos in targets:
-						var key = get_tile_key(target_pos.x, target_pos.y)
-						if tiles.has(key):
-							var tile = tiles[key]
-							var u = tile.unit
-							if u == null and tile.occupied_by != Vector2i.ZERO:
-								var origin_key = get_tile_key(tile.occupied_by.x, tile.occupied_by.y)
-								if tiles.has(origin_key):
-									u = tiles[origin_key].unit
-
-							if u and is_instance_valid(u):
-								u.play_buff_receive_anim()
-								var buff_icon = grid_buff_service.resolve_buff_icon(interaction_source_unit, interaction_source_unit.get_interaction_info().buff_id)
-								u.spawn_buff_effect(buff_icon)
-
-				end_interaction_selection()
-				get_viewport().set_input_as_handled()
-			else:
-				end_interaction_selection()
-				get_viewport().set_input_as_handled()
-
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			_cancel_deployment_sequence()
-			get_viewport().set_input_as_handled()
+	grid_interaction_service.handle_input_interaction_selection(event)
 
 func _handle_input_idle(event):
-	pass
+	grid_interaction_service.handle_input_idle(event)
 
 func update_placement_preview(grid_pos: Vector2i, world_pos: Vector2, item_id: String):
 	if not placement_preview_cursor:
@@ -878,35 +802,10 @@ func is_in_core_zone(pos: Vector2i) -> bool:
 # --- Skill Targeting ---
 
 func enter_skill_targeting(unit: Node2D):
-	exit_skill_targeting()
-
-	interaction_state = STATE_SKILL_TARGETING
-	skill_source_unit = unit
-
-	skill_preview_node = Node2D.new()
-	skill_preview_node.name = "SkillPreview"
-	skill_preview_node.z_index = 100
-
-	for x in range(-1, 2):
-		for y in range(-1, 2):
-			var rect = ColorRect.new()
-			rect.size = Vector2(TILE_SIZE, TILE_SIZE)
-			rect.position = Vector2(x * TILE_SIZE, y * TILE_SIZE) - Vector2(TILE_SIZE/2.0, TILE_SIZE/2.0)
-			rect.color = Color(0, 1, 0, 0.4)
-			rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			skill_preview_node.add_child(rect)
-
-	add_child(skill_preview_node)
+	grid_interaction_service.enter_skill_targeting(unit)
 
 func exit_skill_targeting():
-	if skill_preview_node:
-		skill_preview_node.queue_free()
-		skill_preview_node = null
-
-	interaction_state = STATE_IDLE
-	skill_source_unit = null
-
-# --- Interaction System Implementation ---
+	grid_interaction_service.exit_skill_targeting()
 
 func _get_clockwise_neighbors(center_pos: Vector2i) -> Array[Vector2i]:
 	var neighbors: Array[Vector2i] = []
@@ -941,102 +840,19 @@ func is_neighbor(unit, target_pos: Vector2i) -> bool:
 	return false
 
 func start_interaction_selection(unit):
-	interaction_state = STATE_SELECTING_INTERACTION_TARGET
-	interaction_source_unit = unit
-	valid_interaction_targets.clear()
-
-	var cx = unit.grid_pos.x
-	var cy = unit.grid_pos.y
-
-	var neighbors = []
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
-
-	for dx in range(-1, w + 1):
-		neighbors.append(Vector2i(cx + dx, cy - 1))
-		neighbors.append(Vector2i(cx + dx, cy + h))
-
-	for dy in range(0, h):
-		neighbors.append(Vector2i(cx - 1, cy + dy))
-		neighbors.append(Vector2i(cx + w, cy + dy))
-
-	for pos in neighbors:
-		if is_valid_interaction_target(unit, pos):
-			valid_interaction_targets.append(pos)
-			var color = Color.GREEN
-			if unit.unit_data.get("buff_id") == "multishot":
-				color = Color(0, 1, 1, 0.4)
-			_spawn_interaction_highlight(pos, color)
-		else:
-			_spawn_interaction_highlight(pos, Color.RED)
+	grid_interaction_service.start_interaction_selection(unit)
 
 func is_valid_interaction_target(origin_unit, target_pos: Vector2i) -> bool:
-	var key = get_tile_key(target_pos.x, target_pos.y)
-	if !tiles.has(key): return false
-	var tile = tiles[key]
-
-	if !is_in_core_zone(target_pos): return false
-	if tile.state != "unlocked" and tile.type != "core": return false
-
-	return true
+	return grid_interaction_service.is_valid_interaction_target(origin_unit, target_pos)
 
 func end_interaction_selection():
-	interaction_state = STATE_IDLE
-	interaction_source_unit = null
-	valid_interaction_targets.clear()
-	for node in interaction_highlights:
-		node.queue_free()
-	interaction_highlights.clear()
-	selection_overlay.queue_redraw()
+	grid_interaction_service.end_interaction_selection()
 
 func _spawn_interaction_highlight(grid_pos: Vector2i, color: Color = Color(1, 0.84, 0, 0.4)):
-	var highlight = ColorRect.new()
-	highlight.size = Vector2(TILE_SIZE, TILE_SIZE)
-	highlight.color = color
-	highlight.color.a = 0.4
-
-	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(highlight)
-
-	var local_pos = grid_to_local(grid_pos)
-	highlight.position = local_pos - Vector2(TILE_SIZE, TILE_SIZE) / 2
-	interaction_highlights.append(highlight)
+	grid_interaction_service.spawn_interaction_highlight(grid_pos, color)
 
 func _on_selection_overlay_draw():
-	if interaction_state == STATE_SELECTING_INTERACTION_TARGET and interaction_source_unit and is_instance_valid(interaction_source_unit):
-		# Dynamic Cursor Logic
-		var mouse_pos = get_local_mouse_position()
-		var gx = int(round(mouse_pos.x / TILE_SIZE))
-		var gy = int(round(mouse_pos.y / TILE_SIZE))
-		var grid_pos = Vector2i(gx, gy)
-
-		var buff_id = interaction_source_unit.get_interaction_info().buff_id
-		var icon_char = grid_buff_service.resolve_buff_icon(interaction_source_unit, buff_id)
-		var font = ThemeDB.fallback_font
-		var font_size = 24
-
-		var draw_positions = []
-		var is_valid = grid_pos in valid_interaction_targets
-		var color = Color.WHITE
-
-		if is_valid:
-			draw_positions.append(grid_pos)
-			if interaction_source_unit.unit_data.get("interaction_pattern") == "neighbor_pair":
-				var neighbors = _get_clockwise_neighbors(interaction_source_unit.grid_pos)
-				var idx = neighbors.find(grid_pos)
-				if idx != -1:
-					var next_idx = (idx + 1) % neighbors.size()
-					draw_positions.append(neighbors[next_idx])
-		else:
-			draw_positions.append(grid_pos)
-			color = Color(0.5, 0.5, 0.5, 0.5)
-
-		for pos in draw_positions:
-			var snap_pos = grid_to_local(pos)
-			selection_overlay.draw_string(font, snap_pos + Vector2(-10, 10), icon_char, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, color)
-
-
-
+	grid_interaction_service.on_selection_overlay_draw()
 
 func show_provider_icons(provider_unit: Node2D):
 	grid_buff_service.show_provider_icons(provider_unit)
@@ -1313,126 +1129,19 @@ func get_closest_unlocked_tile(world_pos: Vector2) -> Node2D:
 	return grid_expansion_service.get_closest_unlocked_tile(world_pos)
 
 func start_trap_placement_sequence(unit):
-	interaction_state = STATE_SEQUENCE_TRAP_PLACEMENT
-	interaction_source_unit = unit
-
-	valid_interaction_targets.clear()
-	# No global highlight, just follow mouse
+	grid_interaction_service.start_trap_placement_sequence(unit)
 
 func _handle_input_trap_placement(event):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			var mouse_pos = get_local_mouse_position()
-			var gx = int(round(mouse_pos.x / TILE_SIZE))
-			var gy = int(round(mouse_pos.y / TILE_SIZE))
-			var grid_pos = Vector2i(gx, gy)
-
-			if can_place_trap_at(grid_pos):
-				# Place Trap
-				var trap_type = "poison"
-				if interaction_source_unit and interaction_source_unit.behavior.has_method("get_trap_type"):
-					var t = interaction_source_unit.behavior.get_trap_type()
-					if t != "": trap_type = t
-
-				spawn_trap_custom(grid_pos, trap_type)
-
-				# Register trap to unit
-				var trap_node = obstacles.get(grid_pos)
-				if trap_node and interaction_source_unit:
-					if "associated_traps" in interaction_source_unit:
-						interaction_source_unit.associated_traps.append(trap_node)
-
-				# End Trap Step
-				end_trap_placement_sequence()
-
-				# Determine next step
-				var next_step_started = false
-				if interaction_source_unit and is_instance_valid(interaction_source_unit):
-					var info = interaction_source_unit.get_interaction_info()
-					if info.has_interaction:
-						start_interaction_selection(interaction_source_unit)
-						next_step_started = true
-
-				if not next_step_started:
-					interaction_state = STATE_IDLE
-					interaction_source_unit = null
-
-				get_viewport().set_input_as_handled()
-			else:
-				# Invalid click
-				get_viewport().set_input_as_handled()
-
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			_cancel_deployment_sequence()
-			get_viewport().set_input_as_handled()
+	grid_interaction_service.handle_input_trap_placement(event)
 
 func _process_trap_placement_preview():
-	# Mimic dragging trap
-	var trap_type = "poison_trap"
-	if interaction_source_unit and interaction_source_unit.behavior.has_method("get_trap_type"):
-		var t = interaction_source_unit.behavior.get_trap_type()
-		if t != "": trap_type = t
-
-	var local_mouse = get_local_mouse_position()
-	var gx = int(round(local_mouse.x / TILE_SIZE))
-	var gy = int(round(local_mouse.y / TILE_SIZE))
-	var grid_pos = Vector2i(gx, gy)
-
-	# Snap to grid: Calculate world position of the tile center
-	var snapped_local_pos = grid_to_local(grid_pos)
-	var snapped_world_pos = to_global(snapped_local_pos)
-
-	update_placement_preview(grid_pos, snapped_world_pos, trap_type)
+	grid_interaction_service.process_trap_placement_preview()
 
 func can_place_trap_at(grid_pos: Vector2i) -> bool:
-	var key = get_tile_key(grid_pos.x, grid_pos.y)
-	if !tiles.has(key): return false
-	var tile = tiles[key]
-
-	if obstacles.has(grid_pos): return false
-	if tile.unit != null: return false
-	if tile.occupied_by != Vector2i.ZERO: return false
-	if tile.type == "core": return false
-
-	return true
+	return grid_interaction_service.can_place_trap_at(grid_pos)
 
 func end_trap_placement_sequence():
-	# Clear highlights
-	for node in interaction_highlights:
-		node.queue_free()
-	interaction_highlights.clear()
-
-	if placement_preview_cursor:
-		placement_preview_cursor.visible = false
+	grid_interaction_service.end_trap_placement_sequence()
 
 func _cancel_deployment_sequence():
-	# Rollback: Remove the unit and return it to inventory/bench
-	# The unit was already placed in place_unit.
-	# We need to remove it.
-
-	end_trap_placement_sequence()
-	end_interaction_selection() # Just in case
-
-	if interaction_source_unit and is_instance_valid(interaction_source_unit):
-		# If unit came from bench, we should ideally put it back.
-		# But `place_unit` is called by `handle_bench_drop_at`.
-		# We don't have direct reference to where it came from here easily unless we stored it.
-		# However, typically rollback implies destruction + refund or return to bench.
-		# For this task, "Rollback entire operation, remove unit from grid and return to original place".
-		# Since `handle_bench_drop_at` removes it from bench upon success of `place_unit`.
-		# We need to re-add it to bench.
-
-		var u_key = interaction_source_unit.type_key
-		var u_cost = interaction_source_unit.unit_data.get("cost", 0)
-		remove_unit_from_grid(interaction_source_unit)
-
-		if GameManager.main_game:
-			# Try to add back to bench
-			if !GameManager.main_game.add_unit_to_bench(u_key):
-				# If bench full (unlikely if we just dragged from it), refund?
-				GameManager.add_gold(u_cost)
-		else:
-			print("MainGame not found, cannot return to bench.")
-
-	interaction_state = STATE_IDLE
-	interaction_source_unit = null
+	grid_interaction_service.cancel_deployment_sequence()

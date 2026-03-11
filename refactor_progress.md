@@ -39,6 +39,21 @@
 - 邻域 Buff 仍正确应用，无明显缺失。
 
 
+
+### Step G4（本次完成）
+- 将 `GridManager` 的交互状态机与部署序列逻辑整体下沉到 `GridInteractionService`：
+  - 输入分发与处理：`_input` / `_handle_input_*`
+  - 技能指向流程：`enter_skill_targeting` / `exit_skill_targeting`
+  - 交互选择流程：`start_interaction_selection` / `is_valid_interaction_target` / `end_interaction_selection` / `_spawn_interaction_highlight` / `_on_selection_overlay_draw`
+  - 陷阱部署流程：`start_trap_placement_sequence` / `_handle_input_trap_placement` / `_process_trap_placement_preview` / `can_place_trap_at` / `end_trap_placement_sequence` / `_cancel_deployment_sequence`
+- `GridManager` 以上函数全部改为委托壳，保留外部 API 不变。
+
+**人工验证现象（请重点验证）**
+1. 技能指向时，3x3 绿色预览跟随鼠标，左键释放技能，右键取消。
+2. 交互选择时，目标格高亮与图标提示正常；选择后 Buff 生效并有反馈。
+3. 陷阱部署预览跟随鼠标；可放置时可落地陷阱；右键可完整回滚到 bench（或退款兜底）。
+4. provider 图标显示/隐藏行为与重构前一致。
+
 ### Step U1-Fix（本次修复）
 - 修复“单位吃到 Buff 时没有放大回弹动画”的问题：
   - `UnitVisualComponent.play_buff_receive_anim()` 增加 `ensure_visual_hierarchy()`，确保 `visual_holder` 已建立后再做 tween。
@@ -60,9 +75,10 @@
 3. 连续触发 Buff 时，不出现节点泄漏/报错（尤其是 Tween 相关）。
 
 ## Current Architecture Snapshot
-- `GridManager`: 以 orchestration + delegation 为主。
+- `GridManager`: 以 orchestration + delegation 为主（含 Interaction 委托）。
 - `GridBuffService`: Buff 计算、邻域应用、provider 图标展示。
 - `GridExpansionService`: 扩张模式与 ghost 地块处理。
+- `GridInteractionService`: 技能指向、交互选择、陷阱部署状态机与输入处理。
 - `Unit`: 保留实体编排；Buff 视觉反馈由 `UnitVisualComponent` 负责。
 
 ## Next Planned Steps
@@ -83,8 +99,6 @@
 - 将 `Unit` 里与拖拽/放置输入强相关的细节进一步归并到 `UnitInteractionComponent`。
 - 增加最小回归测试，覆盖“拖拽 -> 放置 -> Buff 更新”链路。
 
-### Step G4（后续）
-- 拆分 `GridManager` 交互状态机（skill targeting / interaction selection / trap placement）到独立 Interaction Controller。
 
 ## Validation Strategy
 - 先静态委托断言，再 headless 脚本验证，最后人工场景验证。

@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GRID = ROOT / 'src/Scripts/GridManager.gd'
 BUFF = ROOT / 'src/Scripts/Services/GridBuffService.gd'
 EXP = ROOT / 'src/Scripts/Services/GridExpansionService.gd'
+INT = ROOT / 'src/Scripts/Services/GridInteractionService.gd'
 
 
 def _read(path: Path) -> str:
@@ -15,10 +16,13 @@ def _read(path: Path) -> str:
 def test_services_files_exist_and_are_typed():
     buff = _read(BUFF)
     exp = _read(EXP)
+    interaction = _read(INT)
     assert 'class_name GridBuffService' in buff
     assert 'class_name GridExpansionService' in exp
+    assert 'class_name GridInteractionService' in interaction
     assert 'var grid_manager: Node2D' in buff
     assert 'var grid_manager: Node2D' in exp
+    assert 'var grid_manager: Node2D' in interaction
 
 
 def test_grid_manager_delegates_buff_and_expansion_methods():
@@ -41,6 +45,12 @@ def test_grid_manager_delegates_buff_and_expansion_methods():
     assert re.search(r"func on_ghost_clicked\(x, y\):\n\s*grid_expansion_service\.on_ghost_clicked\(x, y\)", text)
     assert re.search(r"func get_closest_unlocked_tile\(world_pos: Vector2\) -> Node2D:\n\s*return grid_expansion_service\.get_closest_unlocked_tile\(world_pos\)", text)
 
+    assert re.search(r"func _input\(event\):\n\s*grid_interaction_service\.handle_input\(event\)", text)
+    assert re.search(r"func enter_skill_targeting\(unit: Node2D\):\n\s*grid_interaction_service\.enter_skill_targeting\(unit\)", text)
+    assert re.search(r"func start_interaction_selection\(unit\):\n\s*grid_interaction_service\.start_interaction_selection\(unit\)", text)
+    assert re.search(r"func start_trap_placement_sequence\(unit\):\n\s*grid_interaction_service\.start_trap_placement_sequence\(unit\)", text)
+    assert re.search(r"func _cancel_deployment_sequence\(\):\n\s*grid_interaction_service\.cancel_deployment_sequence\(\)", text)
+
 
 def test_no_private_buff_icon_calls_and_unit_exposes_icon_api():
     grid = _read(GRID)
@@ -48,7 +58,8 @@ def test_no_private_buff_icon_calls_and_unit_exposes_icon_api():
 
     assert "._get_buff_icon(" not in grid
     buff = _read(BUFF)
-    assert "grid_buff_service.resolve_buff_icon(" in grid
+    interaction = _read(INT)
+    assert "grid_buff_service.resolve_buff_icon(" in interaction
     assert "func resolve_buff_icon(source_unit: Node2D, buff_id: String) -> String:" in buff
     assert "source_unit.has_method(\"get_buff_icon\")" in buff
 
