@@ -467,14 +467,19 @@ func heal(amount: float):
 func play_buff_receive_anim():
 	if visual_component:
 		visual_component.play_buff_receive_anim()
+		return
+	if visual_holder:
+		var tween = create_tween()
+		tween.tween_property(visual_holder, "scale", Vector2(1.3, 1.3), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 func spawn_buff_effect(icon_char: String):
 	if visual_component:
 		visual_component.spawn_buff_effect(icon_char)
 
 func get_buff_icon(buff_type: String) -> String:
-	if visual_component and visual_component.has_method("_get_buff_icon"):
-		return visual_component._get_buff_icon(buff_type)
+	if visual_component and visual_component.has_method("get_buff_icon"):
+		return visual_component.get_buff_icon(buff_type)
 	return "?"
 
 func add_stat_bonus(stat: String, amount: float):

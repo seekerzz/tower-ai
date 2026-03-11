@@ -123,6 +123,9 @@ func _update_buff_icons():
 		lbl.text = _get_buff_icon(buff)
 		buff_container.add_child(lbl)
 
+func get_buff_icon(buff_type: String) -> String:
+	return _get_buff_icon(buff_type)
+
 func _get_buff_icon(buff_type: String) -> String:
 	match buff_type:
 		"fire": return "🔥"
@@ -202,6 +205,7 @@ func play_attack_anim(attack_type: String, target_pos: Vector2, duration: float 
 
 
 func play_buff_receive_anim():
+	ensure_visual_hierarchy()
 	if unit.visual_holder:
 		var tween = unit.create_tween()
 		tween.tween_property(unit.visual_holder, "scale", Vector2(1.3, 1.3), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)

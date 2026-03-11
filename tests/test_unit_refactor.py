@@ -29,5 +29,15 @@ def test_visual_component_owns_buff_feedback_implementation():
     visual = _read(VISUAL)
 
     assert "func play_buff_receive_anim():" in visual
+    assert "ensure_visual_hierarchy()" in visual
     assert "func spawn_buff_effect(icon_char: String):" in visual
     assert "effect_node.name = \"BuffEffect\"" in visual
+
+
+def test_unit_get_buff_icon_uses_visual_public_api():
+    unit = _read(UNIT)
+    visual = _read(VISUAL)
+
+    assert "func get_buff_icon(buff_type: String) -> String:" in unit
+    assert "visual_component.get_buff_icon(buff_type)" in unit
+    assert "func get_buff_icon(buff_type: String) -> String:" in visual

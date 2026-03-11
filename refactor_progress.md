@@ -38,6 +38,16 @@
 - 鼠标悬停/交互时提供者图标仍正常显示。
 - 邻域 Buff 仍正确应用，无明显缺失。
 
+
+### Step U1-Fix（本次修复）
+- 修复“单位吃到 Buff 时没有放大回弹动画”的问题：
+  - `UnitVisualComponent.play_buff_receive_anim()` 增加 `ensure_visual_hierarchy()`，确保 `visual_holder` 已建立后再做 tween。
+  - `Unit.play_buff_receive_anim()` 增加 fallback（当 visual_component 不可用时仍可直接对 `visual_holder` 做回弹 tween）。
+
+**人工验证现象（请先验证）**
+1. 单位吃到 Buff 时，能稳定看到“放大 -> 回弹”。
+2. 首次进局（还没触发太多视觉流程）也能看到该动画，不再偶发丢失。
+
 ### Step U1（本次完成）
 - 将 `Unit.gd` 中 Buff 视觉反馈逻辑下沉到 `UnitVisualComponent.gd`：
   - `play_buff_receive_anim`
@@ -57,9 +67,17 @@
 
 ## Next Planned Steps
 
-### Step U2（下一步）
-- 继续瘦身 `Unit.gd`：将 `get_buff_icon` 也下沉为纯 visual_component API（Unit 只保留转发）。
-- 评估并迁移其它纯视觉函数到 `UnitVisualComponent`（保持行为不变）。
+### Step U2（本次完成）
+- 将 `get_buff_icon` 统一为 visual component 的**公共 API**链路：
+  - `Unit.get_buff_icon` -> `visual_component.get_buff_icon`
+  - `UnitVisualComponent` 新增 `get_buff_icon`（内部复用 `_get_buff_icon`）
+
+**人工验证现象**
+1. Buff 图标显示与之前一致（不会退化为 `?`）。
+2. provider 图标、交互提示图标仍正常。
+
+### Step U2（下一步候选）
+- 继续评估并迁移其它纯视觉函数到 `UnitVisualComponent`（保持行为不变）。
 
 ### Step U3（后续）
 - 将 `Unit` 里与拖拽/放置输入强相关的细节进一步归并到 `UnitInteractionComponent`。
