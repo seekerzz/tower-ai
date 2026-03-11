@@ -7,6 +7,7 @@
 
 # Developer workspace - not tracked in GitHub
 dev/
+.tools/
 
 # Project documentation and tracking
 # docs/  # 注释掉以允许提交文档，但排除敏感文件
