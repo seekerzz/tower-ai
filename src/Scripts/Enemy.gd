@@ -74,6 +74,19 @@ var physics_controller: EnemyPhysicsController
 var damage_controller: EnemyDamageController
 var death_controller: EnemyDeathController
 
+func _ensure_controllers_initialized():
+	if not presentation:
+		presentation = EnemyPresentationController.new(self)
+	if not status_controller:
+		status_controller = EnemyStatusController.new(self)
+	if not physics_controller:
+		physics_controller = EnemyPhysicsController.new(self)
+	if not damage_controller:
+		damage_controller = EnemyDamageController.new(self)
+	if not death_controller:
+		death_controller = EnemyDeathController.new(self)
+	presentation.ensure_visual_controller()
+
 func _ready():
 	add_to_group("enemies")
 	collision_layer = 2
@@ -81,17 +94,11 @@ func _ready():
 	input_pickable = false
 	GameManager._set_ignore_mouse_recursive(self)
 
-	presentation = EnemyPresentationController.new(self)
-	status_controller = EnemyStatusController.new(self)
-	physics_controller = EnemyPhysicsController.new(self)
-	damage_controller = EnemyDamageController.new(self)
-	death_controller = EnemyDeathController.new(self)
-
-	presentation.ensure_visual_controller()
+	_ensure_controllers_initialized()
 	GameManager.enemy_spawned.emit(self)
 
 func setup(key: String, wave: int):
-	presentation.ensure_visual_controller()
+	_ensure_controllers_initialized()
 	type_key = key
 	enemy_data = Constants.ENEMY_VARIANTS[key]
 	anim_config = enemy_data.get("anim_config", {})
@@ -148,6 +155,7 @@ func _init_behavior():
 	behavior.init(self, enemy_data)
 
 func apply_charm(source_unit, duration: float = 3.0):
+	_ensure_controllers_initialized()
 	if behavior:
 		if behavior.has_method("cancel_attack"):
 			behavior.cancel_attack()
@@ -165,6 +173,7 @@ func apply_charm(source_unit, duration: float = 3.0):
 		GameManager.charm_applied.emit(self, duration, source_unit)
 
 func _physics_process(delta):
+	_ensure_controllers_initialized()
 	if !GameManager.is_wave_active:
 		return
 	if invincible_timer > 0:
@@ -190,75 +199,100 @@ func _physics_process(delta):
 		behavior.physics_process(delta)
 
 func _draw():
+	if not presentation:
+		return
 	presentation.draw_enemy()
 
 func update_visuals():
+	_ensure_controllers_initialized()
 	presentation.update_visuals()
 
 func handle_environmental_impact(trap_node):
+	_ensure_controllers_initialized()
 	status_controller.handle_environmental_impact(trap_node)
 
 func handle_collisions(delta):
+	_ensure_controllers_initialized()
 	physics_controller.handle_collisions(delta)
 
 func apply_physics_stagger(duration: float):
+	_ensure_controllers_initialized()
 	physics_controller.apply_physics_stagger(duration)
 
 func apply_status(effect_script: Script, params: Dictionary):
+	_ensure_controllers_initialized()
 	status_controller.apply_status(effect_script, params)
 
 func add_poison_stacks(amount: int):
+	_ensure_controllers_initialized()
 	status_controller.add_poison_stacks(amount)
 
 func apply_stun(duration: float):
+	_ensure_controllers_initialized()
 	status_controller.apply_stun(duration)
 
 func apply_freeze(duration: float):
+	_ensure_controllers_initialized()
 	status_controller.apply_freeze(duration)
 
 func apply_blind(duration: float):
+	_ensure_controllers_initialized()
 	status_controller.apply_blind(duration)
 
 func apply_debuff(type: String, stacks: int = 1):
+	_ensure_controllers_initialized()
 	status_controller.apply_debuff(type, stacks)
 
 func add_debuff(type: String, stacks: int, duration: float):
+	_ensure_controllers_initialized()
 	status_controller.add_debuff(type, stacks, duration)
 
 func is_trap(node):
+	_ensure_controllers_initialized()
 	return status_controller.is_trap(node)
 
 func has_status(type_key: String) -> bool:
+	_ensure_controllers_initialized()
 	return status_controller.has_status(type_key)
 
 func heal(amount: float):
+	_ensure_controllers_initialized()
 	damage_controller.heal(amount)
 
 func add_bleed_stacks(stacks: int, source_unit = null):
+	_ensure_controllers_initialized()
 	damage_controller.add_bleed_stacks(stacks, source_unit)
 
 func take_damage(amount: float, source_unit = null, damage_type: String = "physical", hit_source: Node2D = null, kb_force: float = 0.0):
+	_ensure_controllers_initialized()
 	damage_controller.take_damage(amount, source_unit, damage_type, hit_source, kb_force, true)
 
 func die(killer_unit = null):
+	_ensure_controllers_initialized()
 	death_controller.die(killer_unit)
 
 func find_attack_target() -> Node2D:
+	_ensure_controllers_initialized()
 	var target = AggroManager.get_target_for_enemy(self)
 	presentation.show_taunt_indicator(target != null)
 	return target
 
 func _show_taunt_indicator(active: bool):
+	_ensure_controllers_initialized()
 	presentation.show_taunt_indicator(active)
 
 func set_execute_warning(active: bool, threshold: float = 0.0):
+	_ensure_controllers_initialized()
 	presentation.set_execute_warning(active, threshold)
 
 func _hide_execute_warning():
+	_ensure_controllers_initialized()
 	presentation.hide_execute_warning()
 
 func play_execute_effect():
+	_ensure_controllers_initialized()
 	presentation.play_execute_effect()
 
 func _clear_max_bleed_effect():
+	_ensure_controllers_initialized()
 	presentation.clear_max_bleed_effect()
