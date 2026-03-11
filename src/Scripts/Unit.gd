@@ -465,36 +465,12 @@ func heal(amount: float):
 		stats_component.heal(amount)
 
 func play_buff_receive_anim():
-	if visual_holder:
-		var tween = create_tween()
-		tween.tween_property(visual_holder, "scale", Vector2(1.3, 1.3), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	if visual_component:
+		visual_component.play_buff_receive_anim()
 
 func spawn_buff_effect(icon_char: String):
-	var effect_node = Node2D.new()
-	effect_node.name = "BuffEffect"
-	effect_node.z_index = 101
-
-	var lbl = Label.new()
-	lbl.text = icon_char
-	lbl.add_theme_font_size_override("font_size", 24)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-
-	lbl.anchors_preset = Control.PRESET_CENTER
-	lbl.position = Vector2(-20, -20)
-	lbl.size = Vector2(40, 40)
-
-	effect_node.add_child(lbl)
-	add_child(effect_node)
-
-	effect_node.position = Vector2.ZERO
-
-	var tween = create_tween()
-	tween.tween_property(effect_node, "scale", Vector2(2.5, 2.5), 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(effect_node, "modulate:a", 0.0, 0.6)
-
-	tween.finished.connect(effect_node.queue_free)
+	if visual_component:
+		visual_component.spawn_buff_effect(icon_char)
 
 func get_buff_icon(buff_type: String) -> String:
 	if visual_component and visual_component.has_method("_get_buff_icon"):

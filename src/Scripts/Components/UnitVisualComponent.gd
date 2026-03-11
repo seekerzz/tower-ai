@@ -199,3 +199,36 @@ func play_attack_anim(attack_type: String, target_pos: Vector2, duration: float 
 		attack_tween.parallel().tween_property(unit.visual_holder, "position", Vector2.ZERO, 0.3)
 
 	attack_tween.finished.connect(func(): start_breathe_anim())
+
+
+func play_buff_receive_anim():
+	if unit.visual_holder:
+		var tween = unit.create_tween()
+		tween.tween_property(unit.visual_holder, "scale", Vector2(1.3, 1.3), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(unit.visual_holder, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+func spawn_buff_effect(icon_char: String):
+	var effect_node = Node2D.new()
+	effect_node.name = "BuffEffect"
+	effect_node.z_index = 101
+
+	var lbl = Label.new()
+	lbl.text = icon_char
+	lbl.add_theme_font_size_override("font_size", 24)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	lbl.anchors_preset = Control.PRESET_CENTER
+	lbl.position = Vector2(-20, -20)
+	lbl.size = Vector2(40, 40)
+
+	effect_node.add_child(lbl)
+	unit.add_child(effect_node)
+
+	effect_node.position = Vector2.ZERO
+
+	var tween = unit.create_tween()
+	tween.tween_property(effect_node, "scale", Vector2(2.5, 2.5), 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(effect_node, "modulate:a", 0.0, 0.6)
+
+	tween.finished.connect(effect_node.queue_free)
