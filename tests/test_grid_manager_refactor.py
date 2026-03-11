@@ -36,3 +36,14 @@ def test_grid_manager_delegates_buff_and_expansion_methods():
     assert re.search(r"func clear_ghosts\(\):\n\s*grid_expansion_service\.clear_ghosts\(\)", text)
     assert re.search(r"func on_ghost_clicked\(x, y\):\n\s*grid_expansion_service\.on_ghost_clicked\(x, y\)", text)
     assert re.search(r"func get_closest_unlocked_tile\(world_pos: Vector2\) -> Node2D:\n\s*return grid_expansion_service\.get_closest_unlocked_tile\(world_pos\)", text)
+
+
+def test_no_private_buff_icon_calls_and_unit_exposes_icon_api():
+    grid = _read(GRID)
+    unit = _read(ROOT / "src/Scripts/Unit.gd")
+
+    assert "._get_buff_icon(" not in grid
+    assert "func _resolve_buff_icon(source_unit: Node2D, buff_id: String) -> String:" in grid
+    assert "source_unit.has_method(\"get_buff_icon\")" in grid
+
+    assert "func get_buff_icon(buff_type: String) -> String:" in unit

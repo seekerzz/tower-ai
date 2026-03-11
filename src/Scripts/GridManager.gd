@@ -488,7 +488,7 @@ func _handle_input_interaction_selection(event):
 
 							if u and is_instance_valid(u):
 								u.play_buff_receive_anim()
-								var buff_icon = interaction_source_unit._get_buff_icon(interaction_source_unit.get_interaction_info().buff_id)
+								var buff_icon = _resolve_buff_icon(interaction_source_unit, interaction_source_unit.get_interaction_info().buff_id)
 								u.spawn_buff_effect(buff_icon)
 
 				end_interaction_selection()
@@ -1011,7 +1011,7 @@ func _on_selection_overlay_draw():
 		var grid_pos = Vector2i(gx, gy)
 
 		var buff_id = interaction_source_unit.get_interaction_info().buff_id
-		var icon_char = interaction_source_unit._get_buff_icon(buff_id)
+		var icon_char = _resolve_buff_icon(interaction_source_unit, buff_id)
 		var font = ThemeDB.fallback_font
 		var font_size = 24
 
@@ -1034,6 +1034,12 @@ func _on_selection_overlay_draw():
 		for pos in draw_positions:
 			var snap_pos = grid_to_local(pos)
 			selection_overlay.draw_string(font, snap_pos + Vector2(-10, 10), icon_char, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, color)
+
+
+func _resolve_buff_icon(source_unit: Node2D, buff_id: String) -> String:
+	if source_unit and source_unit.has_method("get_buff_icon"):
+		return source_unit.get_buff_icon(buff_id)
+	return "?"
 
 func show_provider_icons(provider_unit: Node2D):
 	hide_provider_icons()
@@ -1092,7 +1098,7 @@ func _spawn_provider_icon_at(grid_pos: Vector2i, buff_type: String, provider_uni
 
 			# Draw icon
 			var lbl = Label.new()
-			lbl.text = provider_unit._get_buff_icon(buff_type)
+			lbl.text = _resolve_buff_icon(provider_unit, buff_type)
 			lbl.add_theme_font_size_override("font_size", 20)
 			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

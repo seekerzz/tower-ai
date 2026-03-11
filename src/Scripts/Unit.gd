@@ -496,6 +496,11 @@ func spawn_buff_effect(icon_char: String):
 
 	tween.finished.connect(effect_node.queue_free)
 
+func get_buff_icon(buff_type: String) -> String:
+	if visual_component and visual_component.has_method("_get_buff_icon"):
+		return visual_component._get_buff_icon(buff_type)
+	return "?"
+
 func add_stat_bonus(stat: String, amount: float):
 	if stats_component:
 		stats_component.add_stat_bonus(stat, amount)
