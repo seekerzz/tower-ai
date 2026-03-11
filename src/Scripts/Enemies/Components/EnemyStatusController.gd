@@ -1,6 +1,8 @@
 extends RefCounted
 class_name EnemyStatusController
 
+const StatusEffect = preload("res://src/Scripts/Effects/StatusEffect.gd")
+
 var enemy: CharacterBody2D
 
 func _init(target_enemy: CharacterBody2D):

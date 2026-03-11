@@ -244,6 +244,13 @@ func _get_units_for_faction(faction: String) -> Array:
 	return result
 
 func create_shop_card(index, unit_key):
+	if unit_key == null or not Constants.UNIT_TYPES.has(unit_key):
+		var empty_card = PanelContainer.new()
+		empty_card.custom_minimum_size = UIConstants.CARD_SIZE.large
+		empty_card.size_flags_horizontal = SIZE_EXPAND_FILL
+		shop_container.add_child(empty_card)
+		return
+
 	var card = ShopCard.new()
 	card.setup(unit_key)
 	card.custom_minimum_size = UIConstants.CARD_SIZE.large # Adjusted size for smaller shop

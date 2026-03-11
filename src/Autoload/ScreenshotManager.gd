@@ -9,7 +9,7 @@ const CORE_ATTACK_DEBOUNCE = 2.0
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	if "--headless" in OS.get_cmdline_args():
+	if DisplayServer.get_name() == "headless" or "--headless" in OS.get_cmdline_args():
 		print("[ScreenshotManager] Headless mode detected, disabling screenshot automation.")
 		return
 
@@ -39,7 +39,14 @@ func _capture_and_save(event_name: String):
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	var img = get_viewport().get_texture().get_image()
+	if DisplayServer.get_name() == "headless":
+		return
+
+	var viewport_texture = get_viewport().get_texture()
+	if viewport_texture == null:
+		return
+
+	var img = viewport_texture.get_image()
 	if img:
 		save_screenshot_to_disk(img, event_name)
 

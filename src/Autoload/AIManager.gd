@@ -50,7 +50,7 @@ func _parse_command_line_args():
 
 # ===== 信号 =====
 signal state_sent(event_type: String, state: Dictionary)
-signal action_received(actions: Array)
+signal action_received(actions: Array, request_id: String)
 signal client_connected
 signal client_disconnected
 
@@ -226,6 +226,19 @@ func _on_trap_triggered(trap_type: String, target_enemy, source_unit):
 # ===== 广播文字日志 =====
 
 func broadcast_text(text: String):
+	_send_payload(text)
+
+func broadcast_event(event_type: String, data: Dictionary = {}, request_id: String = ""):
+	var payload = {
+		"event": event_type,
+		"data": data,
+		"ts_ms": Time.get_ticks_msec(),
+	}
+	if request_id != "":
+		payload["request_id"] = request_id
+	_send_payload(JSON.stringify(payload))
+
+func _send_payload(payload: String):
 	if not is_client_connected:
 		return
 	if not websocket_peer:
@@ -233,7 +246,7 @@ func broadcast_text(text: String):
 
 	var state = websocket_peer.get_ready_state()
 	if state == WebSocketPeer.STATE_OPEN:
-		websocket_peer.send_text(text)
+		websocket_peer.send_text(payload)
 
 
 # ===== 客户端消息处理 =====
@@ -261,8 +274,9 @@ func _handle_client_message(text: String):
 
 	if data.has("actions"):
 		var actions = data["actions"]
+		var request_id = str(data.get("request_id", ""))
 		if actions is Array:
-			action_received.emit(actions)
+			action_received.emit(actions, request_id)
 		else:
 			broadcast_text("【错误】actions 必须是数组")
 

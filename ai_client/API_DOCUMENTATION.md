@@ -119,9 +119,39 @@ python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/Core
 - `game_TotemSelected`
 - `game_WaveStarted`
 - `game_WaveEnded`
+- `game_ActionResult`
+- `game_ActionError`
 - `godot_warning`
 - `godot_runtime_error`
 - `system_crash`
+
+### 结构化事件负载（新增）
+
+Godot 侧现在会主动发送 JSON 事件：
+
+```json
+{
+  "event": "ActionResult",
+  "data": {
+    "request_id": "req-1",
+    "action_index": 0,
+    "action_type": "buy_unit",
+    "action": {"type": "buy_unit", "shop_index": 0},
+    "result": {"success": true},
+    "snapshot": {
+      "wave": 1,
+      "is_wave_active": false,
+      "gold": 8,
+      "mana": 0,
+      "core_health": 100
+    }
+  },
+  "request_id": "req-1",
+  "ts_ms": 12345678
+}
+```
+
+在网关 `/observations` 中会映射为 `event_type = "game_ActionResult"`（或 `game_ActionError`）。
 
 ---
 

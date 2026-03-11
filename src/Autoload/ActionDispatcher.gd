@@ -14,20 +14,51 @@ func _ready():
 		AIManager.action_received.connect(_on_actions_received)
 		AILogger.action("ActionDispatcher已连接到 AIManager")
 
-func _on_actions_received(actions: Array):
+func _on_actions_received(actions: Array, request_id: String):
 	if actions.size() == 0:
 		return
 
-	AILogger.action("ActionDispatcher 开始分发 %d 个动作" % actions.size())
+	AILogger.action("ActionDispatcher 开始分发 %d 个动作 (request_id=%s)" % [actions.size(), request_id])
 
-	for action in actions:
+	for i in range(actions.size()):
+		var action = actions[i]
 		if not action is Dictionary:
 			AILogger.error("动作格式错误: %s" % str(action))
+			_emit_action_feedback(request_id, i, {"type": "invalid"}, {
+				"success": false,
+				"error_message": "动作格式错误，必须为字典"
+			})
 			continue
 
 		var result = _execute_action(action)
+		_emit_action_feedback(request_id, i, action, result)
+
 		if not result.get("success", false):
 			AILogger.error("动作执行失败: %s" % result.get("error_message", "未知错误"))
+
+func _emit_action_feedback(request_id: String, action_index: int, action: Dictionary, result: Dictionary):
+	if not AIManager or not AIManager.has_method("broadcast_event"):
+		return
+
+	var payload = {
+		"request_id": request_id,
+		"action_index": action_index,
+		"action_type": action.get("type", ""),
+		"action": action,
+		"result": result,
+		"snapshot": {
+			"wave": GameManager.wave,
+			"is_wave_active": GameManager.is_wave_active,
+			"gold": GameManager.gold,
+			"mana": GameManager.mana,
+			"core_health": GameManager.core_health,
+		}
+	}
+
+	if result.get("success", false):
+		AIManager.broadcast_event("ActionResult", payload, request_id)
+	else:
+		AIManager.broadcast_event("ActionError", payload, request_id)
 
 func _execute_action(action: Dictionary) -> Dictionary:
 	var action_type = action.get("type", "")
@@ -53,6 +84,8 @@ func _execute_action(action: Dictionary) -> Dictionary:
 			return _action_retry_wave(action)
 		"use_skill":
 			return _action_use_skill(action)
+		"cheat_set_shop_unit":
+			return _action_cheat_set_shop_unit(action)
 		_:
 			return {"success": false, "error_message": "未知动作类型: %s" % action_type}
 
@@ -65,7 +98,30 @@ func _action_select_totem(action: Dictionary) -> Dictionary:
 		return {"success": false, "error_message": "无效的图腾类型"}
 	GameManager.core_type = totem_id
 	GameManager.totem_confirmed.emit(totem_id)
+	if AIManager and AIManager.has_method("broadcast_event"):
+		AIManager.broadcast_event("TotemSelected", {"totem_id": totem_id})
 	return {"success": true}
+
+func _action_cheat_set_shop_unit(action: Dictionary) -> Dictionary:
+	if not OS.is_debug_build():
+		return {"success": false, "error_message": "cheat actions are disabled in non-debug builds"}
+
+	if not GameManager.session_data:
+		return {"success": false, "error_message": "SessionData未初始化"}
+
+	var shop_index = _to_int_index(action.get("shop_index", -1))
+	if shop_index < 0 or shop_index >= 4:
+		return {"success": false, "error_message": "shop_index 超出范围 (0-3)"}
+
+	var unit_key = str(action.get("unit_key", ""))
+	if unit_key == "":
+		return {"success": false, "error_message": "unit_key 不能为空"}
+
+	if not Constants.UNIT_TYPES.has(unit_key):
+		return {"success": false, "error_message": "未知单位类型: %s" % unit_key}
+
+	GameManager.session_data.set_shop_unit(shop_index, unit_key)
+	return {"success": true, "shop_index": shop_index, "unit_key": unit_key}
 
 func _action_buy_unit(action: Dictionary) -> Dictionary:
 	var shop_index = _to_int_index(action.get("shop_index", -1))

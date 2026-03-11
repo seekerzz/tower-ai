@@ -108,5 +108,9 @@ func _on_units_merged(consumed_unit):
 	# 单位合并时增加狼图腾魂魄
 	TotemManager.add_resource("wolf", 10)
 
-	if unit_ref is UnitWolf and consumed_unit is UnitWolf:
+	var is_wolf_merge = unit_ref and consumed_unit \
+		and unit_ref.get("type_key") == "wolf" \
+		and consumed_unit.get("type_key") == "wolf"
+
+	if is_wolf_merge and unit_ref.has_method("on_merged_with"):
 		unit_ref.on_merged_with(consumed_unit)

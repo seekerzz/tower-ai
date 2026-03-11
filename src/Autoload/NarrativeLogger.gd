@@ -123,4 +123,6 @@ func _build_and_broadcast(event_type: String, narrative: String, data: Dictionar
 	print("[Narrative] " + narrative)
 
 	if AIManager and AIManager.has_method("broadcast_text"):
+		if AIManager.has_method("broadcast_event"):
+			AIManager.broadcast_event(event_type, data)
 		AIManager.broadcast_text(narrative)
