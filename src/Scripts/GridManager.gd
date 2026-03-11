@@ -488,7 +488,7 @@ func _handle_input_interaction_selection(event):
 
 							if u and is_instance_valid(u):
 								u.play_buff_receive_anim()
-								var buff_icon = _resolve_buff_icon(interaction_source_unit, interaction_source_unit.get_interaction_info().buff_id)
+								var buff_icon = grid_buff_service.resolve_buff_icon(interaction_source_unit, interaction_source_unit.get_interaction_info().buff_id)
 								u.spawn_buff_effect(buff_icon)
 
 				end_interaction_selection()
@@ -1011,7 +1011,7 @@ func _on_selection_overlay_draw():
 		var grid_pos = Vector2i(gx, gy)
 
 		var buff_id = interaction_source_unit.get_interaction_info().buff_id
-		var icon_char = _resolve_buff_icon(interaction_source_unit, buff_id)
+		var icon_char = grid_buff_service.resolve_buff_icon(interaction_source_unit, buff_id)
 		var font = ThemeDB.fallback_font
 		var font_size = 24
 
@@ -1036,81 +1036,16 @@ func _on_selection_overlay_draw():
 			selection_overlay.draw_string(font, snap_pos + Vector2(-10, 10), icon_char, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, color)
 
 
-func _resolve_buff_icon(source_unit: Node2D, buff_id: String) -> String:
-	if source_unit and source_unit.has_method("get_buff_icon"):
-		return source_unit.get_buff_icon(buff_id)
-	return "?"
+
 
 func show_provider_icons(provider_unit: Node2D):
-	hide_provider_icons()
-	if !provider_unit: return
-
-	# Determine receivers logic (same as _apply_buff_to_neighbors or specific)
-	var buff_type = ""
-	if "buffProvider" in provider_unit.unit_data:
-		buff_type = provider_unit.unit_data["buffProvider"]
-
-	# If provider is interactive type, it gives buff to specific target
-	var info = provider_unit.get_interaction_info()
-	if info.has_interaction:
-		if provider_unit.interaction_target_pos != null:
-			# Single target
-			_spawn_provider_icon_at(provider_unit.interaction_target_pos, info.buff_id, provider_unit)
-			return
-
-	if buff_type == "": return
-
-	# Default neighbor logic
-	var cx = provider_unit.grid_pos.x
-	var cy = provider_unit.grid_pos.y
-	var w = provider_unit.unit_data.size.x
-	var h = provider_unit.unit_data.size.y
-
-	var neighbors = []
-	for dx in range(w):
-		neighbors.append(Vector2i(cx + dx, cy - 1))
-		neighbors.append(Vector2i(cx + dx, cy + h))
-	for dy in range(h):
-		neighbors.append(Vector2i(cx - 1, cy + dy))
-		neighbors.append(Vector2i(cx + w, cy + dy))
-
-	for n_pos in neighbors:
-		_spawn_provider_icon_at(n_pos, buff_type, provider_unit)
+	grid_buff_service.show_provider_icons(provider_unit)
 
 func _spawn_provider_icon_at(grid_pos: Vector2i, buff_type: String, provider_unit: Node2D):
-	var key = get_tile_key(grid_pos.x, grid_pos.y)
-	if tiles.has(key):
-		var tile = tiles[key]
-		var target_unit = tile.unit
-		if target_unit == null and tile.occupied_by != Vector2i.ZERO:
-			var origin_key = get_tile_key(tile.occupied_by.x, tile.occupied_by.y)
-			if tiles.has(origin_key):
-				target_unit = tiles[origin_key].unit
-
-		if target_unit and target_unit != provider_unit:
-			# Validate that target actually received the buff from this provider
-			var received = false
-			if target_unit.buff_sources.has(buff_type):
-				if target_unit.buff_sources[buff_type] == provider_unit:
-					received = true
-
-			if not received: return
-
-			# Draw icon
-			var lbl = Label.new()
-			lbl.text = _resolve_buff_icon(provider_unit, buff_type)
-			lbl.add_theme_font_size_override("font_size", 20)
-			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-
-			lbl.position = grid_to_local(grid_pos) - Vector2(20, 20) # Center
-			lbl.size = Vector2(40, 40)
-
-			provider_icon_overlay.add_child(lbl)
+	grid_buff_service.spawn_provider_icon_at(grid_pos, buff_type, provider_unit)
 
 func hide_provider_icons():
-	for child in provider_icon_overlay.get_children():
-		child.queue_free()
+	grid_buff_service.hide_provider_icons()
 
 func can_place_unit(x: int, y: int, w: int, h: int, exclude_unit = null) -> bool:
 	for dx in range(w):
@@ -1360,31 +1295,7 @@ func _apply_buff_to_specific_pos(target_pos: Vector2i, buff_id: String, provider
 	grid_buff_service.apply_buff_to_specific_pos(target_pos, buff_id, provider_unit)
 
 func _apply_buff_to_neighbors(provider_unit, buff_type):
-	var cx = provider_unit.grid_pos.x
-	var cy = provider_unit.grid_pos.y
-	var w = provider_unit.unit_data.size.x
-	var h = provider_unit.unit_data.size.y
-	var neighbors = []
-
-	for dx in range(w):
-		neighbors.append(Vector2i(cx + dx, cy - 1))
-		neighbors.append(Vector2i(cx + dx, cy + h))
-
-	for dy in range(h):
-		neighbors.append(Vector2i(cx - 1, cy + dy))
-		neighbors.append(Vector2i(cx + w, cy + dy))
-
-	for n_pos in neighbors:
-		var n_key = get_tile_key(n_pos.x, n_pos.y)
-		if tiles.has(n_key):
-			var tile = tiles[n_key]
-			var target_unit = tile.unit
-			if target_unit == null and tile.occupied_by != Vector2i.ZERO:
-				var origin_key = get_tile_key(tile.occupied_by.x, tile.occupied_by.y)
-				if tiles.has(origin_key):
-					target_unit = tiles[origin_key].unit
-			if target_unit and target_unit != provider_unit:
-				target_unit.apply_buff(buff_type, provider_unit)
+	grid_buff_service.apply_buff_to_neighbors(provider_unit, buff_type)
 
 func toggle_expansion_mode():
 	grid_expansion_service.toggle_expansion_mode()

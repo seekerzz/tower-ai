@@ -30,6 +30,10 @@ def test_grid_manager_delegates_buff_and_expansion_methods():
     # Delegation checks
     assert re.search(r"func recalculate_buffs\(\):\n\s*grid_buff_service\.recalculate_buffs\(\)", text)
     assert re.search(r"func _apply_buff_to_specific_pos\(target_pos: Vector2i, buff_id: String, provider_unit: Node2D = null\):\n\s*grid_buff_service\.apply_buff_to_specific_pos\(target_pos, buff_id, provider_unit\)", text)
+    assert re.search(r"func _apply_buff_to_neighbors\(provider_unit, buff_type\):\n\s*grid_buff_service\.apply_buff_to_neighbors\(provider_unit, buff_type\)", text)
+    assert re.search(r"func show_provider_icons\(provider_unit: Node2D\):\n\s*grid_buff_service\.show_provider_icons\(provider_unit\)", text)
+    assert re.search(r"func _spawn_provider_icon_at\(grid_pos: Vector2i, buff_type: String, provider_unit: Node2D\):\n\s*grid_buff_service\.spawn_provider_icon_at\(grid_pos, buff_type, provider_unit\)", text)
+    assert re.search(r"func hide_provider_icons\(\):\n\s*grid_buff_service\.hide_provider_icons\(\)", text)
 
     assert re.search(r"func toggle_expansion_mode\(\):\n\s*grid_expansion_service\.toggle_expansion_mode\(\)", text)
     assert re.search(r"func spawn_expansion_ghosts\(\):\n\s*grid_expansion_service\.spawn_expansion_ghosts\(\)", text)
@@ -43,7 +47,9 @@ def test_no_private_buff_icon_calls_and_unit_exposes_icon_api():
     unit = _read(ROOT / "src/Scripts/Unit.gd")
 
     assert "._get_buff_icon(" not in grid
-    assert "func _resolve_buff_icon(source_unit: Node2D, buff_id: String) -> String:" in grid
-    assert "source_unit.has_method(\"get_buff_icon\")" in grid
+    buff = _read(BUFF)
+    assert "grid_buff_service.resolve_buff_icon(" in grid
+    assert "func resolve_buff_icon(source_unit: Node2D, buff_id: String) -> String:" in buff
+    assert "source_unit.has_method(\"get_buff_icon\")" in buff
 
     assert "func get_buff_icon(buff_type: String) -> String:" in unit
