@@ -6,6 +6,8 @@ const TREE_SCENE = preload("res://src/Scenes/Game/Tree.tscn")
 const ENVIRONMENT_DECORATION_SCENE = preload("res://src/Scenes/Game/EnvironmentDecoration.tscn")
 var BARRICADE_SCENE = null
 const GHOST_TILE_SCRIPT = preload("res://src/Scripts/UI/GhostTile.gd")
+const GridBuffService = preload("res://src/Scripts/Services/GridBuffService.gd")
+const GridExpansionService = preload("res://src/Scripts/Services/GridExpansionService.gd")
 const TILE_SIZE = 60
 
 var tiles: Dictionary = {} # Key: "x,y", Value: Tile Instance
@@ -41,11 +43,15 @@ var interaction_highlights: Array = [] # Array[Node2D] (Visuals)
 var provider_icon_overlay: Node2D = null
 var selection_overlay: Node2D = null
 var astar_grid: AStarGrid2D
+var grid_buff_service: GridBuffService
+var grid_expansion_service: GridExpansionService
 
 signal grid_updated
 
 func _ready():
 	GameManager.grid_manager = self
+	grid_buff_service = GridBuffService.new(self)
+	grid_expansion_service = GridExpansionService.new(self)
 
 	selection_overlay = Node2D.new()
 	selection_overlay.name = "SelectionOverlay"
@@ -1342,48 +1348,10 @@ func _perform_swap(unit_a, unit_b):
 	recalculate_buffs()
 
 func recalculate_buffs():
-	var processed_units = []
-	for key in tiles:
-		var tile = tiles[key]
-		if tile.unit and not (tile.unit in processed_units):
-			tile.unit.reset_stats()
-			processed_units.append(tile.unit)
-
-	for unit in processed_units:
-		if unit.behavior:
-			unit.behavior.broadcast_buffs()
-
-		# Interaction Buffs
-		var info = unit.get_interaction_info()
-		if info.has_interaction and unit.interaction_target_pos != null:
-			if is_neighbor(unit, unit.interaction_target_pos):
-				_apply_buff_to_specific_pos(unit.interaction_target_pos, info.buff_id, unit)
-
-				if unit.unit_data.get("interaction_pattern") == "neighbor_pair":
-					var neighbors = _get_clockwise_neighbors(unit.grid_pos)
-					var idx = neighbors.find(unit.interaction_target_pos)
-					if idx != -1:
-						var next_idx = (idx + 1) % neighbors.size()
-						_apply_buff_to_specific_pos(neighbors[next_idx], info.buff_id, unit)
-
-	for unit in processed_units:
-		unit.update_visuals()
-
-	grid_updated.emit()
+	grid_buff_service.recalculate_buffs()
 
 func _apply_buff_to_specific_pos(target_pos: Vector2i, buff_id: String, provider_unit: Node2D = null):
-	var key = get_tile_key(target_pos.x, target_pos.y)
-	if tiles.has(key):
-		var tile = tiles[key]
-		var target_unit = tile.unit
-		# Handle occupied_by if needed (though usually we buff the main unit)
-		if target_unit == null and tile.occupied_by != Vector2i.ZERO:
-			var origin_key = get_tile_key(tile.occupied_by.x, tile.occupied_by.y)
-			if tiles.has(origin_key):
-				target_unit = tiles[origin_key].unit
-
-		if target_unit:
-			target_unit.apply_buff(buff_id, provider_unit)
+	grid_buff_service.apply_buff_to_specific_pos(target_pos, buff_id, provider_unit)
 
 func _apply_buff_to_neighbors(provider_unit, buff_type):
 	var cx = provider_unit.grid_pos.x
@@ -1413,121 +1381,19 @@ func _apply_buff_to_neighbors(provider_unit, buff_type):
 				target_unit.apply_buff(buff_type, provider_unit)
 
 func toggle_expansion_mode():
-	expansion_mode = !expansion_mode
-
-	# Toggle grid lines on all tiles
-	for key in tiles:
-		if tiles[key].has_method("set_grid_visible"):
-			tiles[key].set_grid_visible(expansion_mode)
-
-	if expansion_mode:
-		spawn_expansion_ghosts()
-	else:
-		clear_ghosts()
+	grid_expansion_service.toggle_expansion_mode()
 
 func spawn_expansion_ghosts():
-	clear_ghosts()
-
-	for key in tiles:
-		var tile = tiles[key]
-
-		# Limit expansion ghost tiles to center 5x5 area (plus minus 2 from center)
-		if abs(tile.x) > 2 or abs(tile.y) > 2:
-			continue
-
-		# Find locked tiles that can be unlocked
-		if tile.state == "locked_inner" or tile.state == "locked_outer":
-			# Check neighbors
-			var x = tile.x
-			var y = tile.y
-			var neighbors = [
-				Vector2i(x+1, y), Vector2i(x-1, y),
-				Vector2i(x, y+1), Vector2i(x, y-1)
-			]
-
-			var can_expand = false
-			for n_pos in neighbors:
-				var n_key = get_tile_key(n_pos.x, n_pos.y)
-				if tiles.has(n_key):
-					var n_tile = tiles[n_key]
-					# If neighbor is unlocked or core (which is unlocked), we can expand
-					if n_tile.state == "unlocked":
-						can_expand = true
-						break
-
-			if can_expand:
-				var ghost = GHOST_TILE_SCRIPT.new()
-				add_child(ghost)
-				ghost.setup(tile.x, tile.y)
-
-				# Use grid_to_local for ghost position
-				var local_pos = grid_to_local(Vector2i(tile.x, tile.y))
-				ghost.position = local_pos - (ghost.custom_minimum_size / 2)
-
-				# ghost.clicked.connect(on_ghost_clicked) # GhostTile calls grid_manager.on_ghost_clicked directly
-				ghost_tiles.append(ghost)
+	grid_expansion_service.spawn_expansion_ghosts()
 
 func clear_ghosts():
-	for ghost in ghost_tiles:
-		ghost.queue_free()
-	ghost_tiles.clear()
+	grid_expansion_service.clear_ghosts()
 
 func on_ghost_clicked(x, y):
-	var cost = expansion_cost
-	if GameManager.reward_manager and "rapid_expansion" in GameManager.reward_manager.acquired_artifacts:
-		cost = int(cost * 0.7)
-
-	if GameManager.gold >= cost:
-		if GameManager.spend_gold(cost):
-			expansion_cost += 10
-			var key = get_tile_key(x, y)
-			if tiles.has(key):
-				var tile = tiles[key]
-				tile.set_state("unlocked")
-				if not active_territory_tiles.has(tile):
-					active_territory_tiles.append(tile)
-
-				# Artifact: Rapid Expansion Bonus
-				if GameManager.reward_manager and "rapid_expansion" in GameManager.reward_manager.acquired_artifacts:
-					GameManager.permanent_health_bonus += 50.0
-					GameManager.max_core_health += 50.0
-					GameManager.core_health += 50.0 # Heal by the added amount
-					GameManager.resource_changed.emit()
-
-			# Refresh ghosts to show new expansion options
-			# Must use call_deferred or just call it?
-			# The prompt says: "call clear_ghosts() then immediately re-spawn_expansion_ghosts()"
-			clear_ghosts()
-			spawn_expansion_ghosts()
-	else:
-		# Feedback for not enough gold?
-		# Use grid_to_local
-		var world_pos = get_world_pos_from_grid(Vector2i(x,y))
-		GameManager.spawn_floating_text(world_pos, "Need Gold!", Color.RED)
+	grid_expansion_service.on_ghost_clicked(x, y)
 
 func get_closest_unlocked_tile(world_pos: Vector2) -> Node2D:
-	if active_territory_tiles.is_empty():
-		# Fallback to core if exists
-		var core_key = get_tile_key(0, 0)
-		if tiles.has(core_key):
-			return tiles[core_key]
-		return null
-
-	var closest_tile = null
-	var min_dist_sq = INF
-
-	for tile in active_territory_tiles:
-		# Check if valid instance
-		if not is_instance_valid(tile): continue
-
-		var dist_sq = tile.global_position.distance_squared_to(world_pos)
-		if dist_sq < min_dist_sq:
-			min_dist_sq = dist_sq
-			closest_tile = tile
-
-	return closest_tile
-
-# --- Trap Placement Sequence ---
+	return grid_expansion_service.get_closest_unlocked_tile(world_pos)
 
 func start_trap_placement_sequence(unit):
 	interaction_state = STATE_SEQUENCE_TRAP_PLACEMENT
