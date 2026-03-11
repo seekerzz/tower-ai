@@ -10,9 +10,6 @@ var level: int = 1
 var stats_multiplier: float = 1.0
 var cooldown: float = 0.0
 var skill_cooldown: float = 0.0
-var active_buffs: Array = []
-var buff_sources: Dictionary = {} # Key: buff_type, Value: source_unit (Node2D)
-var temporary_buffs: Array = [] # Array of {stat, amount, duration, source}
 var traits: Array = []
 var unit_data: Dictionary
 
@@ -21,40 +18,91 @@ var behavior: UnitBehavior
 var attachment: Node2D = null
 var host: Node2D = null
 
-# Stats
-var damage: float
-var range_val: float
-var atk_speed: float
-var attack_cost_mana: float = 0.0
-var skill_mana_cost: float = 30.0
+# Components
+var stats_component
+var buff_component
+var combat_component
+var visual_component
+var interaction_component
 
-var max_hp: float = 0.0
-var current_hp: float = 0.0
+const UNIT_STATS_COMPONENT = preload("res://src/Scripts/Components/UnitStatsComponent.gd")
+const UNIT_BUFF_COMPONENT = preload("res://src/Scripts/Components/UnitBuffComponent.gd")
+const UNIT_COMBAT_COMPONENT = preload("res://src/Scripts/Components/UnitCombatComponent.gd")
+const UNIT_VISUAL_COMPONENT = preload("res://src/Scripts/Components/UnitVisualComponent.gd")
+const UNIT_INTERACTION_COMPONENT = preload("res://src/Scripts/Components/UnitInteractionComponent.gd")
+
+# Proxy properties to components to avoid breaking other files
+var damage: float:
+	get: return stats_component.damage if stats_component else 0.0
+	set(v): if stats_component: stats_component.damage = v
+var range_val: float:
+	get: return stats_component.range_val if stats_component else 0.0
+	set(v): if stats_component: stats_component.range_val = v
+var atk_speed: float:
+	get: return stats_component.atk_speed if stats_component else 0.0
+	set(v): if stats_component: stats_component.atk_speed = v
+var attack_cost_mana: float:
+	get: return stats_component.attack_cost_mana if stats_component else 0.0
+	set(v): if stats_component: stats_component.attack_cost_mana = v
+var skill_mana_cost: float:
+	get: return stats_component.skill_mana_cost if stats_component else 0.0
+	set(v): if stats_component: stats_component.skill_mana_cost = v
+var max_hp: float:
+	get: return stats_component.max_hp if stats_component else 0.0
+	set(v): if stats_component: stats_component.max_hp = v
+var current_hp: float:
+	get: return stats_component.current_hp if stats_component else 0.0
+	set(v): if stats_component: stats_component.current_hp = v
+var crit_rate: float:
+	get: return stats_component.crit_rate if stats_component else 0.0
+	set(v): if stats_component: stats_component.crit_rate = v
+var crit_dmg: float:
+	get: return stats_component.crit_dmg if stats_component else 1.5
+	set(v): if stats_component: stats_component.crit_dmg = v
+
+var active_buffs: Array:
+	get: return buff_component.active_buffs if buff_component else []
+var buff_sources: Dictionary:
+	get: return buff_component.buff_sources if buff_component else {}
+var temporary_buffs: Array:
+	get: return buff_component.temporary_buffs if buff_component else []
+
+var bounce_count: int:
+	get: return buff_component.bounce_count if buff_component else 0
+	set(v): if buff_component: buff_component.bounce_count = v
+var split_count: int:
+	get: return buff_component.split_count if buff_component else 0
+	set(v): if buff_component: buff_component.split_count = v
 
 # Visual Holder for animations and structure
 var visual_holder: Node2D = null
 
 var is_no_mana: bool = false
-var crit_rate: float = 0.0
-var crit_dmg: float = 1.5
-var bounce_count: int = 0
-var split_count: int = 0
-
 var guaranteed_crit_stacks: int = 0
 
 # Grid
 var grid_pos: Vector2i = Vector2i.ZERO
-var start_position: Vector2 = Vector2.ZERO
+var start_position: Vector2:
+	get: return interaction_component.start_position if interaction_component else Vector2.ZERO
+	set(v): if interaction_component: interaction_component.start_position = v
 
 # Interaction
 var interaction_target_pos = null # Vector2i or null
 var associated_traps: Array = [] # Stores references to traps placed by this unit
 
 # Dragging
-var is_dragging: bool = false
-var drag_offset: Vector2 = Vector2.ZERO
-var ghost_node: Node2D = null
-var is_hovered: bool = false
+var is_dragging: bool:
+	get: return interaction_component.is_dragging if interaction_component else false
+	set(v): if interaction_component: interaction_component.is_dragging = v
+var drag_offset: Vector2:
+	get: return interaction_component.drag_offset if interaction_component else Vector2.ZERO
+	set(v): if interaction_component: interaction_component.drag_offset = v
+var ghost_node: Node2D:
+	get: return interaction_component.ghost_node if interaction_component else null
+	set(v): if interaction_component: interaction_component.ghost_node = v
+var is_hovered: bool:
+	get: return interaction_component.is_hovered if interaction_component else false
+	set(v): if interaction_component: interaction_component.is_hovered = v
 var focus_target: Node2D = null
 var focus_stacks: int = 0
 
@@ -78,6 +126,12 @@ func _start_skill_cooldown(base_duration: float):
 		skill_cooldown = base_duration * GameManager.get_stat_modifier("cooldown")
 
 func _ready():
+	stats_component = UNIT_STATS_COMPONENT.new(self)
+	buff_component = UNIT_BUFF_COMPONENT.new(self)
+	combat_component = UNIT_COMBAT_COMPONENT.new(self)
+	visual_component = UNIT_VISUAL_COMPONENT.new(self)
+	interaction_component = UNIT_INTERACTION_COMPONENT.new(self)
+
 	_ensure_visual_hierarchy()
 	tree_exiting.connect(_on_cleanup)
 
@@ -120,57 +174,12 @@ func _load_behavior():
 	behavior = script_res.new(self)
 
 func _ensure_visual_hierarchy():
-	if visual_holder and is_instance_valid(visual_holder):
-		return
-
-	visual_holder = get_node_or_null("VisualHolder")
-	if !visual_holder:
-		visual_holder = Node2D.new()
-		visual_holder.name = "VisualHolder"
-		add_child(visual_holder)
-
-		var visual_elements = ["Label", "StarLabel"]
-		for child_name in visual_elements:
-			var child = get_node_or_null(child_name)
-			if child:
-				remove_child(child)
-				visual_holder.add_child(child)
-
-	var highlight = visual_holder.get_node_or_null("HighlightBorder")
-	if !highlight:
-		highlight = ReferenceRect.new()
-		highlight.name = "HighlightBorder"
-		highlight.border_width = 4.0
-		highlight.editor_only = false
-		highlight.visible = false
-		highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		visual_holder.add_child(highlight)
-
-	if unit_data and unit_data.has("size"):
-		var size_val = unit_data["size"]
-		var target_size = Vector2(size_val.x * Constants.TILE_SIZE - 4, size_val.y * Constants.TILE_SIZE - 4)
-		highlight.size = target_size
-		highlight.position = -(target_size / 2)
+	if visual_component:
+		visual_component.ensure_visual_hierarchy()
 
 func take_damage(amount: float, source_enemy = null):
-	var original_amount = amount
-
-	# 检查是否有guardian_shield buff，应用减伤
-	if "guardian_shield" in active_buffs:
-		var source = buff_sources.get("guardian_shield")
-		if source and is_instance_valid(source) and source.behavior:
-			var reduction = source.behavior.get_damage_reduction() if source.behavior.has_method("get_damage_reduction") else 0.05
-			amount = amount * (1.0 - reduction)
-
-	amount = behavior.on_damage_taken(amount, source_enemy)
-
-	# 计算被阻挡的伤害（来自spore shield等机制）
-	var blocked_amount = original_amount - amount
-	if blocked_amount > 0:
-		damage_blocked.emit(blocked_amount, source_enemy)
-
-	current_hp = max(0, current_hp - amount)
-	GameManager.damage_core(amount)
+	if stats_component:
+		stats_component.take_damage(amount, source_enemy)
 
 	if visual_holder:
 		var tween = create_tween()
@@ -178,43 +187,10 @@ func take_damage(amount: float, source_enemy = null):
 		tween.tween_property(visual_holder, "position", Vector2.ZERO, 0.05)
 
 func reset_stats():
-	var stats = {}
-	if unit_data.has("levels") and unit_data["levels"].has(str(level)):
-		stats = unit_data["levels"][str(level)]
-	else:
-		stats = unit_data
-
-	damage = stats.get("damage", unit_data.get("damage", 0))
-	max_hp = stats.get("hp", unit_data.get("hp", 0))
-	# Note: current_hp is NOT reset here to avoid full heal on level up,
-	# but usually max_hp changes, so maybe we should proportional update?
-	# For simplicity, we assume heal on level up (merge) or just clamp.
-	if current_hp > max_hp: current_hp = max_hp
-	# If max_hp increased, we don't necessarily heal, but we could.
-	# Standard behavior: Keep current_hp, unless we want to "heal on upgrade".
-	# Let's simple clamp.
-
-	range_val = unit_data.get("range", 0)
-	atk_speed = unit_data.get("atkSpeed", 1.0)
-
-	crit_rate = unit_data.get("crit_rate", 0.1)
-	crit_dmg = unit_data.get("crit_dmg", 1.5)
-
-	attack_cost_mana = unit_data.get("manaCost", 0.0)
-	skill_mana_cost = unit_data.get("skillCost", 30.0)
-
-	if stats.has("mechanics"):
-		var mechs = stats["mechanics"]
-		if mechs.has("crit_rate_bonus"):
-			crit_rate += mechs["crit_rate_bonus"]
-
-	bounce_count = 0
-	split_count = 0
-	active_buffs.clear()
-	buff_sources.clear()
-
-	if GameManager.reward_manager and "focus_fire" in GameManager.reward_manager.acquired_artifacts:
-		range_val *= 1.2
+	if stats_component:
+		stats_component.reset_stats()
+	if buff_component:
+		buff_component.clear()
 
 	if behavior:
 		behavior.on_stats_updated()
@@ -242,41 +218,8 @@ func calculate_damage_against(target_node: Node2D) -> float:
 	return final_damage
 
 func apply_buff(buff_type: String, source_unit: Node2D = null):
-	if buff_type in active_buffs and buff_type != "bounce": return
-
-	if not (buff_type in active_buffs):
-		active_buffs.append(buff_type)
-
-	if source_unit:
-		buff_sources[buff_type] = source_unit
-
-	# Emit buff_applied signal for test logging
-	if GameManager.has_signal("buff_applied"):
-		var amount = 0.0
-		match buff_type:
-			"range": amount = 1.25
-			"speed": amount = 1.2
-			"crit": amount = 0.25
-			"bounce": amount = 1.0
-			"split": amount = 1.0
-			"forest_blessing": amount = 1.0
-			"guardian_shield": amount = 1.0
-		GameManager.buff_applied.emit(self, buff_type, source_unit, amount)
-
-	match buff_type:
-		"range":
-			range_val *= 1.25
-		"speed":
-			atk_speed *= 1.2
-		"crit":
-			crit_rate += 0.25
-		"bounce":
-			bounce_count += 1
-		"split":
-			split_count += 1
-		"guardian_shield":
-			# 牦牛守护的减伤buff，效果在take_damage中处理
-			pass
+	if buff_component:
+		buff_component.apply_buff(buff_type, source_unit)
 
 func set_highlight(active: bool, color: Color = Color.WHITE):
 	_is_skill_highlight_active = active
@@ -352,97 +295,8 @@ func activate_skill():
 		GameManager.spawn_floating_text(global_position, "No Mana!", Color.BLUE)
 
 func update_visuals():
-	_ensure_visual_hierarchy()
-	var label = visual_holder.get_node_or_null("Label")
-	var star_label = visual_holder.get_node_or_null("StarLabel")
-
-	var icon_texture = AssetLoader.get_unit_icon(type_key)
-
-	var tex_rect = visual_holder.get_node_or_null("TextureRect")
-	if !tex_rect:
-		tex_rect = TextureRect.new()
-		tex_rect.name = "TextureRect"
-		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		visual_holder.add_child(tex_rect)
-		if label: visual_holder.move_child(tex_rect, label.get_index())
-
-	if icon_texture:
-		tex_rect.texture = icon_texture
-		tex_rect.show()
-		if label: label.hide()
-	else:
-		tex_rect.hide()
-		if label:
-			label.text = unit_data.icon
-			label.show()
-	
-	var size = unit_data["size"]
-	var target_size = Vector2(size.x * Constants.TILE_SIZE - 4, size.y * Constants.TILE_SIZE - 4)
-	var target_pos = -(target_size / 2)
-
-	if tex_rect:
-		tex_rect.size = target_size
-		tex_rect.position = target_pos
-		tex_rect.pivot_offset = tex_rect.size / 2
-
-	if label:
-		label.size = target_size
-		label.position = target_pos
-		label.pivot_offset = label.size / 2
-
-	if level > 1:
-		if star_label:
-			star_label.text = "⭐%d" % level
-			star_label.show()
-	else:
-		if star_label:
-			star_label.hide()
-
-	_update_buff_icons()
-
-func _update_buff_icons():
-	var buff_container = get_node_or_null("BuffContainer")
-	if !buff_container:
-		buff_container = HBoxContainer.new()
-		buff_container.name = "BuffContainer"
-		buff_container.alignment = BoxContainer.ALIGNMENT_CENTER
-
-		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit_data and unit_data.has("size"):
-			size = Vector2(unit_data["size"].x * Constants.TILE_SIZE, unit_data["size"].y * Constants.TILE_SIZE)
-
-		buff_container.position = Vector2(-size.x/2, size.y/2 - 20)
-		buff_container.size = Vector2(size.x, 15)
-
-		buff_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(buff_container)
-
-	for child in buff_container.get_children():
-		child.queue_free()
-
-	for buff in active_buffs:
-		var lbl = Label.new()
-		lbl.add_theme_font_size_override("font_size", 10)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-
-		lbl.text = _get_buff_icon(buff)
-		buff_container.add_child(lbl)
-
-func _get_buff_icon(buff_type: String) -> String:
-	match buff_type:
-		"fire": return "🔥"
-		"poison": return "🧪"
-		"range": return "🔭"
-		"speed": return "⚡"
-		"crit": return "💥"
-		"bounce": return "🪞"
-		"split": return "💠"
-		"multishot": return "📶"
-		"wealth": return "💰"
-	return "?"
+	if visual_component:
+		visual_component.update_visuals()
 
 func _process(delta):
 	if !GameManager.is_wave_active: return
@@ -453,7 +307,8 @@ func _process(delta):
 	_update_temporary_buffs(delta)
 
 	if !behavior.on_combat_tick(delta):
-		_process_combat(delta)
+		if combat_component:
+			combat_component.process_combat(delta)
 
 	if skill_cooldown > 0:
 		skill_cooldown -= delta
@@ -463,202 +318,9 @@ func _process(delta):
 	else:
 		modulate = Color.WHITE
 
-func _process_combat(delta):
-	if !unit_data.has("attackType") or unit_data.attackType == "none":
-		return
-
-	if cooldown > 0:
-		cooldown -= delta
-		return
-
-	if attack_cost_mana > 0:
-		if !GameManager.check_resource("mana", attack_cost_mana):
-			is_no_mana = true
-			return
-		else:
-			is_no_mana = false
-
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	var target = combat_manager.find_nearest_enemy(global_position, range_val)
-	if !target: return
-
-	if unit_data.attackType == "melee":
-		_do_melee_attack(target)
-	else:
-		_do_standard_ranged_attack(target)
-
-func _do_melee_attack(target):
-	var target_last_pos = target.global_position
-
-	if attack_cost_mana > 0:
-		GameManager.consume_resource("mana", attack_cost_mana)
-
-	cooldown = atk_speed * GameManager.get_stat_modifier("attack_interval")
-
-	play_attack_anim("melee", target_last_pos)
-
-	await get_tree().create_timer(Constants.ANIM_WINDUP_TIME).timeout
-	if !is_instance_valid(self): return
-
-	if is_instance_valid(target):
-		_spawn_melee_projectiles(target)
-		attack_performed.emit(target)
-	else:
-		_spawn_melee_projectiles_blind(target_last_pos)
-		attack_performed.emit(null)
-
-func _spawn_melee_projectiles_blind(target_pos: Vector2):
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	var swing_hit_list = []
-	var attack_dir = (target_pos - global_position).normalized()
-
-	var proj_speed = 600.0
-	var proj_life = (range_val + 30.0) / proj_speed
-	var count = 5
-	var spread = PI / 2.0
-
-	var base_angle = attack_dir.angle()
-	var start_angle = base_angle - spread / 2.0
-	var step = spread / max(1, count - 1)
-
-	for i in range(count):
-		var angle = start_angle + (i * step)
-		var stats = {
-			"pierce": 100,
-			"hide_visuals": true,
-			"life": proj_life,
-			"angle": angle,
-			"speed": proj_speed,
-			"shared_hit_list": swing_hit_list
-		}
-		combat_manager.spawn_projectile(self, global_position, null, stats)
-
-func _spawn_melee_projectiles(target: Node2D):
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	var swing_hit_list = []
-	var attack_dir = (target.global_position - global_position).normalized()
-
-	var proj_speed = 600.0
-	var proj_life = (range_val + 30.0) / proj_speed
-	var count = 5
-	var spread = PI / 2.0
-
-	var base_angle = attack_dir.angle()
-	var start_angle = base_angle - spread / 2.0
-	var step = spread / max(1, count - 1)
-
-	for i in range(count):
-		var angle = start_angle + (i * step)
-		var stats = {
-			"pierce": 100,
-			"hide_visuals": true,
-			"life": proj_life,
-			"angle": angle,
-			"speed": proj_speed,
-			"shared_hit_list": swing_hit_list
-		}
-		combat_manager.spawn_projectile(self, global_position, null, stats)
-
-func _do_standard_ranged_attack(target):
-	var combat_manager = GameManager.combat_manager
-	if !combat_manager: return
-
-	if attack_cost_mana > 0:
-		GameManager.consume_resource("mana", attack_cost_mana)
-
-	cooldown = atk_speed * GameManager.get_stat_modifier("attack_interval")
-
-	if unit_data.get("proj") == "lightning":
-		play_attack_anim("lightning", target.global_position)
-		combat_manager.perform_lightning_attack(self, global_position, target, unit_data.get("chain", 0))
-		return
-
-	play_attack_anim("ranged", target.global_position)
-
-	var proj_count = unit_data.get("projCount", 1)
-	var spread = unit_data.get("spread", 0.5)
-
-	if "multishot" in active_buffs:
-		proj_count += 2
-		spread = max(spread, 0.5)
-
-	if proj_count == 1:
-		combat_manager.spawn_projectile(self, global_position, target)
-		attack_performed.emit(target)
-	else:
-		var base_angle = (target.global_position - global_position).angle()
-		var start_angle = base_angle - spread / 2.0
-		var step = spread / max(1, proj_count - 1)
-
-		for i in range(proj_count):
-			var angle = start_angle + (i * step)
-			combat_manager.spawn_projectile(self, global_position, target, {"angle": angle})
-
-	attack_performed.emit(target)
-
 func play_attack_anim(attack_type: String, target_pos: Vector2, duration: float = -1.0):
-	if !visual_holder: return
-
-	if breathe_tween: breathe_tween.kill()
-	if attack_tween: attack_tween.kill()
-
-	attack_tween = create_tween()
-
-	if attack_type == "melee":
-		var dir = (target_pos - global_position).normalized()
-		var original_pos = Vector2.ZERO
-
-		attack_tween.tween_property(visual_holder, "position", -dir * Constants.ANIM_WINDUP_DIST, Constants.ANIM_WINDUP_TIME)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Constants.ANIM_WINDUP_SCALE, Constants.ANIM_WINDUP_TIME)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-
-		attack_tween.tween_property(visual_holder, "position", dir * Constants.ANIM_STRIKE_DIST, Constants.ANIM_STRIKE_TIME)\
-			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Constants.ANIM_STRIKE_SCALE, Constants.ANIM_STRIKE_TIME)\
-			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-
-		attack_tween.tween_property(visual_holder, "position", original_pos, Constants.ANIM_RECOVERY_TIME)\
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Vector2.ONE, Constants.ANIM_RECOVERY_TIME)\
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-	elif attack_type == "bow":
-		var total_time = duration if duration > 0 else 0.5
-		var pull_time = total_time * 0.6
-		var recover_time = total_time * 0.3
-
-		var dir = (target_pos - global_position).normalized()
-
-		attack_tween.tween_property(visual_holder, "position", -dir * 10.0, pull_time)\
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		attack_tween.parallel().tween_property(visual_holder, "scale", Vector2(0.8, 1.2), pull_time)\
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
-		attack_tween.tween_callback(func():
-			visual_holder.position = Vector2.ZERO
-			visual_holder.scale = Vector2.ONE
-		)
-
-		attack_tween.tween_property(visual_holder, "scale", Vector2(1.1, 0.9), recover_time * 0.5)\
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		attack_tween.tween_property(visual_holder, "scale", Vector2.ONE, recover_time * 0.5)
-
-	elif attack_type == "ranged" or attack_type == "lightning":
-		attack_tween.tween_property(visual_holder, "scale", Vector2(0.8, 0.8), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		attack_tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 0.2)
-		attack_tween.parallel().tween_property(visual_holder, "position", Vector2.ZERO, 0.3)
-
-	attack_tween.finished.connect(func(): start_breathe_anim())
-
-var breathe_tween: Tween = null
-var attack_tween: Tween = null
+	if visual_component:
+		visual_component.play_attack_anim(attack_type, target_pos, duration)
 
 func get_interaction_info() -> Dictionary:
 	var info = { "has_interaction": false, "buff_id": "" }
@@ -668,13 +330,8 @@ func get_interaction_info() -> Dictionary:
 	return info
 
 func start_breathe_anim():
-	if !visual_holder: return
-
-	if breathe_tween: breathe_tween.kill()
-
-	breathe_tween = create_tween().set_loops()
-	breathe_tween.tween_property(visual_holder, "scale", Vector2(1.05, 1.05), 1.0).set_trans(Tween.TRANS_SINE)
-	breathe_tween.tween_property(visual_holder, "scale", Vector2(1.0, 1.0), 1.0).set_trans(Tween.TRANS_SINE)
+	if visual_component:
+		visual_component.start_breathe_anim()
 
 func can_merge_with(other_unit) -> bool:
 	if other_unit == null: return false
@@ -707,45 +364,16 @@ func devour(food_unit):
 	GameManager.unit_upgraded.emit(self, old_level, level)
 
 func _on_area_2d_input_event(viewport, event, shape_idx):
-	if !GameManager.is_wave_active:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			unit_clicked.emit(self)
+	if interaction_component:
+		interaction_component.on_area_2d_input_event(viewport, event, shape_idx)
 
 func _on_area_2d_mouse_entered():
-	is_hovered = true
-	queue_redraw()
-
-	for buff_type in buff_sources:
-		var source = buff_sources[buff_type]
-		if is_instance_valid(source) and source.has_method("set_force_highlight"):
-			source.set_force_highlight(true)
-
-	if GameManager.grid_manager and GameManager.grid_manager.has_method("show_provider_icons"):
-		GameManager.grid_manager.show_provider_icons(self)
-
-	var current_stats = {
-		"level": level,
-		"damage": damage,
-		"range": range_val,
-		"atk_speed": atk_speed,
-		"crit_rate": crit_rate,
-		"crit_dmg": crit_dmg
-	}
-	GameManager.show_tooltip.emit(unit_data, current_stats, active_buffs, global_position)
+	if interaction_component:
+		interaction_component.on_area_2d_mouse_entered()
 
 func _on_area_2d_mouse_exited():
-	is_hovered = false
-	queue_redraw()
-
-	for buff_type in buff_sources:
-		var source = buff_sources[buff_type]
-		if is_instance_valid(source) and source.has_method("set_force_highlight"):
-			source.set_force_highlight(false)
-
-	if GameManager.grid_manager and GameManager.grid_manager.has_method("hide_provider_icons"):
-		GameManager.grid_manager.hide_provider_icons()
-
-	GameManager.hide_tooltip.emit()
+	if interaction_component:
+		interaction_component.on_area_2d_mouse_exited()
 
 func _draw():
 	if is_hovered:
@@ -804,74 +432,37 @@ func _get_neighbor_units() -> Array:
 	return list
 
 func _input(event):
-	if is_dragging:
-		if event is InputEventMouseButton and !event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			end_drag()
+	if interaction_component:
+		interaction_component.handle_input(event)
 
 func start_drag(mouse_pos_global):
-	is_dragging = true
-	start_position = position
-	drag_offset = global_position - mouse_pos_global
-	z_index = 100
-	create_ghost()
+	if interaction_component:
+		interaction_component.start_drag(mouse_pos_global)
 
 func end_drag():
-	is_dragging = false
-	z_index = 0
-	remove_ghost()
-
-	if GameManager.grid_manager:
-		if GameManager.grid_manager.handle_unit_drop(self):
-			return
-
-		# Check if dropped in bench area (bottom of screen)
-		var viewport_rect = get_viewport_rect()
-		var mouse_pos = get_global_mouse_position()
-		if mouse_pos.y > (viewport_rect.size.y - 200):
-			# Try to move unit from grid to bench using BoardController
-			var bench_index = _find_empty_bench_slot()
-			if bench_index >= 0 and grid_pos != null:
-				var result = BoardController.try_move_unit("grid", grid_pos, "bench", bench_index)
-				if result.success:
-					return
-			return_to_start()
-			return
-
-	return_to_start()
+	if interaction_component:
+		interaction_component.end_drag()
 
 func create_ghost():
-	if ghost_node: return
-	ghost_node = Node2D.new()
-
-	if visual_holder:
-		var dup_visual = visual_holder.duplicate(7)
-		ghost_node.add_child(dup_visual)
-
-	get_parent().add_child(ghost_node)
-	ghost_node.position = start_position
-	ghost_node.modulate.a = 0.5
-	ghost_node.z_index = -1
+	if interaction_component:
+		interaction_component.create_ghost()
 
 func remove_ghost():
-	if ghost_node:
-		ghost_node.queue_free()
-		ghost_node = null
+	if interaction_component:
+		interaction_component.remove_ghost()
 
 func return_to_start():
-	position = start_position
+	if interaction_component:
+		interaction_component.return_to_start()
 
 func _find_empty_bench_slot() -> int:
-	"""Find an empty bench slot, returns -1 if full"""
-	if not GameManager.session_data:
-		return -1
-	for i in range(Constants.BENCH_SIZE):
-		if GameManager.session_data.get_bench_unit(i) == null:
-			return i
+	if interaction_component:
+		return interaction_component._find_empty_bench_slot()
 	return -1
 
 func heal(amount: float):
-	current_hp = min(current_hp + amount, max_hp)
-	GameManager.spawn_floating_text(global_position, "+%d" % int(amount), Color.GREEN)
+	if stats_component:
+		stats_component.heal(amount)
 
 func play_buff_receive_anim():
 	if visual_holder:
@@ -906,47 +497,16 @@ func spawn_buff_effect(icon_char: String):
 	tween.finished.connect(effect_node.queue_free)
 
 func add_stat_bonus(stat: String, amount: float):
-	match stat:
-		"attack_speed":
-			atk_speed *= (1.0 + amount)
-		"defense":
-			# No defense stat on unit currently?
-			pass
-		"move_speed":
-			# Units don't move.
-			pass
-		"crit_chance":
-			crit_rate += amount
+	if stats_component:
+		stats_component.add_stat_bonus(stat, amount)
 
 func add_temporary_buff(stat: String, amount: float, duration: float):
-	temporary_buffs.append({
-		"stat": stat,
-		"amount": amount,
-		"duration": duration
-	})
-	_apply_temp_buff_effect(stat, amount)
+	if buff_component:
+		buff_component.add_temporary_buff(stat, amount, duration)
 
 func _update_temporary_buffs(delta: float):
-	for i in range(temporary_buffs.size() - 1, -1, -1):
-		var buff = temporary_buffs[i]
-		buff["duration"] -= delta
-		if buff["duration"] <= 0:
-			_remove_temp_buff_effect(buff["stat"], buff["amount"])
-			temporary_buffs.remove_at(i)
-
-func _apply_temp_buff_effect(stat: String, amount: float):
-	match stat:
-		"attack_speed":
-			atk_speed *= (1.0 + amount)
-		"crit_chance":
-			crit_rate += amount
-
-func _remove_temp_buff_effect(stat: String, amount: float):
-	match stat:
-		"attack_speed":
-			atk_speed /= (1.0 + amount)
-		"crit_chance":
-			crit_rate -= amount
+	if buff_component:
+		buff_component._update_temporary_buffs(delta)
 
 # 获取指定范围内的友方单位
 # center_unit: 中心单位（通常是self）
