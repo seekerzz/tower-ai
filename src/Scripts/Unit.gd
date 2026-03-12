@@ -390,5 +390,3 @@ func get_units_in_cell_range(center_unit: Node2D, cell_range: int) -> Array:
 	if spatial_query_service:
 		return spatial_query_service.get_units_in_cell_range(center_unit, cell_range, self)
 	return []
-
-

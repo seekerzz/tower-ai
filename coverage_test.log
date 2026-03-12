@@ -1,4 +1,0 @@
-usage: first_wave_coverage_runner.py [-h] [--base-url BASE_URL]
-                                     [--totems TOTEMS] [--combos COMBOS]
-                                     [--output OUTPUT]
-first_wave_coverage_runner.py: error: unrecognized arguments: --http-port 8080
