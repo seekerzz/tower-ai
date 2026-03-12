@@ -1,0 +1,1 @@
+{"seq": 1, "session_id": "20260312_092656_9bc98cb1", "ts_ms": 1773307616195, "source": "godot_proc", "event_type": "system_crash", "payload": {"error_type": "SCRIPT ERROR: Division by zero", "stack_trace": "At: res://src/test.gd:42", "timestamp": 12345.678}, "request_id": null}
