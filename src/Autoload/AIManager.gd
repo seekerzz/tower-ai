@@ -156,9 +156,6 @@ func _connect_game_signals():
 	# 敌人相关
 	GameManager.enemy_spawned.connect(_on_enemy_spawned)
 
-	# 核心受击
-	GameManager.damage_dealt.connect(_on_damage_dealt)
-
 	# 陷阱相关
 	GameManager.trap_placed.connect(_on_trap_placed)
 	GameManager.trap_triggered.connect(_on_trap_triggered)
@@ -202,16 +199,6 @@ func _on_enemy_spawned(enemy: Node):
 		if data and data.get("is_boss", false):
 			var enemy_type = enemy.type_key if "type_key" in enemy else "未知"
 			broadcast_text("【Boss出现】强大的 %s 出现了！" % enemy_type)
-
-func _on_damage_dealt(unit, amount):
-	# NarrativeLogger handles core damage
-	if unit == null and amount > 0:
-		var core_health = GameManager.core_health
-		var max_health = GameManager.max_core_health
-		var health_percent = core_health / max_health if max_health > 0 else 1.0
-
-		if health_percent < 0.3:
-			broadcast_text("【危险警告】图腾核心血量低于30%！")
 
 func _on_trap_placed(trap_type: String, position: Vector2, source_unit):
 	var unit_type = source_unit.type_key if source_unit and source_unit.has_method("get") and source_unit.get("type_key") else "未知单位"

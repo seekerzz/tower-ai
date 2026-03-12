@@ -34,12 +34,15 @@ func _connect_game_signals():
 # ===== 核心机制回调函数 =====
 
 func _on_damage_dealt(unit, amount: float):
-	# 如果 unit 是 null，说明是核心受损；如果是实体，说明是某个单位造成的伤害
-	var unit_id = _get_unit_identifier(unit)
-	_broadcast("DamageDealt", {
-		"source_unit": unit_id,
-		"amount": amount
-	})
+	if unit == null:
+		# NarrativeLogger 处理了核心受击
+		pass
+	else:
+		var unit_id = _get_unit_identifier(unit)
+		_broadcast("DamageDealt", {
+			"source_unit": unit_id,
+			"amount": amount
+		})
 
 func _on_enemy_hit(enemy, source_unit, amount: float):
 	_broadcast("EnemyHit", {

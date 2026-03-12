@@ -6,7 +6,7 @@
 
 - 非阻塞动作提交：`POST /action` 立即 ACK。
 - 异步执行调度：动作先进入队列，再在 `next_safe_tick` 转发。
-- 结构化事件流：`GET /observations` 支持 cursor (`after_seq`)。
+- 结构化事件流：`GET /observations` 支持 cursor (`after_seq`)。涵盖所有游戏动作与机制结算（伤害、Buff、技能施放等）。
 - 事件持久化：全部事件实时写入 `logs/ai_session_<session_id>.jsonl`。
 - 问题分级：`warning / runtime_error / fatal(system_crash)`。
 

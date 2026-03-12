@@ -121,13 +121,16 @@ python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/Core
 - `game_WaveEnded`
 - `game_ActionResult`
 - `game_ActionError`
+- `game_DamageDealt` / `game_EnemyHit` (战斗机制事件)
+- `game_SkillActivated` / `game_SkillUsed`
+- `game_BuffApplied` / `game_DebuffApplied`
 - `godot_warning`
 - `godot_runtime_error`
 - `system_crash`
 
 ### 结构化事件负载（新增）
 
-Godot 侧现在会主动发送 JSON 事件：
+Godot 侧现在会主动发送动作与战斗日志的 JSON 事件：
 
 ```json
 {
@@ -152,6 +155,20 @@ Godot 侧现在会主动发送 JSON 事件：
 ```
 
 在网关 `/observations` 中会映射为 `event_type = "game_ActionResult"`（或 `game_ActionError`）。
+
+对于 `AIEventsTracker` 发送的战斗事件：
+```json
+{
+  "event": "EnemyHit",
+  "data": {
+    "target_enemy": { "type": "slime", "id": "123456", "position": {"x": 100, "y": 200} },
+    "source_unit": { "type": "snowman", "id": "78910", "grid_pos": {"x": -1, "y": 0} },
+    "amount": 25.0
+  },
+  "ts_ms": 12345678
+}
+```
+这会被映射为 `event_type = "game_EnemyHit"`。
 
 ---
 
