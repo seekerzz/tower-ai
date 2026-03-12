@@ -29,7 +29,8 @@ python3 ai_client/ai_game_client.py --project . --scene res://src/Scenes/UI/Core
   "ttl_ms": 30000,
   "actions": [
     {"type": "buy_unit", "shop_index": 0},
-    {"type": "start_wave"}
+    {"type": "start_wave"},
+    {"type": "cheat_upgrade_unit", "grid_pos": {"x": -1, "y": 0}}
   ]
 }
 ```

@@ -86,6 +86,8 @@ func _execute_action(action: Dictionary) -> Dictionary:
 			return _action_use_skill(action)
 		"cheat_set_shop_unit":
 			return _action_cheat_set_shop_unit(action)
+		"cheat_upgrade_unit":
+			return _action_cheat_upgrade_unit(action)
 		_:
 			return {"success": false, "error_message": "未知动作类型: %s" % action_type}
 
@@ -179,6 +181,33 @@ func _action_use_skill(action: Dictionary) -> Dictionary:
 				unit.activate_skill()
 				return {"success": true}
 	return {"success": false, "error_message": "技能释放失败"}
+
+func _action_cheat_upgrade_unit(action: Dictionary) -> Dictionary:
+	if not OS.is_debug_build():
+		return {"success": false, "error_message": "cheat actions are disabled in non-debug builds"}
+
+	var grid_pos = _parse_position(action.get("grid_pos", null))
+	if grid_pos == null: return {"success": false, "error_message": "无效位置"}
+
+	if not GameManager.session_data:
+		return {"success": false, "error_message": "SessionData未初始化"}
+
+	var unit_data = GameManager.session_data.get_grid_unit(grid_pos)
+	if not unit_data:
+		return {"success": false, "error_message": "该位置没有单位"}
+
+	var new_level = unit_data.get("level", 1) + 1
+	unit_data["level"] = new_level
+	GameManager.session_data.set_grid_unit(grid_pos, unit_data)
+
+	if GameManager.grid_manager:
+		var key = "%d,%d" % [grid_pos.x, grid_pos.y]
+		if GameManager.grid_manager.tiles.has(key):
+			var tile = GameManager.grid_manager.tiles[key]
+			if tile.unit and tile.unit.has_method("set_level"):
+				tile.unit.set_level(new_level)
+
+	return {"success": true, "grid_pos": {"x": grid_pos.x, "y": grid_pos.y}, "new_level": new_level}
 
 # ===== Helpers =====
 
