@@ -2,7 +2,6 @@ class_name DataWoodpecker
 
 const DATA: Dictionary = {
 	"name": "啄木鸟", "icon": "🐦",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 0.5,
 	"attackType": "ranged", "proj": "stinger",
 	"damageType": "physical",

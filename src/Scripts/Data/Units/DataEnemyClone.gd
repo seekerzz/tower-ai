@@ -5,7 +5,6 @@ const DATA: Dictionary = {
 	"type": "summoned_clone",
 	"inherit_stats": ["damage", "attack_speed", "range"],
 	"lifetime": -1,
-	"size": [1, 1],
 	"attackType": "melee", "damageType": "physical",
 	"type_key": "enemy_clone", "faction": "universal",
 	"levels": {

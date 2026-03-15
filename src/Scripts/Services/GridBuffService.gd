@@ -53,17 +53,12 @@ func apply_buff_to_specific_pos(target_pos: Vector2i, buff_id: String, provider_
 func apply_buff_to_neighbors(provider_unit, buff_type):
 	var cx = provider_unit.grid_pos.x
 	var cy = provider_unit.grid_pos.y
-	var w = provider_unit.unit_data.size.x
-	var h = provider_unit.unit_data.size.y
-	var neighbors = []
-
-	for dx in range(w):
-		neighbors.append(Vector2i(cx + dx, cy - 1))
-		neighbors.append(Vector2i(cx + dx, cy + h))
-
-	for dy in range(h):
-		neighbors.append(Vector2i(cx - 1, cy + dy))
-		neighbors.append(Vector2i(cx + w, cy + dy))
+	var neighbors = [
+		Vector2i(cx, cy - 1),
+		Vector2i(cx, cy + 1),
+		Vector2i(cx - 1, cy),
+		Vector2i(cx + 1, cy)
+	]
 
 	for n_pos in neighbors:
 		var n_key = grid_manager.get_tile_key(n_pos.x, n_pos.y)
@@ -102,16 +97,13 @@ func show_provider_icons(provider_unit: Node2D):
 
 	var cx = provider_unit.grid_pos.x
 	var cy = provider_unit.grid_pos.y
-	var w = provider_unit.unit_data.size.x
-	var h = provider_unit.unit_data.size.y
 
-	var neighbors = []
-	for dx in range(w):
-		neighbors.append(Vector2i(cx + dx, cy - 1))
-		neighbors.append(Vector2i(cx + dx, cy + h))
-	for dy in range(h):
-		neighbors.append(Vector2i(cx - 1, cy + dy))
-		neighbors.append(Vector2i(cx + w, cy + dy))
+	var neighbors = [
+		Vector2i(cx, cy - 1),
+		Vector2i(cx, cy + 1),
+		Vector2i(cx - 1, cy),
+		Vector2i(cx + 1, cy)
+	]
 
 	for n_pos in neighbors:
 		spawn_provider_icon_at(n_pos, buff_type, provider_unit)

@@ -13,16 +13,17 @@ func get_neighbor_units() -> Array:
 
 	var cx = unit.grid_pos.x
 	var cy = unit.grid_pos.y
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
 
-	var neighbors_pos: Array = []
-	for dx in range(-1, w + 1):
-		neighbors_pos.append(Vector2i(cx + dx, cy - 1))
-		neighbors_pos.append(Vector2i(cx + dx, cy + h))
-	for dy in range(0, h):
-		neighbors_pos.append(Vector2i(cx - 1, cy + dy))
-		neighbors_pos.append(Vector2i(cx + w, cy + dy))
+	var neighbors_pos: Array = [
+		Vector2i(cx - 1, cy - 1),
+		Vector2i(cx, cy - 1),
+		Vector2i(cx + 1, cy - 1),
+		Vector2i(cx - 1, cy),
+		Vector2i(cx + 1, cy),
+		Vector2i(cx - 1, cy + 1),
+		Vector2i(cx, cy + 1),
+		Vector2i(cx + 1, cy + 1)
+	]
 
 	for n_pos in neighbors_pos:
 		var key = GameManager.grid_manager.get_tile_key(n_pos.x, n_pos.y)

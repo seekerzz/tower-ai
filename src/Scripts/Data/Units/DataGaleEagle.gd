@@ -2,7 +2,6 @@ class_name DataGaleEagle
 
 const DATA: Dictionary = {
 	"name": "疾风鹰", "icon": "💨",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 1.2, "manaCost": 0,
 	"attackType": "ranged", "proj": "feather",
 	"damageType": "physical",

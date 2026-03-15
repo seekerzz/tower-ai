@@ -2,7 +2,6 @@ class_name DataRageBear
 
 const DATA: Dictionary = {
 	"name": "暴怒熊", "icon": "🐻",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 1.2, "manaCost": 300,
 	"attackType": "melee",
 	"skill": "ground_slam", "skillCd": 15,

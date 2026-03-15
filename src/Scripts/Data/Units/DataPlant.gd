@@ -2,7 +2,6 @@ class_name DataPlant
 
 const DATA: Dictionary = {
 	"name": "向日葵", "icon": "🌻",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "none",
 	"produce": "mana", "produceAmt": 60,

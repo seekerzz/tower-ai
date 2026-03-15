@@ -2,7 +2,6 @@ class_name DataLifeChain
 
 const DATA: Dictionary = {
 	"name": "生命链接", "icon": "⛓️",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "ranged", "proj": "chain_link",
 	"damageType": "magic",

@@ -2,7 +2,6 @@ class_name DataParrot
 
 const DATA: Dictionary = {
 	"name": "鹦鹉", "icon": "🦜",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 0.08, "manaCost": 0,
 	"attackType": "mimic",
 	"crit_rate": 0.1, "crit_dmg": 1.5,

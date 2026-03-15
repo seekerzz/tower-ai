@@ -2,7 +2,6 @@ class_name DataStormEagle
 
 const DATA: Dictionary = {
 	"name": "风暴鹰", "icon": "⚡",
-	"size": [1, 1],
 	"range": 300, "atkSpeed": 1.5, "manaCost": 0,
 	"attackType": "ranged", "proj": "lightning",
 	"damageType": "lightning",

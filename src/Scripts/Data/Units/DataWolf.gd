@@ -2,7 +2,6 @@ class_name DataWolf
 
 const DATA: Dictionary = {
 	"name": "野狼", "icon": "🐺",
-	"size": [1, 1],
 	"range": 100, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "melee", "damageType": "physical",
 	"crit_rate": 0.1, "crit_dmg": 1.5,

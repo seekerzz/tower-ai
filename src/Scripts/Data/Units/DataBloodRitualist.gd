@@ -2,7 +2,6 @@ class_name DataBloodRitualist
 
 const DATA: Dictionary = {
 	"name": "血祭术士", "icon": "🔮",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "ranged", "proj": "blood_orb",
 	"skill": "blood_ritual", "skillCd": 12.0,

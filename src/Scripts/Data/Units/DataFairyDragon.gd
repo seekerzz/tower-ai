@@ -2,7 +2,6 @@ class_name DataFairyDragon
 
 const DATA: Dictionary = {
 	"name": "精灵龙", "icon": "🧚🐉",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 1.2,
 	"attackType": "ranged", "proj": "magic_missile",
 	"desc": "攻击命中时有概率将敌人传送至2-3格外的直线距离。概率受敌人抗性影响。",

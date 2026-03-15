@@ -2,7 +2,6 @@ class_name DataEel
 
 const DATA: Dictionary = {
 	"name": "电鳗", "icon": "⚡",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.2, "manaCost": 50,
 	"attackType": "ranged", "proj": "lightning",
 	"chain": 4, "damageType": "lightning",

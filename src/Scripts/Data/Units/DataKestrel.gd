@@ -2,7 +2,6 @@ class_name DataKestrel
 
 const DATA: Dictionary = {
 	"name": "红隼", "icon": "🐦",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 1.0,
 	"attackType": "ranged", "damageType": "physical",
 	"type_key": "kestrel", "faction": "eagle_totem",

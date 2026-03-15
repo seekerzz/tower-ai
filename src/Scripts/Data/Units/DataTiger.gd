@@ -2,7 +2,6 @@ class_name DataTiger
 
 const DATA: Dictionary = {
 	"name": "猛虎", "icon": "🐯",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 1.5, "manaCost": 0,
 	"attackType": "ranged", "proj": "pinecone",
 	"damageType": "physical",

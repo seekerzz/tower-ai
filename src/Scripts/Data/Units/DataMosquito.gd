@@ -2,7 +2,6 @@ class_name DataMosquito
 
 const DATA: Dictionary = {
 	"name": "蚊子", "icon": "🦟",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.5, "manaCost": 0,
 	"attackType": "ranged", "proj": "dot",
 	"trait": "lifesteal", "lifesteal_percent": 0.2,

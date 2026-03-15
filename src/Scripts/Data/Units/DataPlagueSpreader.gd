@@ -2,7 +2,6 @@ class_name DataPlagueSpreader
 
 const DATA: Dictionary = {
 	"name": "瘟疫使者", "icon": "🦇",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 1.2, "manaCost": 0,
 	"attackType": "ranged", "proj": "stinger",
 	"damageType": "poison",

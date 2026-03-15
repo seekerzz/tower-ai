@@ -2,7 +2,6 @@ class_name DataOctopus
 
 const DATA: Dictionary = {
 	"name": "八爪鱼", "icon": "🐙",
-	"size": [1, 1],
 	"range": 180, "atkSpeed": 1.5, "manaCost": 0,
 	"attackType": "ranged", "proj": "ink",
 	"projCount": 5, "spread": 0.5,

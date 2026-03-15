@@ -2,7 +2,6 @@ class_name DataBloodMage
 
 const DATA: Dictionary = {
 	"name": "血法师", "icon": "🩸",
-	"size": [1, 1],
 	"range": 300, "atkSpeed": 1.0, "manaCost": 100,
 	"attackType": "ranged", "proj": "magic_missile",
 	"skill": "blood_pool", "skillType": "point",

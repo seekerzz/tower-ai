@@ -2,7 +2,6 @@ class_name DataSplitter
 
 const DATA: Dictionary = {
 	"name": "多重棱镜", "icon": "💠",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 0, "manaCost": 0,
 	"attackType": "none", "buffProvider": "split",
 	"crit_rate": 0.0, "crit_dmg": 1.5,

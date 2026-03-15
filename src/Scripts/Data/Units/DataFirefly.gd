@@ -2,7 +2,6 @@ class_name DataFirefly
 
 const DATA: Dictionary = {
 	"name": "萤火虫", "icon": "✨",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.2, "manaCost": 0,
 	"attackType": "ranged", "proj": "light",
 	"damageType": "magic",

@@ -2,7 +2,6 @@ class_name DataArrowFrog
 
 const DATA: Dictionary = {
 	"name": "箭毒蛙", "icon": "🐸",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "melee", "damageType": "poison",
 	"crit_rate": 0.1, "crit_dmg": 1.5,

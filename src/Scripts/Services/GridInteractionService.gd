@@ -133,17 +133,16 @@ func start_interaction_selection(unit):
 
 	var cx = unit.grid_pos.x
 	var cy = unit.grid_pos.y
-	var neighbors = []
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
-
-	for dx in range(-1, w + 1):
-		neighbors.append(Vector2i(cx + dx, cy - 1))
-		neighbors.append(Vector2i(cx + dx, cy + h))
-
-	for dy in range(0, h):
-		neighbors.append(Vector2i(cx - 1, cy + dy))
-		neighbors.append(Vector2i(cx + w, cy + dy))
+	var neighbors = [
+		Vector2i(cx - 1, cy - 1),
+		Vector2i(cx, cy - 1),
+		Vector2i(cx + 1, cy - 1),
+		Vector2i(cx - 1, cy),
+		Vector2i(cx + 1, cy),
+		Vector2i(cx - 1, cy + 1),
+		Vector2i(cx, cy + 1),
+		Vector2i(cx + 1, cy + 1)
+	]
 
 	for pos in neighbors:
 		if is_valid_interaction_target(unit, pos):

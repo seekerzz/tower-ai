@@ -2,7 +2,6 @@ class_name DataBloodAncestor
 
 const DATA: Dictionary = {
 	"name": "血祖", "icon": "👑",
-	"size": [1, 1],
 	"range": 280, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "ranged", "proj": "magic_missile",
 	"damageType": "magic",

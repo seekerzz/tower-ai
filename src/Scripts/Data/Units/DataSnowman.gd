@@ -2,7 +2,6 @@ class_name DataSnowman
 
 const DATA: Dictionary = {
 	"name": "雪人", "icon": "☃️",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 1.0, "manaCost": 20,
 	"attackType": "none",
 	"production_type": "item", "produce_item_id": "snowball_trap",

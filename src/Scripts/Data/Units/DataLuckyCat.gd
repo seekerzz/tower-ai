@@ -2,7 +2,6 @@ class_name DataLuckyCat
 
 const DATA: Dictionary = {
 	"name": "招财猫", "icon": "🐱",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 1.0,
 	"attackType": "none",
 	"has_interaction": true, "interaction_pattern": "neighbor_pair",

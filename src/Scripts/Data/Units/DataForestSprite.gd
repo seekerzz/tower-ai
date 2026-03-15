@@ -2,7 +2,6 @@ class_name DataForestSprite
 
 const DATA: Dictionary = {
 	"name": "森林精灵", "icon": "🧚",
-	"size": [1, 1],
 	"range": 150, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "none", "buffProvider": "forest_blessing",
 	"crit_rate": 0.0, "crit_dmg": 1.5,

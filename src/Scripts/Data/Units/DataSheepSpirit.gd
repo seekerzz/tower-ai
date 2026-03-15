@@ -2,7 +2,6 @@ class_name DataSheepSpirit
 
 const DATA: Dictionary = {
 	"name": "羊灵", "icon": "🐑",
-	"size": [1, 1],
 	"range": 150, "atkSpeed": 0.8, "manaCost": 0,
 	"attackType": "ranged", "proj": "spirit_orb",
 	"damageType": "magic",

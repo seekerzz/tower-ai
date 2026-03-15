@@ -2,7 +2,6 @@ class_name DataScorpion
 
 const DATA: Dictionary = {
 	"name": "蝎子", "icon": "🦂",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.0,
 	"attackType": "ranged", "proj": "stinger",
 	"type_key": "scorpion", "faction": "viper_totem",

@@ -2,7 +2,6 @@ class_name DataSpider
 
 const DATA: Dictionary = {
 	"name": "蜘蛛", "icon": "🕷️",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "ranged", "proj": "web",
 	"trait": "slow", "damageType": "physical",

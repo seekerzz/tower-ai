@@ -2,7 +2,6 @@ class_name DataMagpie
 
 const DATA: Dictionary = {
 	"name": "喜鹊", "icon": "🐧",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.2,
 	"attackType": "ranged", "damageType": "physical",
 	"type_key": "magpie", "faction": "eagle_totem",

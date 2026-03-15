@@ -2,7 +2,6 @@ class_name DataVampireBat
 
 const DATA: Dictionary = {
 	"name": "吸血蝠", "icon": "🦇",
-	"size": [1, 1],
 	"range": 100, "atkSpeed": 0.8, "manaCost": 0,
 	"attackType": "melee", "damageType": "physical",
 	"crit_rate": 0.1, "crit_dmg": 1.5,

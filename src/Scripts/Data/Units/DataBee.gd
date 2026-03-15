@@ -2,7 +2,6 @@ class_name DataBee
 
 const DATA: Dictionary = {
 	"name": "蜜蜂", "icon": "🐝",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 0.8, "manaCost": 0,
 	"attackType": "ranged", "proj": "stinger",
 	"pierce": 3, "damageType": "physical",

@@ -2,7 +2,6 @@ class_name DataDog
 
 const DATA: Dictionary = {
 	"name": "恶霸犬", "icon": "🐕",
-	"size": [1, 1],
 	"range": 100, "atkSpeed": 0.8, "manaCost": 0,
 	"attackType": "melee", "splash": 60,
 	"skill": "rage", "skillCd": 10, "skillDuration": 5.0,

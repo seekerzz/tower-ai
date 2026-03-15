@@ -39,11 +39,9 @@ func ensure_visual_hierarchy():
 		highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		unit.visual_holder.add_child(highlight)
 
-	if unit.unit_data and unit.unit_data.has("size"):
-		var size_val = unit.unit_data["size"]
-		var target_size = Vector2(size_val.x * Constants.TILE_SIZE - 4, size_val.y * Constants.TILE_SIZE - 4)
-		highlight.size = target_size
-		highlight.position = -(target_size / 2)
+	var target_size = Vector2(Constants.TILE_SIZE - 4, Constants.TILE_SIZE - 4)
+	highlight.size = target_size
+	highlight.position = -(target_size / 2)
 
 func set_skill_highlight(active: bool, color: Color = Color.WHITE):
 	_is_skill_highlight_active = active
@@ -65,16 +63,12 @@ func draw_overlays():
 
 	if _is_skill_highlight_active:
 		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit.unit_data and unit.unit_data.has("size"):
-			size = Vector2(unit.unit_data.size.x * Constants.TILE_SIZE, unit.unit_data.size.y * Constants.TILE_SIZE)
 
 		var rect = Rect2(-size / 2, size)
 		unit.draw_rect(rect, _highlight_color, false, 4.0)
 
 	if is_force_highlighted:
 		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit.unit_data and unit.unit_data.has("size"):
-			size = Vector2(unit.unit_data.size.x * Constants.TILE_SIZE, unit.unit_data.size.y * Constants.TILE_SIZE)
 
 		var rect = Rect2(-size / 2, size)
 		unit.draw_rect(rect, Color.WHITE, false, 4.0)
@@ -107,8 +101,7 @@ func update_visuals():
 			label.text = unit.unit_data.icon
 			label.show()
 
-	var size = unit.unit_data["size"]
-	var target_size = Vector2(size.x * Constants.TILE_SIZE - 4, size.y * Constants.TILE_SIZE - 4)
+	var target_size = Vector2(Constants.TILE_SIZE - 4, Constants.TILE_SIZE - 4)
 	var target_pos = -(target_size / 2)
 
 	if tex_rect:
@@ -139,8 +132,6 @@ func _update_buff_icons():
 		buff_container.alignment = BoxContainer.ALIGNMENT_CENTER
 
 		var size = Vector2(Constants.TILE_SIZE, Constants.TILE_SIZE)
-		if unit.unit_data and unit.unit_data.has("size"):
-			size = Vector2(unit.unit_data["size"].x * Constants.TILE_SIZE, unit.unit_data["size"].y * Constants.TILE_SIZE)
 
 		buff_container.position = Vector2(-size.x/2, size.y/2 - 20)
 		buff_container.size = Vector2(size.x, 15)

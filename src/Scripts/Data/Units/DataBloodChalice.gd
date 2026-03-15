@@ -2,7 +2,6 @@ class_name DataBloodChalice
 
 const DATA: Dictionary = {
 	"name": "鲜血圣杯", "icon": "🏆",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "none", "damageType": "physical",
 	"crit_rate": 0.0, "crit_dmg": 1.5,

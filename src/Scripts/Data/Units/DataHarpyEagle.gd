@@ -2,7 +2,6 @@ class_name DataHarpyEagle
 
 const DATA: Dictionary = {
 	"name": "角雕", "icon": "🦅",
-	"size": [1, 1],
 	"range": 120, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "melee", "damageType": "physical",
 	"crit_rate": 0.15, "crit_dmg": 1.5,

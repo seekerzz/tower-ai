@@ -2,7 +2,6 @@ class_name DataMushroomHealer
 
 const DATA: Dictionary = {
 	"name": "菌菇治愈者", "icon": "🍄",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "none",
 	"skill": "burst_heal", "skillCd": 15,

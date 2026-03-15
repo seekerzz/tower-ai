@@ -2,7 +2,6 @@ class_name DataPeacock
 
 const DATA: Dictionary = {
 	"name": "孔雀", "icon": "🦚",
-	"size": [1, 1],
 	"range": 300, "atkSpeed": 1.2,
 	"attackType": "ranged", "proj": "feather",
 	"max_quills": 3,

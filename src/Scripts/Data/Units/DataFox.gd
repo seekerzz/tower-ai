@@ -2,7 +2,6 @@ class_name DataFox
 
 const DATA: Dictionary = {
 	"name": "灵狐", "icon": "🦊",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "ranged", "proj": "spirit_orb",
 	"damageType": "magic",

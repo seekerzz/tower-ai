@@ -2,7 +2,6 @@ class_name DataBear
 
 const DATA: Dictionary = {
 	"name": "暴怒熊", "icon": "🐻",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 1.2, "manaCost": 0,
 	"attackType": "melee",
 	"skill": "stun", "skillCd": 15,

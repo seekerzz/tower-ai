@@ -2,7 +2,6 @@ class_name DataRockArmorCow
 
 const DATA: Dictionary = {
 	"name": "岩甲牛", "icon": "🪨",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "melee", "damageType": "physical",
 	"crit_rate": 0.0, "crit_dmg": 1.5,

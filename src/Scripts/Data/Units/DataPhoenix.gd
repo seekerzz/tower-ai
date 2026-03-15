@@ -2,7 +2,6 @@ class_name DataPhoenix
 
 const DATA: Dictionary = {
 	"name": "凤凰", "icon": "🦅",
-	"size": [1, 1],
 	"range": 300, "atkSpeed": 0.6, "manaCost": 0,
 	"attackType": "ranged", "proj": "fire", "splash": 40,
 	"skill": "firestorm", "skillCd": 20,

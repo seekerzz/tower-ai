@@ -2,7 +2,6 @@ class_name DataHedgehog
 
 const DATA: Dictionary = {
 	"name": "刺猬", "icon": "🦔",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "melee",
 	"trait": "reflect", "reflect_percent": 0.3,

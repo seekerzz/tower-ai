@@ -2,7 +2,6 @@ class_name DataSquirrel
 
 const DATA: Dictionary = {
 	"name": "松鼠", "icon": "🐿️",
-	"size": [1, 1],
 	"range": 250, "atkSpeed": 0.15, "manaCost": 0,
 	"attackType": "ranged", "proj": "pinecone",
 	"damageType": "physical",

@@ -2,7 +2,6 @@ class_name DataBloodMeat
 
 const DATA: Dictionary = {
 	"name": "五花肉", "icon": "🥩",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 0, "manaCost": 50,
 	"attackType": "none",
 	"skill": "sacrifice", "skillCd": 20,

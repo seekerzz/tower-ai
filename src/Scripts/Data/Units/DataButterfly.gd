@@ -2,7 +2,6 @@ class_name DataButterfly
 
 const DATA: Dictionary = {
 	"name": "蝴蝶", "icon": "🦋",
-	"size": [1, 1],
 	"range": 350, "atkSpeed": 1.2, "manaCost": 50,
 	"attackType": "ranged", "proj": "pollen", "splash": 30,
 	"damageType": "magic",

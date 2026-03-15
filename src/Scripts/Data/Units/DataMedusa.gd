@@ -2,7 +2,6 @@ class_name DataMedusa
 
 const DATA: Dictionary = {
 	"name": "美杜莎", "icon": "👑",
-	"size": [1, 1],
 	"range": 300, "atkSpeed": 1.5, "manaCost": 0,
 	"attackType": "ranged", "proj": "magic_missile",
 	"damageType": "magic",

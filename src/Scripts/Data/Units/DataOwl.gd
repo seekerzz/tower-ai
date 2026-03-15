@@ -2,7 +2,6 @@ class_name DataOwl
 
 const DATA: Dictionary = {
 	"name": "猫头鹰", "icon": "🦉",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 1.0,
 	"attackType": "none", "buffProvider": "crit",
 	"type_key": "owl", "faction": "eagle_totem",

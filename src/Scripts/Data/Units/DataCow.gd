@@ -2,7 +2,6 @@ class_name DataCow
 
 const DATA: Dictionary = {
 	"name": "奶牛", "icon": "🐄",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 1.0, "manaCost": 0,
 	"attackType": "none",
 	"skill": "regenerate", "skillDuration": 5.0,

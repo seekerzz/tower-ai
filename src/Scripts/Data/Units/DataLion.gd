@@ -2,7 +2,6 @@ class_name DataLion
 
 const DATA: Dictionary = {
 	"name": "狮子", "icon": "🦁",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 2.0, "manaCost": 0,
 	"attackType": "shockwave", "damageType": "physical",
 	"crit_rate": 0.1, "crit_dmg": 1.5,

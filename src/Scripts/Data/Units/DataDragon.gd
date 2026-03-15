@@ -2,7 +2,6 @@ class_name DataDragon
 
 const DATA: Dictionary = {
 	"name": "龙", "icon": "🐉",
-	"size": [1, 1],
 	"range": 300, "manaCost": 200,
 	"attackType": "none",
 	"skill": "black_hole", "skillType": "point",

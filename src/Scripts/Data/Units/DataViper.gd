@@ -2,7 +2,6 @@ class_name DataViper
 
 const DATA: Dictionary = {
 	"name": "毒蛇", "icon": "🐍",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 1.2, "manaCost": 0,
 	"attackType": "melee",
 	"trait": "poison_touch", "damageType": "poison",

@@ -2,7 +2,6 @@ class_name DataCauldron
 
 const DATA: Dictionary = {
 	"name": "剧毒大锅", "icon": "🧪",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 0, "manaCost": 0,
 	"attackType": "none", "buffProvider": "poison",
 	"crit_rate": 0.0, "crit_dmg": 1.5,

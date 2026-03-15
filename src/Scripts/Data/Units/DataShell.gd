@@ -2,7 +2,6 @@ class_name DataShell
 
 const DATA: Dictionary = {
 	"name": "贝壳", "icon": "🐚",
-	"size": [1, 1],
 	"range": 0, "atkSpeed": 0, "manaCost": 0,
 	"attackType": "none",
 	"crit_rate": 0.0, "crit_dmg": 1.5,

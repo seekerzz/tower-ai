@@ -746,20 +746,17 @@ func place_unit(unit_key: String, x: int, y: int) -> bool:
 		unit.queue_free()
 		return false
 
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
-
-	if !can_place_unit(x, y, w, h):
+	if !can_place_unit(x, y):
 		unit.queue_free()
 		return false
 
 	add_child(unit)
-	unit.position = grid_to_local(Vector2i(x,y)) + Vector2((w-1) * TILE_SIZE * 0.5, (h-1) * TILE_SIZE * 0.5)
+	unit.position = grid_to_local(Vector2i(x,y))
 
 	unit.start_position = unit.position
 	unit.grid_pos = Vector2i(x, y)
 
-	_set_tiles_occupied(x, y, w, h, unit)
+	_set_tiles_occupied(x, y, unit)
 
 	if unit.unit_data.get("trait") in ["reflect", "flat_reduce"]:
 		register_obstacle(Vector2i(x, y), unit)
@@ -776,25 +773,17 @@ func place_unit(unit_key: String, x: int, y: int) -> bool:
 
 	return true
 
-func _set_tiles_occupied(x: int, y: int, w: int, h: int, unit):
-	for dx in range(w):
-		for dy in range(h):
-			var t_key = get_tile_key(x + dx, y + dy)
-			if tiles.has(t_key):
-				var t = tiles[t_key]
-				if dx == 0 and dy == 0:
-					t.unit = unit
-				else:
-					t.occupied_by = Vector2i(x, y)
+func _set_tiles_occupied(x: int, y: int, unit):
+	var t_key = get_tile_key(x, y)
+	if tiles.has(t_key):
+		tiles[t_key].unit = unit
 
-func _clear_tiles_occupied(x: int, y: int, w: int, h: int):
-	for dx in range(w):
-		for dy in range(h):
-			var t_key = get_tile_key(x + dx, y + dy)
-			if tiles.has(t_key):
-				var t = tiles[t_key]
-				t.unit = null
-				t.occupied_by = Vector2i.ZERO
+func _clear_tiles_occupied(x: int, y: int):
+	var t_key = get_tile_key(x, y)
+	if tiles.has(t_key):
+		var t = tiles[t_key]
+		t.unit = null
+		t.occupied_by = Vector2i.ZERO
 
 func is_in_core_zone(pos: Vector2i) -> bool:
 	return abs(pos.x) <= Constants.CORE_ZONE_RADIUS and abs(pos.y) <= Constants.CORE_ZONE_RADIUS
@@ -829,12 +818,10 @@ func _get_clockwise_neighbors(center_pos: Vector2i) -> Array[Vector2i]:
 func is_neighbor(unit, target_pos: Vector2i) -> bool:
 	var cx = unit.grid_pos.x
 	var cy = unit.grid_pos.y
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
 
-	if target_pos.x >= cx - 1 and target_pos.x < cx + w + 1:
-		if target_pos.y >= cy - 1 and target_pos.y < cy + h + 1:
-			if target_pos.x >= cx and target_pos.x < cx + w and target_pos.y >= cy and target_pos.y < cy + h:
+	if target_pos.x >= cx - 1 and target_pos.x <= cx + 1:
+		if target_pos.y >= cy - 1 and target_pos.y <= cy + 1:
+			if target_pos.x == cx and target_pos.y == cy:
 				return false
 			return true
 	return false
@@ -863,21 +850,20 @@ func _spawn_provider_icon_at(grid_pos: Vector2i, buff_type: String, provider_uni
 func hide_provider_icons():
 	grid_buff_service.hide_provider_icons()
 
-func can_place_unit(x: int, y: int, w: int, h: int, exclude_unit = null) -> bool:
-	for dx in range(w):
-		for dy in range(h):
-			var pos = Vector2i(x + dx, y + dy)
-			var key = get_tile_key(x + dx, y + dy)
-			if !tiles.has(key): return false
-			var tile = tiles[key]
-			if tile.state != "unlocked": return false
-			if tile.type == "core": return false
-			if tile.unit and tile.unit != exclude_unit: return false
-			if obstacles.has(pos): return false
-			if tile.occupied_by != Vector2i.ZERO:
-				if exclude_unit and tile.occupied_by == exclude_unit.grid_pos:
-					continue
-				return false
+func can_place_unit(x: int, y: int, exclude_unit = null) -> bool:
+	var pos = Vector2i(x, y)
+	var key = get_tile_key(x, y)
+	if !tiles.has(key): return false
+	var tile = tiles[key]
+	if tile.state != "unlocked": return false
+	if tile.type == "core": return false
+	if tile.unit and tile.unit != exclude_unit: return false
+	if obstacles.has(pos): return false
+	if tile.occupied_by != Vector2i.ZERO:
+		if exclude_unit and tile.occupied_by == exclude_unit.grid_pos:
+			pass
+		else:
+			return false
 	return true
 
 func _on_tile_clicked(tile):
@@ -886,8 +872,6 @@ func _on_tile_clicked(tile):
 
 func remove_unit_from_grid(unit):
 	if unit == null: return
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
 
 	if unit.unit_data.get("trait") in ["reflect", "flat_reduce"]:
 		remove_obstacle(unit)
@@ -905,7 +889,7 @@ func remove_unit_from_grid(unit):
 		unit.attachment.queue_free()
 		unit.attachment = null
 
-	_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y, w, h)
+	_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y)
 	unit.queue_free()
 	recalculate_buffs()
 	GameManager.recalculate_max_health()
@@ -970,11 +954,9 @@ func try_move_unit(unit, from_tile, to_tile) -> bool:
 
 	var x = to_tile.x
 	var y = to_tile.y
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
 
 	# Case 1: Empty Target
-	if can_place_unit(x, y, w, h, unit):
+	if can_place_unit(x, y, unit):
 		_move_unit_internal(unit, x, y)
 		return true
 
@@ -990,14 +972,14 @@ func try_move_unit(unit, from_tile, to_tile) -> bool:
 
 	if target_unit.can_merge_with(unit):
 		target_unit.merge_with(unit)
-		_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y, w, h)
+		_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y)
 		unit.queue_free()
 		recalculate_buffs()
 		return true
 
 	if can_devour(target_unit, unit):
 		target_unit.devour(unit)
-		_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y, w, h)
+		_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y)
 		unit.queue_free()
 		recalculate_buffs()
 		return true
@@ -1011,9 +993,7 @@ func try_move_unit(unit, from_tile, to_tile) -> bool:
 		if target_unit.type_key != "oxpecker" and target_unit.attachment == null:
 			# We are moving an oxpecker from grid onto a host
 			# Remove oxpecker from its old grid position
-			var old_w = unit.unit_data.size.x
-			var old_h = unit.unit_data.size.y
-			_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y, old_w, old_h)
+			_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y)
 
 			# Attach
 			unit.attach_to_host(target_unit)
@@ -1025,15 +1005,13 @@ func try_move_unit(unit, from_tile, to_tile) -> bool:
 	return false
 
 func _move_unit_internal(unit, new_x, new_y):
-	var w = unit.unit_data.size.x
-	var h = unit.unit_data.size.y
-	_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y, w, h)
+	_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y)
 	unit.grid_pos = Vector2i(new_x, new_y)
-	_set_tiles_occupied(new_x, new_y, w, h, unit)
+	_set_tiles_occupied(new_x, new_y, unit)
 
 	var tile = tiles[get_tile_key(new_x, new_y)]
 	# Use grid_to_local for unit position update
-	unit.position = grid_to_local(Vector2i(new_x, new_y)) + Vector2((w-1) * TILE_SIZE * 0.5, (h-1) * TILE_SIZE * 0.5)
+	unit.position = grid_to_local(Vector2i(new_x, new_y))
 
 	unit.start_position = unit.position
 
@@ -1053,53 +1031,27 @@ func can_devour(eater, food) -> bool:
 	return false
 
 func can_swap(unit_a, unit_b) -> bool:
-	var pos_a = unit_a.grid_pos
-	var size_a = unit_a.unit_data.size
-	var pos_b = unit_b.grid_pos
-	var size_b = unit_b.unit_data.size
-
-	if size_a == size_b: return true
-	if !can_place_unit_custom(pos_b.x, pos_b.y, size_a.x, size_a.y, [unit_a, unit_b]): return false
-	if !can_place_unit_custom(pos_a.x, pos_a.y, size_b.x, size_b.y, [unit_a, unit_b]): return false
-	return true
-
-func can_place_unit_custom(x: int, y: int, w: int, h: int, ignore_units: Array) -> bool:
-	for dx in range(w):
-		for dy in range(h):
-			var key = get_tile_key(x + dx, y + dy)
-			if !tiles.has(key): return false
-			var tile = tiles[key]
-			if tile.type == "core": return false
-			if tile.unit and not (tile.unit in ignore_units): return false
-			if tile.occupied_by != Vector2i.ZERO:
-				var origin_key = get_tile_key(tile.occupied_by.x, tile.occupied_by.y)
-				if tiles.has(origin_key):
-					var occupant = tiles[origin_key].unit
-					if occupant and not (occupant in ignore_units):
-						return false
 	return true
 
 func _perform_swap(unit_a, unit_b):
 	var pos_a = unit_a.grid_pos
 	var pos_b = unit_b.grid_pos
-	var size_a = unit_a.unit_data.size
-	var size_b = unit_b.unit_data.size
 
-	_clear_tiles_occupied(pos_a.x, pos_a.y, size_a.x, size_a.y)
-	_clear_tiles_occupied(pos_b.x, pos_b.y, size_b.x, size_b.y)
+	_clear_tiles_occupied(pos_a.x, pos_a.y)
+	_clear_tiles_occupied(pos_b.x, pos_b.y)
 
 	unit_a.grid_pos = pos_b
-	_set_tiles_occupied(pos_b.x, pos_b.y, size_a.x, size_a.y, unit_a)
+	_set_tiles_occupied(pos_b.x, pos_b.y, unit_a)
 
 	unit_b.grid_pos = pos_a
-	_set_tiles_occupied(pos_a.x, pos_a.y, size_b.x, size_b.y, unit_b)
+	_set_tiles_occupied(pos_a.x, pos_a.y, unit_b)
 
 	var tile_for_a = tiles[get_tile_key(pos_b.x, pos_b.y)]
-	unit_a.position = tile_for_a.position + Vector2((size_a.x-1) * TILE_SIZE * 0.5, (size_a.y-1) * TILE_SIZE * 0.5)
+	unit_a.position = tile_for_a.position
 	unit_a.start_position = unit_a.position
 
 	var tile_for_b = tiles[get_tile_key(pos_a.x, pos_a.y)]
-	unit_b.position = tile_for_b.position + Vector2((size_b.x-1) * TILE_SIZE * 0.5, (size_b.y-1) * TILE_SIZE * 0.5)
+	unit_b.position = tile_for_b.position
 	unit_b.start_position = unit_b.position
 
 	recalculate_buffs()

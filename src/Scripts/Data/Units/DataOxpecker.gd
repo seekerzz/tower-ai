@@ -2,7 +2,6 @@ class_name DataOxpecker
 
 const DATA: Dictionary = {
 	"name": "牛椋鸟", "icon": "🐦",
-	"size": [1, 1],
 	"range": 300, "atkSpeed": 1.0,
 	"attackType": "ranged",
 	"crit_rate": 0.1, "crit_dmg": 1.5,

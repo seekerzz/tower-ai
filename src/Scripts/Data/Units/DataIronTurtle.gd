@@ -2,7 +2,6 @@ class_name DataIronTurtle
 
 const DATA: Dictionary = {
 	"name": "铁甲龟", "icon": "🐢🛡️",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 0.8, "manaCost": 0,
 	"attackType": "melee",
 	"trait": "flat_reduce", "flat_amount": 20,

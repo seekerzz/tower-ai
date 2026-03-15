@@ -2,7 +2,6 @@ class_name DataRabbit
 
 const DATA: Dictionary = {
 	"name": "兔子", "icon": "🐇",
-	"size": [1, 1],
 	"range": 80, "atkSpeed": 1.2, "manaCost": 0,
 	"attackType": "none",
 	"has_interaction": true, "buff_id": "bounce",

@@ -5,7 +5,6 @@ const DATA: Dictionary = {
 	"type": "summoned",
 	"damage": 8, "atkSpeed": 1.5, "range": 80,
 	"hp": 30, "lifetime": 25,
-	"size": [1, 1],
 	"attackType": "melee", "damageType": "physical",
 	"type_key": "spiderling", "faction": "universal",
 	"levels": {

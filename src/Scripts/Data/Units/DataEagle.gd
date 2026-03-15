@@ -2,7 +2,6 @@ class_name DataEagle
 
 const DATA: Dictionary = {
 	"name": "老鹰", "icon": "🦅",
-	"size": [1, 1],
 	"range": 400, "atkSpeed": 1.2, "manaCost": 0,
 	"attackType": "melee", "damageType": "physical",
 	"crit_rate": 0.2, "crit_dmg": 1.5,

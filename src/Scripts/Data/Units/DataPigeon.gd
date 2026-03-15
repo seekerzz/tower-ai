@@ -2,7 +2,6 @@ class_name DataPigeon
 
 const DATA: Dictionary = {
 	"name": "鸽子", "icon": "🕊️",
-	"size": [1, 1],
 	"range": 200, "atkSpeed": 1.0,
 	"attackType": "ranged", "damageType": "physical",
 	"type_key": "pigeon", "faction": "eagle_totem",
