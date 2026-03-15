@@ -43,6 +43,13 @@ func _ready():
 	# Calculate min allowed zoom (maximum field of view)
 	calculate_min_allowed_zoom()
 
+	if background and not background.texture:
+		var bg_tex = load("res://assets/images/UI/bg_battle.png")
+		if bg_tex:
+			background.texture = bg_tex
+		else:
+			printerr("[MainGame] Failed to load background texture: res://assets/images/UI/bg_battle.png")
+
 	setup_background()
 
 	# Initial camera position will be set by zoom_to_fit_board later or we call it now to verify

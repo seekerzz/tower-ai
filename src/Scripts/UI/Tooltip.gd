@@ -44,6 +44,9 @@ func show_tooltip(unit_data: Dictionary, current_stats: Dictionary, active_buffs
 	title_label.text = "[b]" + unit_data.get("name", "Unknown") + "[/b]"
 
 	var desc = unit_data.get("desc", "")
+	var lvl = unit_data.get("level", 1)
+	if unit_data.has("levels") and unit_data["levels"].has(str(lvl)):
+		desc = unit_data["levels"][str(lvl)].get("desc", desc)
 	var stats_text = ""
 
 	# Emoji Style

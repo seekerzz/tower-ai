@@ -7,7 +7,8 @@ var cheat_items = [
 	{ "label": "Skip Wave", "type": "button", "shortcut": KEY_2, "method": "_on_skip_wave_pressed" },
 	{ "label": "God Mode", "type": "checkbox", "shortcut": KEY_3, "property": "cheat_god_mode" },
 	{ "label": "Infinite Resources", "type": "checkbox", "shortcut": KEY_4, "property": "cheat_infinite_resources" },
-	{ "label": "Fast Skills (1s)", "type": "checkbox", "shortcut": KEY_5, "property": "cheat_fast_cooldown" }
+	{ "label": "Fast Skills (1s)", "type": "checkbox", "shortcut": KEY_5, "property": "cheat_fast_cooldown" },
+	{ "label": "Upgrade All Units", "type": "button", "shortcut": KEY_6, "method": "_on_upgrade_all_units_pressed" }
 ]
 
 var ui_elements = {} # Map shortcut key or ID to UI element to update state
@@ -128,3 +129,56 @@ func _show_feedback(text: String):
 	# Since the menu handles input, we can assume mouse is over the menu or somewhere.
 	# But creating a Label on the fly inside the menu is also fine.
 	pass
+
+func _on_upgrade_all_units_pressed():
+	if not GameManager.grid_manager or not GameManager.session_data:
+		print("[Cheat] GameManager missing dependencies for upgrade")
+		return
+
+	var tiles_dict = GameManager.grid_manager.tiles
+	var units_to_respawn = []
+
+	# Gather allied units on board
+	for key in tiles_dict:
+		var tile = tiles_dict[key]
+		if tile.unit and is_instance_valid(tile.unit):
+			var pos = tile.unit.grid_pos
+			var session_u = GameManager.session_data.get_grid_unit(pos)
+			if session_u:
+				units_to_respawn.append({
+					"pos": pos,
+					"key": session_u.get("key", tile.unit.type_key),
+					"level": session_u.get("level", tile.unit.level) + 1,
+					"old_unit": tile.unit
+				})
+
+	# Remove and respawn
+	var count = 0
+	for data in units_to_respawn:
+		var pos = data.pos
+		var old_unit = data.old_unit
+		var u_key = data.key
+		var new_level = data.level
+		
+		# 1. Remove old unit
+		GameManager.grid_manager.remove_unit_from_grid(old_unit)
+		
+		# 2. Place new unit
+		if GameManager.grid_manager.place_unit(u_key, pos.x, pos.y):
+			# 3. Set level and update session_data
+			var new_tile = GameManager.grid_manager.tiles["%d,%d" % [pos.x, pos.y]]
+			if new_tile.unit:
+				new_tile.unit.level = new_level
+				new_tile.unit.reset_stats()
+				new_tile.unit.current_hp = new_tile.unit.max_hp
+			
+			var new_data = {
+				"key": u_key,
+				"level": new_level,
+				"grid_pos": pos
+			}
+			GameManager.session_data.set_grid_unit(pos, new_data)
+			count += 1
+			
+	print("[Cheat] Upgraded %d units on the board." % count)
+	_show_feedback("Upgraded %d Units!" % count)

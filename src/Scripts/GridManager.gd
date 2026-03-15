@@ -890,6 +890,10 @@ func remove_unit_from_grid(unit):
 		unit.attachment = null
 
 	_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y)
+	
+	if GameManager.session_data:
+		GameManager.session_data.set_grid_unit(unit.grid_pos, null)
+		
 	unit.queue_free()
 	recalculate_buffs()
 	GameManager.recalculate_max_health()
@@ -903,6 +907,10 @@ func handle_bench_drop_at(target_tile, data):
 	if place_unit(unit_key, target_tile.x, target_tile.y):
 		# Success, remove from bench via SessionData
 		if GameManager.session_data:
+			var unit_data = GameManager.session_data.get_bench_unit(bench_index)
+			if unit_data != null:
+				unit_data["grid_pos"] = Vector2i(target_tile.x, target_tile.y)
+				GameManager.session_data.set_grid_unit(Vector2i(target_tile.x, target_tile.y), unit_data)
 			GameManager.session_data.set_bench_unit(bench_index, null)
 		else:
 			print("GridManager: GameManager.session_data is null during bench drop!")
@@ -1005,7 +1013,16 @@ func try_move_unit(unit, from_tile, to_tile) -> bool:
 	return false
 
 func _move_unit_internal(unit, new_x, new_y):
-	_clear_tiles_occupied(unit.grid_pos.x, unit.grid_pos.y)
+	var old_pos = unit.grid_pos
+	_clear_tiles_occupied(old_pos.x, old_pos.y)
+	
+	if GameManager.session_data:
+		var unit_data = GameManager.session_data.get_grid_unit(old_pos)
+		if unit_data:
+			GameManager.session_data.set_grid_unit(old_pos, null)
+			unit_data["grid_pos"] = Vector2i(new_x, new_y)
+			GameManager.session_data.set_grid_unit(Vector2i(new_x, new_y), unit_data)
+
 	unit.grid_pos = Vector2i(new_x, new_y)
 	_set_tiles_occupied(new_x, new_y, unit)
 
@@ -1036,6 +1053,14 @@ func can_swap(unit_a, unit_b) -> bool:
 func _perform_swap(unit_a, unit_b):
 	var pos_a = unit_a.grid_pos
 	var pos_b = unit_b.grid_pos
+
+	if GameManager.session_data:
+		var data_a = GameManager.session_data.get_grid_unit(pos_a)
+		var data_b = GameManager.session_data.get_grid_unit(pos_b)
+		if data_a: data_a["grid_pos"] = pos_b
+		if data_b: data_b["grid_pos"] = pos_a
+		GameManager.session_data.set_grid_unit(pos_a, data_b)
+		GameManager.session_data.set_grid_unit(pos_b, data_a)
 
 	_clear_tiles_occupied(pos_a.x, pos_a.y)
 	_clear_tiles_occupied(pos_b.x, pos_b.y)

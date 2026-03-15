@@ -42,7 +42,11 @@ func on_area_2d_mouse_entered():
 		"crit_rate": unit.crit_rate,
 		"crit_dmg": unit.crit_dmg
 	}
-	GameManager.show_tooltip.emit(unit.unit_data, current_stats, unit.active_buffs, unit.global_position)
+	
+	var passed_unit_data = unit.unit_data.duplicate()
+	passed_unit_data["level"] = unit.level
+	
+	GameManager.show_tooltip.emit(passed_unit_data, current_stats, unit.active_buffs, unit.global_position)
 
 func on_area_2d_mouse_exited():
 	is_hovered = false

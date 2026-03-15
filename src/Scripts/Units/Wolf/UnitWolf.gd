@@ -216,6 +216,12 @@ func _get_base_stats_for_level() -> Dictionary:
 
 func get_description() -> String:
     var desc = unit_data.get("description", "")
+    var desc_mapped = unit_data.get("desc", desc)
+
+    if unit_data.has("levels") and unit_data["levels"].has(str(level)):
+        desc_mapped = unit_data["levels"][str(level)].get("desc", desc_mapped)
+
+    desc = desc_mapped
     if not consumed_data.is_empty():
         desc += "\n[Devour] %s" % consumed_data.get("unit_name", "Unknown")
         if consumed_data.has("inherited_mechanics"):
