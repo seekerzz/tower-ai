@@ -17,23 +17,17 @@ var kill_reset_internal_cd: float = 0.0
 var kill_reset_internal_cd_max: float = 10.0
 
 func on_setup():
-	# Set level-based stats
-	match unit.level:
-		1:
-			stun_chance = 0.15
-			stun_duration = 1.0
-			bonus_vs_stunned = 0.5
-			skill_stun_duration = 1.5
-		2:
-			stun_chance = 0.22
-			stun_duration = 1.2
-			bonus_vs_stunned = 0.75
-			skill_stun_duration = 2.0
-		3:
-			stun_chance = 0.30
-			stun_duration = 1.5
-			bonus_vs_stunned = 1.0
-			skill_stun_duration = 2.5
+	_update_mechanics()
+
+func _update_mechanics():
+	var m = unit.unit_data.get("levels", {}).get(str(unit.level), {}).get("mechanics", {})
+	stun_chance         = m.get("stun_chance", 0.15)
+	stun_duration       = m.get("stun_duration", 1.0)
+	bonus_vs_stunned    = m.get("bonus_vs_stunned", 0.5)
+	skill_stun_duration = m.get("skill_stun_duration", 1.5)
+
+func on_stats_updated():
+	_update_mechanics()
 
 func on_tick(delta: float):
 	# Lv3: Manage internal cooldown for kill reset

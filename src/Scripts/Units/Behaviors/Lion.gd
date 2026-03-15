@@ -11,17 +11,15 @@ var knockback_chance: float = 0.0
 var secondary_shockwave_delay: float = 0.5
 
 func on_setup():
-	# Set level-based stats
-	match unit.level:
-		1:
-			shockwave_radius = 150.0
-			knockback_chance = 0.0
-		2:
-			shockwave_radius = 180.0
-			knockback_chance = 0.20
-		3:
-			shockwave_radius = 200.0
-			knockback_chance = 0.30
+	_update_mechanics()
+
+func _update_mechanics():
+	var m = unit.unit_data.get("levels", {}).get(str(unit.level), {}).get("mechanics", {})
+	shockwave_radius = m.get("shockwave_radius", 150.0)
+	knockback_chance = m.get("knockback_chance", 0.0)
+
+func on_stats_updated():
+	_update_mechanics()
 
 func on_combat_tick(delta: float) -> bool:
 	# Take over attack logic - Lion uses circular shockwave instead of normal attacks

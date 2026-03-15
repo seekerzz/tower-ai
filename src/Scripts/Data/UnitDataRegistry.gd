@@ -1,0 +1,108 @@
+class_name UnitDataRegistry
+
+## 聚合所有单位和敌人变体的静态数据
+## 替代 DataManager 中的 JSON 文件读取
+
+static func get_all_units() -> Dictionary:
+	return {
+		# 狼图腾 (wolf_totem)
+		"wolf":          DataWolf.DATA,
+		"tiger":         DataTiger.DATA,
+		"lion":          DataLion.DATA,
+		"dog":           DataDog.DATA,
+		"fox":           DataFox.DATA,
+		"hyena":         DataHyena.DATA,
+		"sheep_spirit":  DataSheepSpirit.DATA,
+		"blood_meat":    DataBloodMeat.DATA,
+		"blood_food":    DataBloodFood.DATA,
+		# 牛图腾 (cow_totem)
+		"cow":            DataCow.DATA,
+		"hedgehog":       DataHedgehog.DATA,
+		"iron_turtle":    DataIronTurtle.DATA,
+		"mushroom_healer":DataMushroomHealer.DATA,
+		"rock_armor_cow": DataRockArmorCow.DATA,
+		"cow_golem":      DataCowGolem.DATA,
+		"yak_guardian":   DataYakGuardian.DATA,
+		"ascetic":        DataAscetic.DATA,
+		"plant":          DataPlant.DATA,
+		# 蝙蝠图腾 (bat_totem)
+		"mosquito":      DataMosquito.DATA,
+		"vampire_bat":   DataVampireBat.DATA,
+		"plague_spreader":DataPlagueSpreader.DATA,
+		"blood_mage":    DataBloodMage.DATA,
+		"blood_ancestor":DataBloodAncestor.DATA,
+		"blood_ritualist":DataBloodRitualist.DATA,
+		"blood_chalice": DataBloodChalice.DATA,
+		"life_chain":    DataLifeChain.DATA,
+		# 毒蛇图腾 (viper_totem)
+		"scorpion":      DataScorpion.DATA,
+		"viper":         DataViper.DATA,
+		"arrow_frog":    DataArrowFrog.DATA,
+		"lure_snake":    DataLureSnake.DATA,
+		"medusa":        DataMedusa.DATA,
+		# 蝴蝶图腾 (butterfly_totem)
+		"butterfly":     DataButterfly.DATA,
+		"phoenix":       DataPhoenix.DATA,
+		"fairy_dragon":  DataFairyDragon.DATA,
+		"ice_butterfly": DataIceButterfly.DATA,
+		"firefly":       DataFirefly.DATA,
+		"forest_sprite": DataForestSprite.DATA,
+		# 鹰之图腾 (eagle_totem)
+		"parrot":        DataParrot.DATA,
+		"peacock":       DataPeacock.DATA,
+		"eagle":         DataEagle.DATA,
+		"oxpecker":      DataOxpecker.DATA,
+		"woodpecker":    DataWoodpecker.DATA,
+		"storm_eagle":   DataStormEagle.DATA,
+		"gale_eagle":    DataGaleEagle.DATA,
+		"harpy_eagle":   DataHarpyEagle.DATA,
+		"vulture":       DataVulture.DATA,
+		"kestrel":       DataKestrel.DATA,
+		"owl":           DataOwl.DATA,
+		"magpie":        DataMagpie.DATA,
+		"pigeon":        DataPigeon.DATA,
+		# 通用 (universal)
+		"squirrel":      DataSquirrel.DATA,
+		"octopus":       DataOctopus.DATA,
+		"bee":           DataBee.DATA,
+		"eel":           DataEel.DATA,
+		"bear":          DataBear.DATA,
+		"dragon":        DataDragon.DATA,
+		"spider":        DataSpider.DATA,
+		"rabbit":        DataRabbit.DATA,
+		"snowman":       DataSnowman.DATA,
+		"lucky_cat":     DataLuckyCat.DATA,
+		"meat":          DataMeat.DATA,
+		"torch":         DataTorch.DATA,
+		"cauldron":      DataCauldron.DATA,
+		"drum":          DataDrum.DATA,
+		"mirror":        DataMirror.DATA,
+		"splitter":      DataSplitter.DATA,
+		"shell":         DataShell.DATA,
+		"sunflower":     DataSunflower.DATA,
+		"rage_bear":     DataRageBear.DATA,
+		# 召唤单位
+		"spiderling":    DataSpiderling.DATA,
+		"enemy_clone":   DataEnemyClone.DATA,
+	}
+
+static func get_all_enemies() -> Dictionary:
+	return {
+		"slime":         DataEnemySlime.DATA,
+		"mutant_slime":  DataEnemyMutantSlime.DATA,
+		"crab":          DataEnemyCrab.DATA,
+		"wolf":          DataEnemyWolf.DATA,
+		"poison":        DataEnemyPoison.DATA,
+		"treant":        DataEnemyTreant.DATA,
+		"yeti":          DataEnemyYeti.DATA,
+		"golem":         DataEnemyGolem.DATA,
+		"healer":        DataEnemyHealer.DATA,
+		"shooter":       DataEnemyShooter.DATA,
+		"archer_rat":    DataEnemyArcherRat.DATA,
+		"minion":        DataEnemyMinion.DATA,
+		"bullet_entity": DataEnemyBulletEntity.DATA,
+		"summoner":      DataEnemySummoner.DATA,
+		"ranger":        DataEnemyRanger.DATA,
+		"tank":          DataEnemyTank.DATA,
+		"boss":          DataEnemyBoss.DATA,
+	}
