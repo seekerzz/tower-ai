@@ -69,15 +69,23 @@ func create_summon(data: Dictionary):
 	return summon
 
 func _inherit_stats(summon, source, ratio: float):
-	if "damage" in source:
-		summon.damage = source.damage * ratio
-	if "max_hp" in source:
-		summon.max_hp = source.max_hp * ratio
+	# 使用get()方法获取属性，因为"property" in object语法不能正确检查带getter/setter的属性
+	var src_damage = source.get("damage")
+	if src_damage != null and src_damage > 0:
+		summon.damage = src_damage * ratio
+
+	var src_max_hp = source.get("max_hp")
+	if src_max_hp != null and src_max_hp > 0:
+		summon.max_hp = src_max_hp * ratio
 		summon.current_hp = summon.max_hp
-	if "atk_speed" in source:
-		summon.atk_speed = source.atk_speed
-	if "range_val" in source:
-		summon.range_val = source.range_val # Also inherit range often useful for clones
+
+	var src_atk_speed = source.get("atk_speed")
+	if src_atk_speed != null and src_atk_speed > 0:
+		summon.atk_speed = src_atk_speed
+
+	var src_range_val = source.get("range_val")
+	if src_range_val != null and src_range_val > 0:
+		summon.range_val = src_range_val # Also inherit range often useful for clones
 
 func _on_summon_removed(summon):
 	if summon in active_summons:

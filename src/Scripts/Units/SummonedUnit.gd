@@ -4,6 +4,7 @@ extends "res://src/Scripts/Unit.gd"
 @export var lifetime: float = 25.0
 @export var is_clone: bool = false
 @export var summon_source: Unit = null
+@export var faction: String = "player"
 
 var lifetime_timer: Timer
 
