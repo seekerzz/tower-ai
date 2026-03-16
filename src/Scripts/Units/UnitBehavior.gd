@@ -25,7 +25,7 @@ func on_skill_activated():
 
 # Called when unit takes damage. Return modified damage amount.
 # Used for reflection, reduction.
-func on_damage_taken(amount: float, source: Node2D) -> float:
+func on_damage_taken(amount: float, source: Node2D, damage_type: String = "physical", is_melee: bool = false) -> float:
 	return amount
 
 # Called when a projectile fired by this unit hits a target.

@@ -181,9 +181,9 @@ func _ensure_visual_hierarchy():
 	if visual_component:
 		visual_component.ensure_visual_hierarchy()
 
-func take_damage(amount: float, source_enemy = null):
+func take_damage(amount: float, source_enemy = null, damage_type: String = "physical", is_melee: bool = false):
 	if stats_component:
-		stats_component.take_damage(amount, source_enemy)
+		stats_component.take_damage(amount, source_enemy, damage_type, is_melee)
 
 	if visual_component:
 		visual_component.play_damage_hit_anim()

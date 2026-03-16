@@ -47,7 +47,7 @@ func reset_stats():
 	if GameManager.reward_manager and "focus_fire" in GameManager.reward_manager.acquired_artifacts:
 		range_val *= 1.2
 
-func take_damage(amount: float, source_enemy = null) -> float:
+func take_damage(amount: float, source_enemy = null, damage_type: String = "physical", is_melee: bool = false) -> float:
 	var original_amount = amount
 
 	if "guardian_shield" in unit.active_buffs:
@@ -56,7 +56,7 @@ func take_damage(amount: float, source_enemy = null) -> float:
 			var reduction = source.behavior.get_damage_reduction() if source.behavior.has_method("get_damage_reduction") else 0.05
 			amount = amount * (1.0 - reduction)
 
-	amount = unit.behavior.on_damage_taken(amount, source_enemy)
+	amount = unit.behavior.on_damage_taken(amount, source_enemy, damage_type, is_melee)
 
 	var blocked_amount = original_amount - amount
 	if blocked_amount > 0:

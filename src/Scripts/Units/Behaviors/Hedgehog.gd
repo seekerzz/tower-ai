@@ -1,16 +1,15 @@
 extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 
-var reflect_chance: float = 0.25
-
 func on_setup():
-	reflect_chance = 0.25
-	if unit.level >= 2:
-		reflect_chance = 0.40
+	pass
 
-func on_damage_taken(amount: float, source: Node) -> float:
+func on_damage_taken(amount: float, source: Node, damage_type: String = "physical", is_melee: bool = false) -> float:
+	var reflect_percent = unit.unit_data.get("reflect_percent", 0.3)
+	var actual_is_melee = is_melee or (source and "enemy_data" in source and source.enemy_data.get("attackType") == "melee")
+
 	# Reflect logic
-	if randf() < reflect_chance and source and is_instance_valid(source) and source.has_method("take_damage"):
-		var reflect_damage = amount
+	if actual_is_melee and source and is_instance_valid(source) and source.has_method("take_damage"):
+		var reflect_damage = amount * reflect_percent
 		# Reflect physical damage
 		source.take_damage(reflect_damage, unit, "physical")
 		unit.spawn_buff_effect("💢")
