@@ -223,6 +223,12 @@ func _ready():
 	wave_system_manager = WaveSystemScript.new()
 	add_child(wave_system_manager)
 	# 连接波次系统信号
+
+	# Initialize SummonManager
+	if summon_manager == null:
+		var SummonManagerScript = load("res://src/Scripts/Managers/SummonManager.gd")
+		summon_manager = SummonManagerScript.new()
+		add_child(summon_manager)
 	wave_system_manager.wave_started.connect(_on_wave_system_started)
 	wave_system_manager.wave_ended.connect(_on_wave_system_ended)
 	wave_system_manager.boss_wave_started.connect(_on_boss_wave_started)

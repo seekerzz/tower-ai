@@ -8,7 +8,7 @@ func _ready():
 
 func _on_enemy_died(enemy: Enemy, _killer: Node):
     if !is_instance_valid(enemy): return
-    if global_position.distance_to(enemy.global_position) > range_val:
+    if global_position.distance_to(enemy.global_position) > (range_val * Constants.TILE_SIZE):
         return
 
     var num_clones = 1 if level < 3 else 2

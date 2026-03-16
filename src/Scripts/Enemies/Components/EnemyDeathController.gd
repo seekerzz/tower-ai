@@ -18,6 +18,11 @@ func on_death_rewards():
 func die(killer_unit = null):
 	if enemy.is_dying:
 		return
+
+	if enemy.has_meta("is_clone") and enemy.get_meta("is_clone"):
+		enemy.queue_free()
+		return
+
 	enemy.is_dying = true
 	if enemy.has_meta("is_petrified") and enemy.get_meta("is_petrified"):
 		play_petrified_death_effect()

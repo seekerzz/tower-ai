@@ -40,6 +40,11 @@ func create_summon(data: Dictionary):
 		summon.lifetime = data.get("lifetime")
 
 	summon.is_clone = data.get("is_clone", false)
+	if summon.is_clone:
+		summon.set_meta("is_clone", true)
+
+	summon.faction = data.get("faction", "player")
+
 	summon.summon_source = data.get("source")
 	summon.global_position = data.get("position", Vector2.ZERO)
 
