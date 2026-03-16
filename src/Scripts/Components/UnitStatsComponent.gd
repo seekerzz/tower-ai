@@ -15,6 +15,10 @@ var current_hp: float = 0.0
 var crit_rate: float = 0.0
 var crit_dmg: float = 1.5
 
+var dodge_chance: float = 0.0
+var shield: float = 0.0
+var damage_reduction: float = 0.0
+
 func _init(target_unit: Node2D):
 	unit = target_unit
 
@@ -36,6 +40,10 @@ func reset_stats():
 	crit_rate = unit.unit_data.get("crit_rate", 0.1)
 	crit_dmg = unit.unit_data.get("crit_dmg", 1.5)
 
+	dodge_chance = unit.unit_data.get("dodge_chance", 0.0)
+	shield = unit.unit_data.get("shield", 0.0)
+	damage_reduction = unit.unit_data.get("damage_reduction", 0.0)
+
 	attack_cost_mana = unit.unit_data.get("manaCost", 0.0)
 	skill_mana_cost = unit.unit_data.get("skillCost", 30.0)
 
@@ -47,25 +55,70 @@ func reset_stats():
 	if GameManager.reward_manager and "focus_fire" in GameManager.reward_manager.acquired_artifacts:
 		range_val *= 1.2
 
-func take_damage(amount: float, source_enemy = null) -> float:
-	var original_amount = amount
+func pre_damage_hit() -> bool:
+	print("[Combat] Checking Dodge... dodge_chance=", dodge_chance)
+	if dodge_chance > 0.0 and randf() < dodge_chance:
+		print("[Combat] Dodged!")
+		GameManager.ftext_spawn_requested.emit(unit.global_position, "Dodge", Color.WHITE, Vector2.ZERO)
+		return true
+	return false
+
+func calculate_mitigation(amount: float) -> float:
+	var mitigated_amount = amount
+	print("[Combat] Mitigation Start. amount=", amount, " dmg_reduction=", damage_reduction, " shield=", shield)
 
 	if "guardian_shield" in unit.active_buffs:
 		var source = unit.buff_sources.get("guardian_shield")
 		if source and is_instance_valid(source) and source.behavior:
 			var reduction = source.behavior.get_damage_reduction() if source.behavior.has_method("get_damage_reduction") else 0.05
-			amount = amount * (1.0 - reduction)
+			mitigated_amount = mitigated_amount * (1.0 - reduction)
+			print("[Combat] Guardian Shield active. amount=", mitigated_amount)
 
-	amount = unit.behavior.on_damage_taken(amount, source_enemy)
+	if damage_reduction > 0.0:
+		mitigated_amount = mitigated_amount * (1.0 - damage_reduction)
+		print("[Combat] Damage Reduction active. amount=", mitigated_amount)
 
-	var blocked_amount = original_amount - amount
-	if blocked_amount > 0:
-		unit.damage_blocked.emit(blocked_amount, source_enemy)
+	if shield > 0.0:
+		var shield_absorb = min(shield, mitigated_amount)
+		shield -= shield_absorb
+		mitigated_amount -= shield_absorb
+		print("[Combat] Shield Absorb: ", shield_absorb, " Remaining amount=", mitigated_amount)
 
+	return mitigated_amount
+
+func on_damage_applied(amount: float):
 	current_hp = max(0, current_hp - amount)
 	GameManager.damage_core(amount)
 
-	return amount
+	if unit.visual_component:
+		unit.visual_component.play_damage_hit_anim()
+
+func post_damage(final_amount: float, original_amount: float, source_enemy) -> float:
+	var context = {
+		"amount": final_amount,
+		"original_amount": original_amount,
+		"source": source_enemy
+	}
+	var behavior_amount = unit.behavior.on_damage_taken(context)
+
+	var blocked_amount = original_amount - behavior_amount
+	if blocked_amount > 0:
+		unit.damage_blocked.emit(blocked_amount, source_enemy)
+
+	return behavior_amount
+
+func take_damage(amount: float, source_enemy = null) -> float:
+	if pre_damage_hit():
+		return 0.0
+
+	var mitigated_amount = calculate_mitigation(amount)
+	var original_amount = amount
+
+	var final_amount = post_damage(mitigated_amount, original_amount, source_enemy)
+
+	on_damage_applied(final_amount)
+
+	return final_amount
 
 func heal(amount: float):
 	current_hp = min(current_hp + amount, max_hp)

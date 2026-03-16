@@ -1,0 +1,18 @@
+{
+  "total": 1,
+  "passed": 0,
+  "failed": 1,
+  "cases": [
+    {
+      "totem_id": "wolf_totem",
+      "combo_id": "hedgehog",
+      "success": false,
+      "crashes": 0,
+      "runtime_errors": 1,
+      "missing_key_events": [
+        "game_WaveEnded",
+        "timeout"
+      ]
+    }
+  ]
+}
