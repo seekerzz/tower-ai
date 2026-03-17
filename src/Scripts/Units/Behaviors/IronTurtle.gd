@@ -1,13 +1,9 @@
 extends "res://src/Scripts/Units/Behaviors/DefaultBehavior.gd"
 
-var damage_reduction: int = 15
+var damage_reduction: float = 20.0
 
 func on_setup():
-	damage_reduction = 15
-	if unit.level >= 2:
-		damage_reduction = 25
-	if unit.level >= 3:
-		damage_reduction = 35
+	damage_reduction = unit.unit_data.get("flat_amount", 20.0)
 
 func on_damage_taken(amount: float, source: Node) -> float:
 	var reduced = max(0, amount - damage_reduction)

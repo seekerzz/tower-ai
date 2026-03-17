@@ -160,10 +160,18 @@ func attack_logic(delta, target: Node2D):
 	if not GameManager.grid_manager:
 		return
 	var target_pos = GameManager.grid_manager.global_position
-	var is_targeting_unit = (target != null)
+	var resolved_target: Node2D = target
 
-	if target and is_instance_valid(target):
-		target_pos = target.global_position
+	if resolved_target and not is_instance_valid(resolved_target):
+		resolved_target = null
+
+	if data.get("attackType") != "ranged" and resolved_target == null:
+		resolved_target = _find_nearest_unit_target(data.radius + 10.0)
+
+	var is_targeting_unit = (resolved_target != null)
+
+	if resolved_target:
+		target_pos = resolved_target.global_position
 	elif current_target_tile and is_instance_valid(current_target_tile):
 		target_pos = current_target_tile.global_position
 
@@ -194,9 +202,9 @@ func attack_logic(delta, target: Node2D):
 		else:
 			play_attack_animation(target_pos, func():
 				if is_targeting_unit:
-					if target and is_instance_valid(target):
-						if target.has_method("take_damage"):
-							target.take_damage(data.dmg, enemy)
+					if resolved_target and is_instance_valid(resolved_target):
+						if resolved_target.has_method("take_damage"):
+							resolved_target.take_damage(data.dmg, enemy)
 					# If target became invalid during animation, attack misses (do not hit core)
 				else:
 					# Default core attack
@@ -207,6 +215,25 @@ func attack_logic(delta, target: Node2D):
 						update_path()
 			)
 
+
+func _find_nearest_unit_target(max_range: float) -> Node2D:
+	if not GameManager.grid_manager:
+		return null
+
+	var nearest: Node2D = null
+	var min_dist: float = max_range
+
+	for tile in GameManager.grid_manager.tiles.values():
+		if not tile or not is_instance_valid(tile):
+			continue
+		var unit = tile.get("unit")
+		if unit and is_instance_valid(unit):
+			var dist = enemy.global_position.distance_to(unit.global_position)
+			if dist <= min_dist:
+				min_dist = dist
+				nearest = unit
+
+	return nearest
 func cancel_attack():
 	if anim_tween and anim_tween.is_valid():
 		anim_tween.kill()
