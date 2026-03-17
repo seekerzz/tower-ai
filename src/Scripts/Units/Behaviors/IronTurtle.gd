@@ -13,7 +13,7 @@ func on_calculate_mitigation(context: DamageContext):
 	var amount = context.final_damage
 	var reduced = max(0, amount - damage_reduction)
 
-	print("[IronTurtle Debug] Original: %.1f, Reduced: %.1f (DR: %d)" % [amount, reduced, damage_reduction])
+	AILogger.action("[战斗][调试] 铁甲龟 减伤生效: %.1f -> %.1f (基础减伤: %d)" % [amount, reduced, damage_reduction])
 
 	if unit.level >= 3 and reduced <= 0 and amount > 0:
 		var heal_amount = GameManager.max_core_health * 0.005

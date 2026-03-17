@@ -97,9 +97,12 @@ func apply_damage(context: DamageContext):
 		unit.damage_blocked.emit(blocked, context.source)
 
 # DEPRECATED
-func take_damage(amount: float, source_enemy = null) -> float:
-	unit.take_damage(amount, source_enemy)
-	return amount
+func take_damage(amount: float, source_node = null) -> float:
+	# This now routes through Unit.gd which creates a context
+	# We can't easily return the final damage without a major rewrite of this deprecated stub,
+	# but we can try to trigger the flow.
+	unit.take_damage(amount, source_node)
+	return amount # Note: this may differ from old behavior which returned reduced amount
 
 func heal(amount: float):
 	current_hp = min(current_hp + amount, max_hp)

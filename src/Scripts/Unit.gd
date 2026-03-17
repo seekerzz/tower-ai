@@ -193,7 +193,8 @@ func take_damage(amount: float, source_node = null):
 
 	if context.is_miss or context.is_dodge:
 		var label = "Miss" if context.is_miss else "Dodge"
-		print("[%s Debug] %s! (Source: %s)" % [name, label, context.source.name if context.source else "Unknown"])
+		var source_name = context.source.name if context.source and is_instance_valid(context.source) else "Unknown"
+		AILogger.action("[战斗] %s 对 %s 的攻击被 %s (调试: %s)" % [source_name, type_key, "闪避" if context.is_dodge else "命中失败(Miss)", "Dodge" if context.is_dodge else "Miss"])
 		GameManager.spawn_floating_text(global_position, label, Color.GRAY)
 		return
 

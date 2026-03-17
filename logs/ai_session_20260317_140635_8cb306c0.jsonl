@@ -1,0 +1,1 @@
+{"seq": 592, "session_id": "20260317_140635_8cb306c0", "ts_ms": 1773756897842, "source": "gateway", "event_type": "ws_disconnected", "payload": {"reason": "connection_closed"}, "request_id": null}

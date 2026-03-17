@@ -18,7 +18,8 @@ func on_post_damage_applied(context: DamageContext):
 		source.take_damage(reflect_damage, unit, "physical")
 		unit.spawn_buff_effect("💢")
 
-		print("[Hedgehog Debug] Reflected %.1f damage to %s" % [reflect_damage, source.name])
+		var source_name = source.name if "name" in source else "Unknown"
+		AILogger.action("[战斗] 刺猬 反伤生效: 向 %s 反弹 %.1f 伤害" % [source_name, reflect_damage])
 
 		if unit.level >= 3:
 			_launch_spikes()
