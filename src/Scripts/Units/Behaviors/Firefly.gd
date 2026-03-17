@@ -13,6 +13,7 @@ func on_projectile_hit(target: Node2D, damage: float, projectile: Node2D):
 
 	if target.has_method("apply_blind"):
 		target.apply_blind(blind_duration)
+		print("[Firefly Debug] Applied blind to %s for %.1f s" % [target.name, blind_duration])
 
 	if unit.level >= 3:
 		if target.has_signal("attack_missed"):

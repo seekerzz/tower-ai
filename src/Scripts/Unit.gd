@@ -36,6 +36,7 @@ const UNIT_INTERACTION_COMPONENT = preload("res://src/Scripts/Components/UnitInt
 const UNIT_SKILL_SERVICE = preload("res://src/Scripts/Services/UnitSkillService.gd")
 const UNIT_PROGRESSION_SERVICE = preload("res://src/Scripts/Services/UnitProgressionService.gd")
 const UNIT_SPATIAL_QUERY_SERVICE = preload("res://src/Scripts/Services/UnitSpatialQueryService.gd")
+const DamageContext = preload("res://src/Scripts/CoreMechanics/DamageContext.gd")
 
 # Proxy properties to components to avoid breaking other files
 var damage: float:
@@ -181,12 +182,39 @@ func _ensure_visual_hierarchy():
 	if visual_component:
 		visual_component.ensure_visual_hierarchy()
 
-func take_damage(amount: float, source_enemy = null):
+func take_damage(amount: float, source_node = null):
+	var context = DamageContext.new(source_node, self, amount)
+
+	# Phase A: Hit Detection
 	if stats_component:
-		stats_component.take_damage(amount, source_enemy)
+		stats_component.process_hit_detection(context)
+	if behavior:
+		behavior.on_pre_damage_hit(context)
+
+	if context.is_miss or context.is_dodge:
+		var label = "Miss" if context.is_miss else "Dodge"
+		print("[%s Debug] %s! (Source: %s)" % [name, label, context.source.name if context.source else "Unknown"])
+		GameManager.spawn_floating_text(global_position, label, Color.GRAY)
+		return
+
+	# Phase B: Mitigation & Shield
+	if stats_component:
+		stats_component.process_mitigation(context)
+	if behavior:
+		behavior.on_calculate_mitigation(context)
+
+	# Phase C: Application
+	if stats_component:
+		stats_component.apply_damage(context)
+	if behavior:
+		behavior.on_damage_applied(context)
 
 	if visual_component:
 		visual_component.play_damage_hit_anim()
+
+	# Phase D: Feedback
+	if behavior:
+		behavior.on_post_damage_applied(context)
 
 func reset_stats():
 	if stats_component:

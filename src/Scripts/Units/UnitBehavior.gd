@@ -1,6 +1,8 @@
 extends RefCounted
 class_name UnitBehavior
 
+const DamageContext = preload("res://src/Scripts/CoreMechanics/DamageContext.gd")
+
 var unit: Node2D
 
 func _init(target_unit: Node2D):
@@ -23,9 +25,24 @@ func on_combat_tick(delta: float) -> bool:
 func on_skill_activated():
 	pass
 
-# Called when unit takes damage. Return modified damage amount.
-# Used for reflection, reduction.
-func on_damage_taken(amount: float, source: Node2D) -> float:
+# Phase A: Hit detection. Can set context.is_miss or context.is_dodge.
+func on_pre_damage_hit(_context: DamageContext):
+	pass
+
+# Phase B: Damage reduction and shield. Modify context.final_damage.
+func on_calculate_mitigation(_context: DamageContext):
+	pass
+
+# Phase C: Final damage applied to stats.
+func on_damage_applied(_context: DamageContext):
+	pass
+
+# Phase D: Feedback (reflection, etc.)
+func on_post_damage_applied(_context: DamageContext):
+	pass
+
+# DEPRECATED: Use new lifecycle hooks above.
+func on_damage_taken(amount: float, _source: Node) -> float:
 	return amount
 
 # Called when a projectile fired by this unit hits a target.

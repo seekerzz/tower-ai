@@ -1,6 +1,8 @@
 extends RefCounted
 class_name UnitStatsComponent
 
+const DamageContext = preload("res://src/Scripts/CoreMechanics/DamageContext.gd")
+
 var unit: Node2D
 
 var damage: float
@@ -14,6 +16,9 @@ var current_hp: float = 0.0
 
 var crit_rate: float = 0.0
 var crit_dmg: float = 1.5
+
+var dodge_rate: float = 0.0
+var shield: float = 0.0
 
 func _init(target_unit: Node2D):
 	unit = target_unit
@@ -47,24 +52,53 @@ func reset_stats():
 	if GameManager.reward_manager and "focus_fire" in GameManager.reward_manager.acquired_artifacts:
 		range_val *= 1.2
 
-func take_damage(amount: float, source_enemy = null) -> float:
-	var original_amount = amount
+func process_hit_detection(context: DamageContext):
+	# Attacker's Blindness
+	if context.source and is_instance_valid(context.source):
+		if "blind_timer" in context.source and context.source.blind_timer > 0:
+			if randf() < 0.5: # 50% miss when blinded
+				context.is_miss = true
+				return
 
+	# Defender's Dodge
+	if dodge_rate > 0 and randf() < dodge_rate:
+		context.is_dodge = true
+
+func process_mitigation(context: DamageContext):
+	var amount = context.final_damage
+
+	# Guardian Shield (Legacy logic)
 	if "guardian_shield" in unit.active_buffs:
 		var source = unit.buff_sources.get("guardian_shield")
 		if source and is_instance_valid(source) and source.behavior:
 			var reduction = source.behavior.get_damage_reduction() if source.behavior.has_method("get_damage_reduction") else 0.05
 			amount = amount * (1.0 - reduction)
 
-	amount = unit.behavior.on_damage_taken(amount, source_enemy)
+	# Unit Shield Component
+	if shield > 0:
+		var absorbed = min(shield, amount)
+		shield -= absorbed
+		amount -= absorbed
+		context.shield_absorbed = absorbed
+		# Emit AI signal
+		GameManager.shield_absorbed.emit(unit, absorbed, shield, context.source)
 
-	var blocked_amount = original_amount - amount
-	if blocked_amount > 0:
-		unit.damage_blocked.emit(blocked_amount, source_enemy)
+	context.final_damage = amount
 
-	current_hp = max(0, current_hp - amount)
-	GameManager.damage_core(amount)
+func apply_damage(context: DamageContext):
+	var amount = context.final_damage
 
+	if amount > 0:
+		current_hp = max(0, current_hp - amount)
+		GameManager.damage_core(amount)
+
+	var blocked = context.base_damage - amount - context.shield_absorbed
+	if blocked > 0:
+		unit.damage_blocked.emit(blocked, context.source)
+
+# DEPRECATED
+func take_damage(amount: float, source_enemy = null) -> float:
+	unit.take_damage(amount, source_enemy)
 	return amount
 
 func heal(amount: float):

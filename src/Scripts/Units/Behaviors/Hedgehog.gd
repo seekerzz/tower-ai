@@ -7,7 +7,10 @@ func on_setup():
 	if unit.level >= 2:
 		reflect_chance = 0.40
 
-func on_damage_taken(amount: float, source: Node) -> float:
+func on_post_damage_applied(context: DamageContext):
+	var amount = context.final_damage
+	var source = context.source
+
 	# Reflect logic
 	if randf() < reflect_chance and source and is_instance_valid(source) and source.has_method("take_damage"):
 		var reflect_damage = amount
@@ -15,9 +18,13 @@ func on_damage_taken(amount: float, source: Node) -> float:
 		source.take_damage(reflect_damage, unit, "physical")
 		unit.spawn_buff_effect("💢")
 
+		print("[Hedgehog Debug] Reflected %.1f damage to %s" % [reflect_damage, source.name])
+
 		if unit.level >= 3:
 			_launch_spikes()
 
+# DEPRECATED
+func on_damage_taken(amount: float, _source: Node) -> float:
 	return amount
 
 func _launch_spikes():
